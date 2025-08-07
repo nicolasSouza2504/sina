@@ -1,0 +1,5 @@
+.env
+/backend/.env
+/backend/.idea
+.idea
+/backend/go.sum

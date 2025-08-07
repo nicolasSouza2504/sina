@@ -1,0 +1,63 @@
+version: "3.8" # (Optional) Remove version if you are using docker-compose v2.x or higher
+volumes:
+  mongodb:
+    driver: local
+  postgres-volume:
+    driver: local
+
+services:
+  postgres-sesi-senai:
+    image: postgres:16
+    container_name: postgres-sesi-senai
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-sesi_senai}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+    networks:
+      - sesi-senai
+  mongodb-sesi-senai:
+    image: mongo:7.0.5
+    container_name: mongodb-sesi-senai
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-financial-internal}
+    networks:
+      - sesi-senai
+  nginx-sesi-senai:
+    image: nginx:latest
+    container_name: nginx-sesi-senai
+    ports:
+      - "8732:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - sesi-senai
+
+  main-backend:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile
+    container_name: main-backend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "9000:8080"
+    depends_on:
+      - postgres-sesi-senai
+      - mongodb-sesi-senai
+    networks:
+      - sesi-senai
+networks:
+  sesi-senai:
+    driver: bridge
