@@ -1,0 +1,11 @@
+# .air.toml
+[build]
+cmd = "go build -o tmp/ava-api ./cmd/api"
+bin = "tmp/ava-api"
+full_bin = "tmp/ava-api"
+delay = 1000
+include_ext = ["go"]
+exclude_dir = ["vendor", "tmp", "storage", "tests"]
+
+[log]
+time = true
