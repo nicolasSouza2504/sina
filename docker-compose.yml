@@ -45,12 +45,12 @@ services:
       context: ./backend
       dockerfile: docker/Dockerfile
     container_name: main-backend
-    restart: always
     environment:
-      - NODE_ENV=production
       - PORT=3000
     volumes:
       - ./backend:/app
+    env_file:
+      - ./backend/.env
     ports:
       - "9000:8080"
     depends_on:
