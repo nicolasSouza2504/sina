@@ -8,6 +8,10 @@ import (
 	"github.com/uptrace/bun"
 )
 
+type IRolesRepository interface {
+	List(ctx context.Context) ([]Modules.Role, error)
+	GetByID(ctx context.Context, id int64) (*Modules.Role, error)
+}
 type RolesRepository struct {
 	db *bun.DB
 }

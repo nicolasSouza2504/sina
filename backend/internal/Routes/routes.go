@@ -3,19 +3,27 @@ package Routes
 import (
 	"net/http"
 
-	"ava-sesisenai/backend/internal/Container"
+	"ava-sesisenai/backend/internal/Controller"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Register(r *gin.Engine, c *Container.Container) {
-	r.GET("/health", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{"status": "Health status OK"})
+func Register(r *gin.Engine, users *Controller.UserController, roles *Controller.RolesController) {
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "Health status OK"})
 	})
+
+	r.NoRoute(func(c *gin.Context) { c.JSON(http.StatusNotFound, gin.H{"error": "route not found"}) })
+	r.NoMethod(func(c *gin.Context) { c.JSON(http.StatusMethodNotAllowed, gin.H{"error": "method not allowed"}) })
 
 	api := r.Group("/api")
 	{
-		api.GET("/roles", c.RolesCtl.List)
-		api.GET("/roles/:id", c.RolesCtl.Show)
+		u := api.Group("/users")
+		u.POST("", users.Create)
+		u.GET("", users.List)
+
+		rg := api.Group("/roles")
+		rg.GET("", roles.List)
+		rg.GET("/:id", roles.Show)
 	}
 }
