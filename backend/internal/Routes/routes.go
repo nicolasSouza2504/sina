@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(r *gin.Engine, users *Controller.UserController, roles *Controller.RolesController) {
+func Register(r *gin.Engine, users *Controller.UserController, roles *Controller.RolesController, classes *Controller.ClassController) {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "Health status OK"})
 	})
@@ -25,5 +25,12 @@ func Register(r *gin.Engine, users *Controller.UserController, roles *Controller
 		rg := api.Group("/roles")
 		rg.GET("", roles.List)
 		rg.GET("/:id", roles.Show)
+
+		cl := api.Group("/classes")
+		cl.GET("", classes.List);
+		cl.POST("", classes.Create);
+		cl.PUT("/:id", classes.Update);
+		cl.DELETE("/:id", classes.Delete);
+		
 	}
 }
