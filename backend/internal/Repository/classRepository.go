@@ -51,6 +51,7 @@ func (r *ClassRepository) GetByID(ctx context.Context, id int64) (*Modules.Class
 
 }
 
+
 func (repository *ClassRepository) Create(databaseContext context.Context, class *Modules.Class) (*Modules.Class, error) {
 	err := repository.db.RunInTx(databaseContext, nil, func(transactionContext context.Context, tx bun.Tx) error {
 		_, err := tx.NewInsert().Model(class).Exec(transactionContext)
@@ -82,6 +83,7 @@ func (repository *ClassRepository) Update(databaseContext context.Context, class
 	}
 	return class, nil
 }
+
 
 func (repository *ClassRepository) Delete(databaseContext context.Context, id int64) (*Modules.Class, error) {
 	var class Modules.Class

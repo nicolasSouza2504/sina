@@ -50,6 +50,7 @@ func (cc *ClassController) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, class)
 }
 
+
 func (cc *ClassController) Update(c *gin.Context) {
 
 	idStr := c.Param("id")
@@ -78,7 +79,8 @@ func (cc *ClassController) Update(c *gin.Context) {
 	c.JSON(http.StatusCreated, class)
 }
 
-func (cc *ClassController) Delete(c *gin.Context) {
+
+func (cc *ClassController) 	Delete(c *gin.Context) {
 
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
