@@ -60,7 +60,8 @@ func BuildContainer() *dig.Container {
 
 	// repos
 	must(c.Provide(Repository.NewUserRepository, dig.As(new(Repository.IUserRepository))))
-	must(c.Provide(Repository.NewRolesRepository))
+	must(c.Provide(Repository.NewAddressRepository, dig.As(new(Repository.IAddressRepository))))
+	must(c.Provide(Repository.NewRolesRepository, dig.As(new(Repository.IRolesRepository))))
 	must(c.Provide(Repository.NewClassRepository, dig.As(new(Repository.IClassRepository))))
 
 	// services

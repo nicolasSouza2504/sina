@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS address
     number       INTEGER  NOT NULL,
     neighborhood VARCHAR(150) NOT NULL,
     city         VARCHAR(150) NOT NULL,
-    state        VARCHAR(2)   NOT NULL,
+    state        VARCHAR(100)   NOT NULL,
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
