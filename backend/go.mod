@@ -2,7 +2,16 @@ module ava-sesisenai/backend
 
 go 1.24.6
 
-require github.com/gin-gonic/gin v1.10.1
+require (
+	github.com/gin-contrib/cors v1.7.6
+	github.com/gin-gonic/gin v1.10.1
+	github.com/uptrace/bun v1.2.15
+	github.com/uptrace/bun/dialect/pgdialect v1.2.15
+	github.com/uptrace/bun/driver/pgdriver v1.2.15
+	github.com/uptrace/bun/extra/bundebug v1.2.15
+	go.uber.org/dig v1.19.0
+	golang.org/x/crypto v0.40.0
+)
 
 require (
 	github.com/bytedance/sonic v1.14.0 // indirect
@@ -28,16 +37,11 @@ require (
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.0 // indirect
-	github.com/uptrace/bun v1.2.15 // indirect
-	github.com/uptrace/bun/dialect/pgdialect v1.2.15 // indirect
-	github.com/uptrace/bun/driver/pgdriver v1.2.15 // indirect
-	github.com/uptrace/bun/extra/bundebug v1.2.15 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.opentelemetry.io/otel v1.37.0 // indirect
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	golang.org/x/arch v0.19.0 // indirect
-	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
