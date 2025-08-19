@@ -21,6 +21,10 @@ func Register(r *gin.Engine, users *Controller.UserController, roles *Controller
 		u := api.Group("/users")
 		u.POST("", users.Create)
 		u.GET("", users.List)
+		u.GET("/:id", users.Show)
+		u.PATCH("/:id", users.Update)
+		u.PATCH("/:id/reactivate", users.Reactivate)
+		u.DELETE("/:id", users.Delete)
 
 		rg := api.Group("/roles")
 		rg.GET("", roles.List)

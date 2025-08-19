@@ -3,6 +3,7 @@ package Repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"ava-sesisenai/backend/internal/Modules"
 
@@ -14,8 +15,8 @@ type IUserRepository interface {
 	GetByEmail(ctx context.Context, email string) (*Modules.User, error)
 	GetByID(ctx context.Context, id int64) (*Modules.User, error)
 	Update(ctx context.Context, user *Modules.User) (*Modules.User, error)
-	Reactivate(ctx context.Context, user *Modules.User) (*Modules.User, error)
-	Delete(ctx context.Context, id int64) (*Modules.User, error)
+	Reactivate(ctx context.Context, id int) (*Modules.User, error)
+	Delete(ctx context.Context, id int) (*Modules.User, error)
 	List(ctx context.Context) ([]*Modules.User, error)
 }
 type UserRepository struct {
@@ -49,22 +50,23 @@ func (repository *UserRepository) GetByEmail(databaseContext context.Context, em
 		Limit(1).
 		Scan(databaseContext)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no Results Were Found")
 	}
 	return user, nil
 }
 
 func (repository *UserRepository) GetByID(databaseContext context.Context, id int64) (*Modules.User, error) {
-	user := new(Modules.User)
+	uid := int(id)
+	user := &Modules.User{ID: &uid}
 	err := repository.db.NewSelect().
 		Model(user).
 		Relation("Role").
 		Relation("Address").
-		Where("id = ?", id).
+		WherePK().
 		Limit(1).
 		Scan(databaseContext)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no Results Were Found")
 	}
 	return user, nil
 }
@@ -101,12 +103,13 @@ func (repository *UserRepository) Update(databaseContext context.Context, user *
 	return user, nil
 }
 
-func (repository *UserRepository) Reactivate(databaseContext context.Context, user *Modules.User) (*Modules.User, error) {
+func (repository *UserRepository) Reactivate(databaseContext context.Context, id int) (*Modules.User, error) {
+	var user Modules.User
 	err := repository.db.RunInTx(databaseContext, nil, func(transactionContext context.Context, transaction bun.Tx) error {
 		res, err := transaction.NewUpdate().
-			Model(user).
+			Model(&user).
+			Where("id = ?", id).
 			Set("is_active = TRUE").
-			Where("id = ?", user.ID).
 			Exec(transactionContext)
 		if err != nil {
 			return err
@@ -119,10 +122,10 @@ func (repository *UserRepository) Reactivate(databaseContext context.Context, us
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	return &user, nil
 }
 
-func (repository *UserRepository) Delete(databaseContext context.Context, id int64) (*Modules.User, error) {
+func (repository *UserRepository) Delete(databaseContext context.Context, id int) (*Modules.User, error) {
 	var user Modules.User
 
 	err := repository.db.RunInTx(databaseContext, nil, func(transactionContext context.Context, transaction bun.Tx) error {
