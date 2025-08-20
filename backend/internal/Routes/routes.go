@@ -1,6 +1,7 @@
 package Routes
 
 import (
+	"ava-sesisenai/backend/internal/Middleware"
 	"net/http"
 
 	"ava-sesisenai/backend/internal/Controller"
@@ -8,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(r *gin.Engine, users *Controller.UserController, roles *Controller.RolesController, classes *Controller.ClassController) {
+func Register(r *gin.Engine, users *Controller.UserController, roles *Controller.RolesController, classes *Controller.ClassController, auth *Controller.AuthController) {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "Health status OK"})
 	})
@@ -17,24 +18,33 @@ func Register(r *gin.Engine, users *Controller.UserController, roles *Controller
 	r.NoMethod(func(c *gin.Context) { c.JSON(http.StatusMethodNotAllowed, gin.H{"error": "method not allowed"}) })
 
 	api := r.Group("/api")
+	api.POST("auth/login", auth.Login)
+
+	usersGroup := api.Group("/users")
+	usersGroup.Use(Middleware.RequireAuth())
 	{
-		u := api.Group("/users")
-		u.POST("", users.Create)
-		u.GET("", users.List)
-		u.GET("/:id", users.Show)
-		u.PATCH("/:id", users.Update)
-		u.PATCH("/:id/reactivate", users.Reactivate)
-		u.DELETE("/:id", users.Delete)
 
-		rg := api.Group("/roles")
-		rg.GET("", roles.List)
-		rg.GET("/:id", roles.Show)
+		usersGroup.POST("/users", users.Create)
+		usersGroup.GET("", users.List)
+		usersGroup.GET("/:id", users.Show)
+		usersGroup.PATCH("/:id", users.Update)
+		usersGroup.PATCH("/:id/reactivate", users.Reactivate)
+		usersGroup.DELETE("/:id", users.Delete)
+	}
 
-		cl := api.Group("/classes")
-		cl.GET("", classes.List);
-		cl.POST("", classes.Create);
-		cl.PUT("/:id", classes.Update);
-		cl.DELETE("/:id", classes.Delete);
-		
+	rolesGroup := api.Group("/roles")
+	rolesGroup.Use(Middleware.RequireAuth())
+	{
+		rolesGroup.GET("", roles.List)
+		rolesGroup.GET("/:id", roles.Show)
+	}
+
+	classesGroup := api.Group("/classes")
+	classesGroup.Use(Middleware.RequireAuth())
+	{
+		classesGroup.GET("", classes.List)
+		classesGroup.POST("", classes.Create)
+		classesGroup.PUT("/:id", classes.Update)
+		classesGroup.DELETE("/:id", classes.Delete)
 	}
 }
