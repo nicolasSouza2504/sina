@@ -44,7 +44,7 @@ func Register(r *gin.Engine, users *Controller.UserController, roles *Controller
 	{
 		classesGroup.GET("", classes.List)
 		classesGroup.POST("", classes.Create)
-		classesGroup.PUT("/:id", classes.Update)
+		classesGroup.PATCH("/:id", classes.Update)
 		classesGroup.DELETE("/:id", classes.Delete)
 	}
 }
