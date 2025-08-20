@@ -67,11 +67,13 @@ func BuildContainer() *dig.Container {
 	// services
 	must(c.Provide(Service.NewUserService))
 	must(c.Provide(Service.NewClassService))
+	must(c.Provide(Service.NewAuthService))
 
 	// controllers
 	must(c.Provide(Controller.NewUserController))
 	must(c.Provide(Controller.NewRolesController))
 	must(c.Provide(Controller.NewClassController))
+	must(c.Provide(Controller.NewAuthController))
 
 	must(c.Invoke(Routes.Register))
 

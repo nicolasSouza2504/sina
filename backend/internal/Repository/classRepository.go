@@ -12,7 +12,7 @@ import (
 type IClassRepository interface {
 	List(ctx context.Context) ([]*Modules.Class, error)
 	GetByID(ctx context.Context, id int64) (*Modules.Class, error)
-	Create(databaseContext context.Context, class *Modules.Class) (*Modules.Class, error) 
+	Create(databaseContext context.Context, class *Modules.Class) (*Modules.Class, error)
 	Update(databaseContext context.Context, class *Modules.Class) (*Modules.Class, error)
 	Delete(databaseContext context.Context, id int64) (*Modules.Class, error)
 }
@@ -25,17 +25,17 @@ func NewClassRepository(db *bun.DB) *ClassRepository {
 }
 
 func (r *ClassRepository) List(ctx context.Context) ([]*Modules.Class, error) {
-	
+
 	var classes []*Modules.Class
 
 	err := r.db.NewSelect().Model(&classes).Order("class_id ASC").Scan(ctx)
-	
+
 	return classes, err
 
 }
 
 func (r *ClassRepository) GetByID(ctx context.Context, id int64) (*Modules.Class, error) {
-	
+
 	class := new(Modules.Class)
 
 	err := r.db.NewSelect().
@@ -46,7 +46,7 @@ func (r *ClassRepository) GetByID(ctx context.Context, id int64) (*Modules.Class
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return class, nil
 
 }
