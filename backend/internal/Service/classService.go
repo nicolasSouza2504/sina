@@ -22,7 +22,7 @@ func (s *ClassService) List(ctx context.Context) ([]*Modules.Class, error) {
 }
 
 func (s *ClassService) CreateClass(ctx context.Context, classDTO *InBound.ClassDTO) (*Modules.Class, error) {
-	
+
 	class := &Modules.Class{
 		Code: classDTO.Code,
 		Name: classDTO.Name,
@@ -36,7 +36,7 @@ func (s *ClassService) CreateClass(ctx context.Context, classDTO *InBound.ClassD
 }
 
 func (s *ClassService) UpdateClass(ctx context.Context, classDTO *InBound.ClassDTO) (*Modules.Class, error) {
-		
+
 	class := &Modules.Class{
 		Code: classDTO.Code,
 		Name: classDTO.Name,
