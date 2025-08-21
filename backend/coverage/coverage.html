@@ -1,0 +1,292 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Config: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">ava-sesisenai/backend/internal/Config/database.go (0.0%)</option>
+				
+				<option value="file1">ava-sesisenai/backend/internal/Container/container.go (0.0%)</option>
+				
+				<option value="file2">ava-sesisenai/backend/internal/Controller/rolesController.go (0.0%)</option>
+				
+				<option value="file3">ava-sesisenai/backend/internal/Repository/rolesRepository.go (0.0%)</option>
+				
+				<option value="file4">ava-sesisenai/backend/internal/Routes/routes.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package Config
+
+import (
+        "context"
+        "database/sql"
+        "log"
+        "os"
+        "time"
+
+        "github.com/uptrace/bun"
+        "github.com/uptrace/bun/dialect/pgdialect"
+        "github.com/uptrace/bun/driver/pgdriver"
+        "github.com/uptrace/bun/extra/bundebug"
+)
+
+var DB *bun.DB
+
+func InitDB() <span class="cov0" title="0">{
+        dsn := os.Getenv("DATABASE_URL")
+        if dsn == "" </span><span class="cov0" title="0">{
+                log.Fatal("DATABASE_URL not set")
+        }</span>
+
+        <span class="cov0" title="0">sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+        sqldb.SetMaxOpenConns(25)
+        sqldb.SetMaxIdleConns(25)
+        sqldb.SetConnMaxLifetime(5 * time.Minute)
+
+        DB = bun.NewDB(sqldb, pgdialect.New())
+
+        if os.Getenv("APP_ENV") != "prod" </span><span class="cov0" title="0">{
+                DB.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
+        }</span>
+
+        <span class="cov0" title="0">if err := DB.PingContext(context.Background()); err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Database connection failed: %v", err)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package Container
+
+import (
+        "ava-sesisenai/backend/internal/Controller"
+        "ava-sesisenai/backend/internal/Repository"
+
+        "github.com/uptrace/bun"
+)
+
+type Container struct {
+        DB        *bun.DB
+        RolesRepo *Repository.RolesRepository
+        RolesCtl  *Controller.RolesController
+}
+
+func New(db *bun.DB) *Container <span class="cov0" title="0">{
+        rolesRepo := Repository.NewRolesRepository(db)
+        rolesCtl := Controller.NewRolesController(rolesRepo)
+
+        return &amp;Container{
+                DB:        db,
+                RolesRepo: rolesRepo,
+                RolesCtl:  rolesCtl,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package Controller
+
+import (
+        "database/sql"
+        "net/http"
+        "strconv"
+
+        "ava-sesisenai/backend/internal/Repository"
+
+        "github.com/gin-gonic/gin"
+)
+
+type RolesController struct {
+        repo *Repository.RolesRepository
+}
+
+func NewRolesController(repo *Repository.RolesRepository) *RolesController <span class="cov0" title="0">{
+        return &amp;RolesController{repo: repo}
+}</span>
+
+func (ctl *RolesController) List(c *gin.Context) <span class="cov0" title="0">{
+        roles, err := ctl.repo.List(c.Request.Context())
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov0" title="0">if len(roles) &lt;= 0 </span><span class="cov0" title="0">{
+                c.Status(http.StatusNoContent)
+                return
+        }</span>
+        <span class="cov0" title="0">c.JSON(http.StatusOK, roles)</span>
+}
+
+func (ctl *RolesController) Show(c *gin.Context) <span class="cov0" title="0">{
+        idStr := c.Param("id")
+        id, err := strconv.ParseInt(idStr, 10, 64)
+        if err != nil || id &lt;= 0 </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+                return
+        }</span>
+
+        <span class="cov0" title="0">role, err := ctl.repo.GetByID(c.Request.Context(), id)
+        if err == sql.ErrNoRows </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "role not found"})
+                return
+        }</span>
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, role)</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package Repository
+
+import (
+        "context"
+
+        "ava-sesisenai/backend/internal/Modules"
+
+        "github.com/uptrace/bun"
+)
+
+type RolesRepository struct {
+        db *bun.DB
+}
+
+func NewRolesRepository(db *bun.DB) *RolesRepository <span class="cov0" title="0">{
+        return &amp;RolesRepository{db: db}
+}</span>
+
+func (r *RolesRepository) List(ctx context.Context) ([]Modules.Role, error) <span class="cov0" title="0">{
+        var roles []Modules.Role
+        err := r.db.NewSelect().Model(&amp;roles).Order("role_id ASC").Scan(ctx)
+        return roles, err
+}</span>
+
+func (r *RolesRepository) GetByID(ctx context.Context, id int64) (*Modules.Role, error) <span class="cov0" title="0">{
+        role := new(Modules.Role)
+        err := r.db.NewSelect().
+                Model(role).
+                Where("role_id = ?", id).
+                Limit(1).
+                Scan(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return role, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package Routes
+
+import (
+        "net/http"
+
+        "ava-sesisenai/backend/internal/Container"
+
+        "github.com/gin-gonic/gin"
+)
+
+func Register(r *gin.Engine, c *Container.Container) <span class="cov0" title="0">{
+        r.GET("/health", func(ctx *gin.Context) </span><span class="cov0" title="0">{
+                ctx.JSON(http.StatusOK, gin.H{"status": "Health status OK"})
+        }</span>)
+
+        <span class="cov0" title="0">api := r.Group("/api")
+        </span><span class="cov0" title="0">{
+                api.GET("/roles", c.RolesCtl.List)
+                api.GET("/roles/:id", c.RolesCtl.Show)
+        }</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
