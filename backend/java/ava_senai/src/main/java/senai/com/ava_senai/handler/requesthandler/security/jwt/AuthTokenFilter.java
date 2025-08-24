@@ -27,12 +27,6 @@ public class AuthTokenFilter  extends OncePerRequestFilter {
     @Autowired
     private AuthyUserDetailsService userDetailsService;
 
-    private static final String[] PUBLIC_PATHS = {
-            "/v3/api-docs/**"
-    };
-
-    private static final AntPathMatcher PM = new AntPathMatcher();
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
@@ -41,7 +35,18 @@ public class AuthTokenFilter  extends OncePerRequestFilter {
 
             String uri = request.getRequestURI();
 
-            for (String p : PUBLIC_PATHS) if (PM.match(p, uri)) return;
+            String[] PUBLIC_PATHS = {
+                    "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
+            };
+
+            AntPathMatcher PM = new AntPathMatcher();
+
+            for (String p : PUBLIC_PATHS) {
+                if (PM.match(p, uri)){
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+            }
 
             String jwt = parseJwt(request);
 
@@ -66,7 +71,7 @@ public class AuthTokenFilter  extends OncePerRequestFilter {
         } catch (Exception e) {
 
             setErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, response, e.getMessage(), "Erro interno no servidor.");
-
+            e.printStackTrace();
             return;
 
         }

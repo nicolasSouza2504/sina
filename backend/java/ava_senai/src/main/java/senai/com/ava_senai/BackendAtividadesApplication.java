@@ -3,7 +3,7 @@ package senai.com.ava_senai;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication(scanBasePackages = "senai.com.ava_senai")
+@SpringBootApplication
 public class BackendAtividadesApplication {
 
 	public static void main(String[] args) {

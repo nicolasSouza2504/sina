@@ -92,6 +92,7 @@ public class BackEndConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.POST, SECURED_URLS.toArray(String[]::new)).authenticated()
                         .requestMatchers(HttpMethod.DELETE, SECURED_URLS.toArray(String[]::new)).authenticated()
                         .requestMatchers(HttpMethod.PUT, SECURED_URLS.toArray(String[]::new)).authenticated()
