@@ -55,9 +55,9 @@ public class UserController {
             userRegisterDTO.setRole(rolesRepository.findById(role.getValue()).get());
             userRegisterDTO.setImage(image);
 
-            iUserService.createUser(userRegisterDTO);
+            UserResponseData userResponse = iUserService.createUser(userRegisterDTO);
 
-            return ResponseEntity.ok().body(new ApiResponse(role.getDescription() + " Registrado com sucesso!", null));
+            return ResponseEntity.ok().body(new ApiResponse(role.getDescription() + " Registrado com sucesso!", userResponse));
 
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.status(409).body(new ApiResponse(e.getMessage(), null));
