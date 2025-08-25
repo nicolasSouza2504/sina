@@ -59,7 +59,7 @@ services:
   main-backend:
     build:
       context: ./backend
-      dockerfile: docker/Dockerfile
+      dockerfile: backend/go/docker/Dockerfile
     container_name: main-backend
     environment:
       - PORT=3000
