@@ -65,7 +65,7 @@ public class UserService implements IUserService {
 
                     User user = buildUser(request);
 
-                    userRepository.save(user);
+                    user = userRepository.save(user);
 
                     saveImage(request.getImage(), user);
 
@@ -85,7 +85,7 @@ public class UserService implements IUserService {
                 .get()
                 .map((userDb) -> {
 
-                    validateEmailUpdate(userDb, userDb);
+                    validateEmailUpdate(request, userDb);
 
                     updateData(request, userDb);
 
@@ -98,10 +98,10 @@ public class UserService implements IUserService {
 
     }
 
-    private void validateEmailUpdate(User userEdit, User userDb) {
+    private void validateEmailUpdate(UserRegisterDTO userRequest, User userDb) {
 
-        if (!userEdit.getEmail().equals(userDb.getEmail()) && userRepository.existsByEmail(userEdit.getEmail())) {
-            new Validation().add("Email", "Já existe um usuário com este email").throwIfHasErrors();
+        if (!userRequest.getEmail().equals(userDb.getEmail()) && userRepository.existsByEmail(userRequest.getEmail())) {
+            throw new UserAlreadyExistsException("Já existe um usuário com este email");
         }
 
     }
@@ -200,7 +200,7 @@ public class UserService implements IUserService {
     }
 
     public Boolean isAdm(UserRegisterDTO userRegisterDTO) {
-        return userRegisterDTO.getRole() != null && userRegisterDTO.getRole().getId() == 1;
+        return userRegisterDTO.getRole() != null && userRegisterDTO.getRole().getName().equalsIgnoreCase("ADMIN");
     }
 
 }

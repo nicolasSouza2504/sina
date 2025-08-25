@@ -2,6 +2,7 @@ package senai.com.ava_senai.integration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.LogDetail;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import senai.com.ava_senai.config.TestConfig;
 import senai.com.ava_senai.domain.Role.Role;
-import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.domain.user.UserLogin;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseData;
@@ -22,6 +22,7 @@ import java.io.File;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -36,6 +37,7 @@ class UserIntegrationTest {
 
 	@BeforeAll
 	public void setup() {
+
 		mapper = new ObjectMapper();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
@@ -52,7 +54,7 @@ class UserIntegrationTest {
 		userRegisterDTO.setName("Test User");
 		userRegisterDTO.setEmail("testuser@example.com");
 		userRegisterDTO.setPassword("password123");
-		userRegisterDTO.setCpf("08969751939");
+		userRegisterDTO.setCpf("95566310036");
 		userRegisterDTO.setRole(new Role("USER"));
 		userRegisterDTO.setRoleId(3l);
 
@@ -61,6 +63,7 @@ class UserIntegrationTest {
 	}
 
 	private void loginAndRetrieveToken() {
+
 		UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin@65468*/62.98+/*52989856*//*/");
 
 		token = given()
@@ -72,13 +75,14 @@ class UserIntegrationTest {
 				.statusCode(200)
 				.extract()
 				.path("data.token");
+
 	}
 
 	@Test
 	@Order(1)
-	void testAddUser() throws Throwable {
+	@DisplayName("Integration test given a UserRegister when add should return a user response data with right properties")
+	void integrationTestGivenUserRegisterWhenAddShouldReturnUserResponseData() throws Throwable {
 
-		// Set other necessary fields
 		String response = given()
 				.spec(specification)
 				.header("Authorization", "Bearer " + token)
@@ -86,22 +90,32 @@ class UserIntegrationTest {
 				.multiPart("user", mapper.writeValueAsString(userRegisterDTO))
 				.multiPart("image", new File("src/test/resources/img/7.jpg"))
 				.when()
-				.post("/add/ADMIN")
+				.post("/add/USER")
 				.then()
 				.statusCode(200)
-				.body("message", equalTo("Administrador Registrado com sucesso!")).extract().body().asString();
+				.body("message", equalTo("Usuário Registrado com sucesso!"))
+				.extract()
+				.asString();
 
 		ApiResponse apiResponse = new Gson().fromJson(response, ApiResponse.class);
 
 		userResponseData = mapper.convertValue(apiResponse.getData(), UserResponseData.class);
+
+		assertNotNull(userResponseData);
+		assertNotNull(userResponseData.id());
+		assertEquals(userRegisterDTO.getName(), userResponseData.nome());
+		assertEquals(userRegisterDTO.getEmail(), userResponseData.email());
+		assertTrue(userResponseData.roles().contains("USER"));
 
 	}
 
 
 	@Test
 	@Order(2)
-	void testGetUserById() {
-		given()
+	@DisplayName("Integration test given ID registered user when call get should return registered user")
+	void integrationTestGivenIDRegisteredUserWhenCallGetShouldReturnRegisteredUser() {
+
+		String response = given()
 				.spec(specification)
 				.header("Authorization", "Bearer " + token)
 				.contentType(ContentType.JSON)
@@ -109,20 +123,32 @@ class UserIntegrationTest {
 				.get("/{id}", userResponseData.id())
 				.then()
 				.statusCode(200)
-				.body("message", equalTo("Sucesso!"));
+				.body("message", equalTo("Sucesso!"))
+				.extract()
+				.asString();
+
+		ApiResponse apiResponse = new Gson().fromJson(response, ApiResponse.class);
+
+		userResponseData = mapper.convertValue(apiResponse.getData(), UserResponseData.class);
+
+		assertNotNull(userResponseData);
+		assertNotNull(userResponseData.id());
+		assertEquals(userRegisterDTO.getName(), userResponseData.nome());
+		assertEquals(userRegisterDTO.getEmail(), userResponseData.email());
+		assertTrue(userResponseData.roles().contains("USER"));
+
 	}
 
 	@Test
 	@Order(3)
-	void testUpdateUser() throws Throwable {
+	@DisplayName("Integration test given a UserRegister when update should return a user response data with right properties")
+	void integrationTestGivenUserRegisterWhenUpdateShouldReturnUserResponseData() throws Throwable {
 
 		userRegisterDTO.setName("Updated User");
 		userRegisterDTO.setEmail("updateduser@example.com");
 		userRegisterDTO.setPassword("newpassword123");
 
-		// Set other necessary fields
-
-		given()
+		String response = given()
 				.spec(specification)
 				.header("Authorization", "Bearer " + token)
 				.contentType(ContentType.MULTIPART)
@@ -132,12 +158,26 @@ class UserIntegrationTest {
 				.put("/update/{userId}", userResponseData.id())
 				.then()
 				.statusCode(200)
-				.body("message", equalTo("USER Editado com sucesso!"));
+				.body("message", equalTo("USER Editado com sucesso!"))
+				.extract()
+				.asString();
+
+		ApiResponse apiResponse = new Gson().fromJson(response, ApiResponse.class);
+
+		userResponseData = mapper.convertValue(apiResponse.getData(), UserResponseData.class);
+
+		assertNotNull(userResponseData);
+		assertNotNull(userResponseData.id());
+		assertEquals(userRegisterDTO.getName(), userResponseData.nome());
+		assertEquals(userRegisterDTO.getEmail(), userResponseData.email());
+		assertTrue(userResponseData.roles().contains("USER"));
+
 	}
 
 	@Test
 	@Order(4)
-	void testListAllUsers() {
+	@DisplayName("Integration test given a request when call list all users should return a list of users")
+	void integrationTestGivenRequestWhenCallListAllShouldReturnAListOfUsers() {
 		given()
 				.spec(specification)
 				.header("Authorization", "Bearer " + token)

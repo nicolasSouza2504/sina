@@ -80,9 +80,9 @@ public class UserController {
             userRegisterDTO.setImage(image);
             userRegisterDTO.setRole(role);
 
-            iUserService.updateUser(userRegisterDTO, userId);
+            UserResponseData userResponseData = iUserService.updateUser(userRegisterDTO, userId);
 
-            return ResponseEntity.ok().body(new ApiResponse(role.getName() + " Editado com sucesso!", null));
+            return ResponseEntity.ok().body(new ApiResponse(role.getName() + " Editado com sucesso!", userResponseData));
 
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.status(409).body(new ApiResponse(e.getMessage(), null));

@@ -85,10 +85,10 @@ public class ClassController {
     }
 
     @GetMapping("/{classId}/class")
-    public ResponseEntity<ApiResponse> getTurmaById(@PathVariable Long turmaId) {
+    public ResponseEntity<ApiResponse> getTurmaById(@PathVariable Long classId) {
 
         try {
-            return ResponseEntity.ok().body(new ApiResponse("Scuesso", classService.getTurmaById(turmaId)));
+            return ResponseEntity.ok().body(new ApiResponse("Sucesso", classService.getTurmaById(classId)));
         } catch (NotFoundException e) {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }

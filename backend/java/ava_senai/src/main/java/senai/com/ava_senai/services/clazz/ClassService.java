@@ -34,7 +34,7 @@ public class ClassService implements IClassService {
                     clazz.setFinalDate(classRegisterDTO.finalDate());
                     clazz.setImgClass(classRegisterDTO.imgClass());
 
-                    turmaRepository.save(clazz);
+                    clazz = turmaRepository.save(clazz);
 
                     return new ClassResponseDTO(clazz);
 

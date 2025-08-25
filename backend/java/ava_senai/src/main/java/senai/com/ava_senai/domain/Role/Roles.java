@@ -2,7 +2,7 @@ package senai.com.ava_senai.domain.Role;
 
 public enum Roles {
 
-    ADMIN(1, "Administrador"), USER(2, "Usuário"), TEACHER(3, "Professor");
+    ADMIN(1, "Administrador"), TEACHER(2, "Professor"), USER(3, "Usuário");
 
     private long value;
     private String description;
