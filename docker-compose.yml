@@ -40,10 +40,26 @@ services:
     networks:
       - sesi-senai
 
+  main-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: main-frontend
+    env_file:
+      - ./frontend/.env
+    volumes:
+      - ./frontend:/app
+    ports:
+    - "80:5173"
+    depends_on:
+      - main-backend
+    networks:
+      - sesi-senai
+
   main-backend:
     build:
       context: ./backend
-      dockerfile: docker/Dockerfile
+      dockerfile: backend/go/docker/Dockerfile
     container_name: main-backend
     environment:
       - PORT=3000
