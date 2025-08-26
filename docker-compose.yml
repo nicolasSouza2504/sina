@@ -50,7 +50,7 @@ services:
     volumes:
       - ./frontend:/app
     ports:
-    - "80:5173"
+    - "80:3000"
     depends_on:
       - main-backend
     networks:
