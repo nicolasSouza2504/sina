@@ -23,11 +23,12 @@ export function AuthCard({
                              onFooterLinkClick,
                          }: AuthCardProps) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
-            <Card className="w-full max-w-md">
+        <div className="min-h-screen w-3/5 flex items-center justify-center bg-background px-4 py-8">
+            <Card className="w-full shadow-none border-0 ">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center">{title}</CardTitle>
-                    <CardDescription className="text-center">{description}</CardDescription>
+                   <div className="flex flex-col items-center pb-6">
+                       <img src="/img/logo-nova-sesi-senai.png" className="size-3/5" />
+                   </div>
                 </CardHeader>
                 <CardContent>{children}</CardContent>
                 <CardFooter>
