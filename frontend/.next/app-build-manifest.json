@@ -16,16 +16,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(public)/login/page.js"
     ],
-    "/(public)/register/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/register/layout.js"
-    ],
-    "/(public)/register/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/register/page.js"
-    ],
     "/(private)/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
