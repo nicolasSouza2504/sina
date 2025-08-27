@@ -4,8 +4,7 @@ import {AuthLoginResponse} from "@/lib/interfaces/authInterfaces";
 import {UserLoginData} from "@/lib/interfaces/userInterfaces";
 
 export default async function login(userLoginData: UserLoginData): Promise<AuthLoginResponse> {
-    try {
-        const response = await fetch(`http://0.0.0.0:9501/api/auth/login`, {
+        const response = await fetch(`http://localhost:9501/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userLoginData),
@@ -13,7 +12,7 @@ export default async function login(userLoginData: UserLoginData): Promise<AuthL
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message)s
+            throw new Error(errorData.message)
         }
 
         const data: AuthLoginResponse = await response.json()
@@ -32,8 +31,4 @@ export default async function login(userLoginData: UserLoginData): Promise<AuthL
         })
 
         return data
-    } catch (e) {
-        console.error('login server action error:', e)
-        return { ok: false, message: 'Erro de conexão com o servidor' }
-    }
 }

@@ -4,13 +4,25 @@ import {AuthCard} from "@/components/auth/auth-card"
 import {LoginForm, LoginFormValues} from "@/components/auth/login-form"
 import {useRouter} from "next/navigation"
 import {Facebook, Instagram, Linkedin, Twitter, Youtube} from "lucide-react";
+import login from "@/lib/api/auth/login";
+import {UserLoginData} from "@/lib/interfaces/userInterfaces";
 
 export default function LoginPage() {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
     const handleLogin = async (data: LoginFormValues) => {
         setIsLoading(true)
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const userLoginData: UserLoginData = {
+            email: data.email,
+            password: data.password
+        }
+        try{
+        const response = await login(userLoginData)
+        console.log(response)
+        } catch (e) {
+            console.error('login server action error:', e)
+        }
+
         console.log("Login data:", data)
         setIsLoading(false)
     }
@@ -51,9 +63,7 @@ export default function LoginPage() {
             <div className="absolute bottom-10 right-10 w-40 h-40 bg-indigo-200/20 rounded-full blur-2xl"></div>
         </div>
         <div className="w-full lg:w-2/5 flex items-center justify-center bg-white relative">
-            <AuthCard title="Entrar"
-                      description="Digite suas credenciais para acessar sua conta"
-                      >
+            <AuthCard>
                 <LoginForm onSubmit={handleLogin} isLoading={isLoading}/>
             </AuthCard>
         </div>

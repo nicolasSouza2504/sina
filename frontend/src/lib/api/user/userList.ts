@@ -1,10 +1,10 @@
-import {getApiBaseUrl} from "@/lib/api/api";
+import getApiBaseUrl from "@/lib/api/api";
 
 export async function listUsers() {
     const base = getApiBaseUrl();
     const response = await fetch(`${base}/users`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
     });
 
     if (!response.ok) {
@@ -12,10 +12,11 @@ export async function listUsers() {
         try {
             const err = await response.json();
             msg = err?.message ?? msg;
-        } catch {}
+        } catch {
+        }
         // toast no CLIENTE somente
         if (typeof window !== "undefined") {
-            const { toast } = await import("sonner");
+            const {toast} = await import("sonner");
             toast(msg);
         }
         throw new Error(msg);
