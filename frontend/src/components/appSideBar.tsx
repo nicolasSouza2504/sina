@@ -2,7 +2,7 @@ import {
     BookOpen,
     ChartBarDecreasing,
     GraduationCap,
-    School,
+    School, SettingsIcon,
     Users
 } from "lucide-react"
 
@@ -21,28 +21,33 @@ import Link from "next/link";
 const items = [
     {
         title: "Turmas",
-        url: "#",
+        url: "/turmas",
         icon: School,
     },
     {
         title: "Cursos",
-        url: "#",
+        url: "/cursos",
         icon: BookOpen ,
     },
     {
         title: "Alunos",
-        url: "#",
+        url: "/alunos",
         icon: Users,
     },
     {
         title: "Professores",
-        url: "#",
+        url: "/professores",
         icon: GraduationCap,
     },
     {
         title: "Ranking",
-        url: "#",
+        url: "/ranking",
         icon: ChartBarDecreasing,
+    },
+    {
+        title: "Admin",
+        url: "/admin",
+        icon: SettingsIcon,
     },
 ]
 
