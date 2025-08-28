@@ -11,7 +11,6 @@ import {Input} from "@/components/ui/input"
 const loginSchema = z.object({
     email: z.string().email("Email inválido").min(1, "Email é obrigatório"),
     password: z.string().min(1, "Senha é obrigatória"),
-    rememberMe: z.boolean().default(false),
 })
 export type LoginFormValues = z.infer<typeof loginSchema>
 
@@ -24,7 +23,7 @@ export function LoginForm({onSubmit, isLoading = false}: LoginFormProps) {
     const [showPassword, setShowPassword] = useState(false)
     const form = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
-        defaultValues: {email: "", password: "", rememberMe: false,},
+        defaultValues: {email: "", password: ""},
         mode: "onSubmit",
     })
     return (

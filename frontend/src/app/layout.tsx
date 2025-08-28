@@ -8,8 +8,8 @@ import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "next-themes"
 
 export const metadata: Metadata = {
-    title: "Ava UniSenai - Home",
-    description: "Ava UniSenai Home",
+    title: "Ava UniSenai",
+    description: "Ava UniSenai",
     generator: "Ava UniSenai",
 }
 

@@ -5,9 +5,13 @@ import {AppSidebar} from "@/components/appSideBar";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
-    title: 'Financial Software',
-    description: 'Financial Software',
-    generator: 'Financial Software',
+    title: "Ava UniSenai - Home",
+    description: "Ava UniSenai Home",
+    generator: "Ava UniSenai",
+    icons: {
+        'icon': '/favicon.ico',
+        'shortcut': '/img/logo-senai.png',
+    }
 }
 
 export default async function PrivateLayout({children}: { children: React.ReactNode }) {
