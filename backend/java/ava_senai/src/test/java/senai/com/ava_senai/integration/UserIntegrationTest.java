@@ -2,7 +2,6 @@ package senai.com.ava_senai.integration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.LogDetail;
@@ -15,7 +14,7 @@ import senai.com.ava_senai.config.TestConfig;
 import senai.com.ava_senai.domain.Role.Role;
 import senai.com.ava_senai.domain.user.UserLogin;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
-import senai.com.ava_senai.domain.user.UserResponseData;
+import senai.com.ava_senai.domain.user.UserResponseDTO;
 import senai.com.ava_senai.response.ApiResponse;
 
 import java.io.File;
@@ -33,7 +32,7 @@ class UserIntegrationTest {
 	private static ObjectMapper mapper;
 	private static String token;
 	private UserRegisterDTO userRegisterDTO;
-	private UserResponseData userResponseData;
+	private UserResponseDTO userResponseData;
 
 	@BeforeAll
 	public void setup() {
@@ -56,7 +55,7 @@ class UserIntegrationTest {
 		userRegisterDTO.setPassword("password123");
 		userRegisterDTO.setCpf("95566310036");
 		userRegisterDTO.setRole(new Role("USER"));
-		userRegisterDTO.setRoleId(3l);
+		userRegisterDTO.setRoleId(3L);
 
 		this.userRegisterDTO = userRegisterDTO;
 
@@ -99,7 +98,7 @@ class UserIntegrationTest {
 
 		ApiResponse apiResponse = new Gson().fromJson(response, ApiResponse.class);
 
-		userResponseData = mapper.convertValue(apiResponse.getData(), UserResponseData.class);
+		userResponseData = mapper.convertValue(apiResponse.getData(), UserResponseDTO.class);
 
 		assertNotNull(userResponseData);
 		assertNotNull(userResponseData.id());
@@ -129,7 +128,7 @@ class UserIntegrationTest {
 
 		ApiResponse apiResponse = new Gson().fromJson(response, ApiResponse.class);
 
-		userResponseData = mapper.convertValue(apiResponse.getData(), UserResponseData.class);
+		userResponseData = mapper.convertValue(apiResponse.getData(), UserResponseDTO.class);
 
 		assertNotNull(userResponseData);
 		assertNotNull(userResponseData.id());
@@ -164,7 +163,7 @@ class UserIntegrationTest {
 
 		ApiResponse apiResponse = new Gson().fromJson(response, ApiResponse.class);
 
-		userResponseData = mapper.convertValue(apiResponse.getData(), UserResponseData.class);
+		userResponseData = mapper.convertValue(apiResponse.getData(), UserResponseDTO.class);
 
 		assertNotNull(userResponseData);
 		assertNotNull(userResponseData.id());
