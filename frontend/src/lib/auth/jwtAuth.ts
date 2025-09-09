@@ -1,7 +1,10 @@
+import { UserFromToken } from "../interfaces/userInterfaces"
+
 export type AuthPayload = {
     sub: string
-    email?: string
-    roles?: string[]
+    id?: string
+    role?: string[]
+    user: UserFromToken
     exp?: number
     iat?: number
     [k: string]: unknown
@@ -31,7 +34,7 @@ export function decodeJwt(token: string | undefined | null): AuthPayload | null 
 }
 
 export function hasAnyRole(payload: AuthPayload | null, required: string | string[]): boolean {
-    if (!payload?.roles?.length) return false
+    if (!payload?.role?.length) return false
     const req = Array.isArray(required) ? required : [required]
-    return req.some(r => payload.roles!.includes(r))
+    return req.some(r => payload.role!.includes(r))
 }

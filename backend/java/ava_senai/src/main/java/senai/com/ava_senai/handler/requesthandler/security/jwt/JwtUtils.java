@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
+import senai.com.ava_senai.domain.user.UserResponseData;
 import senai.com.ava_senai.handler.requesthandler.security.user.AuthyUserDetails;
 
 import java.security.Key;
@@ -32,6 +33,12 @@ public class JwtUtils {
                 .claim("role", userPrincipal.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining("")))
+                .claim("user", new UserResponseData(
+                        userPrincipal.getId(),
+                        userPrincipal.getEmail(),
+                        userPrincipal.getName(),
+                        userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
+                )
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + expirationTime))
                 .signWith(key(), SignatureAlgorithm.HS256).compact();

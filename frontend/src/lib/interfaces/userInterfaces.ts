@@ -1,4 +1,4 @@
-import {Role} from "@/lib/interfaces/roleInterfaces";
+import { Role } from "@/lib/interfaces/roleInterfaces";
 
 export interface UserRegister {
     name: string;
@@ -14,7 +14,7 @@ export interface UserRegisterForm {
     acceptTerms: boolean;
 }
 
-export interface User{
+export interface User {
     id: Number;
     name: string;
     email: string;
@@ -24,4 +24,12 @@ export interface User{
 export interface UserLoginData {
     email: string;
     password: string;
+}
+
+
+export interface UserFromToken {
+    id: number,
+    email: string,
+    nome: string,
+    roles: Array<string>
 }
