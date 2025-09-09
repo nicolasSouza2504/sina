@@ -19,6 +19,7 @@ services:
       - postgres-volume:/var/lib/postgresql/data
     networks:
       - sesi-senai
+
   mongodb-sesi-senai:
     image: mongo:7.0.5
     container_name: mongodb-sesi-senai
@@ -30,6 +31,7 @@ services:
       MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-financial-internal}
     networks:
       - sesi-senai
+
   nginx-sesi-senai:
     image: nginx:latest
     container_name: nginx-sesi-senai
@@ -50,7 +52,7 @@ services:
     volumes:
       - ./frontend:/app
     ports:
-    - "80:5173"
+    - "80:3000"
     depends_on:
       - main-backend
     networks:
@@ -58,15 +60,11 @@ services:
 
   main-backend:
     build:
-      context: ./backend
-      dockerfile: backend/go/docker/Dockerfile
+      context: ./backend/java/ava_senai
+      dockerfile: Dockerfile
     container_name: main-backend
-    environment:
-      - PORT=3000
     volumes:
-      - ./backend:/app
-    env_file:
-      - ./backend/.env
+      - ./backend/java/ava_senai:/app
     ports:
       - "9000:8080"
     depends_on:
@@ -74,6 +72,7 @@ services:
       - mongodb-sesi-senai
     networks:
       - sesi-senai
+
 networks:
   sesi-senai:
     driver: bridge

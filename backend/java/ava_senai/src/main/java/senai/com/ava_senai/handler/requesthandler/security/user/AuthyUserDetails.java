@@ -21,6 +21,7 @@ public class AuthyUserDetails implements UserDetails {
     private Long id;
     private String email;
     private String senha;
+    private String name;
     private List<GrantedAuthority> authorities;
 
     public static AuthyUserDetails buildUserDetails(User user) {
@@ -31,6 +32,7 @@ public class AuthyUserDetails implements UserDetails {
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
+                 user.getName(),
                 authorities);
 
     }
@@ -48,6 +50,10 @@ public class AuthyUserDetails implements UserDetails {
     @Override
     public String getUsername() {
         return email;
+    }
+
+    public String getName(){
+        return name;
     }
 
     @Override
