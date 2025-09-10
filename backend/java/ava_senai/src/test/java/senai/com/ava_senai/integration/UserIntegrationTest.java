@@ -41,7 +41,7 @@ class UserIntegrationTest {
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
 		specification = new RequestSpecBuilder()
-				.setBasePath("/api/v1/user")
+				.setBasePath("/api/user")
 				.setPort(TestConfig.SERVER_PORT)
 				.addFilter(new ResponseLoggingFilter(LogDetail.BODY))
 				.build();
@@ -69,7 +69,7 @@ class UserIntegrationTest {
 				.contentType(ContentType.JSON)
 				.body(loginRequest)
 				.when()
-				.post("/api/v1/auth/login")
+				.post("/api/auth/login")
 				.then()
 				.statusCode(200)
 				.extract()
@@ -80,7 +80,7 @@ class UserIntegrationTest {
 	@Test
 	@Order(1)
 	@DisplayName("Integration test given a UserRegister when add should return a user response data with right properties")
-	void integrationTestGivenUserRegisterWhenAddShouldReturnUserResponseData() throws Throwable {
+	void integrationTestGivenUserRegisterWhenAddShouldReturnUserResponseDTO() throws Throwable {
 
 		String response = given()
 				.spec(specification)
@@ -141,7 +141,7 @@ class UserIntegrationTest {
 	@Test
 	@Order(3)
 	@DisplayName("Integration test given a UserRegister when update should return a user response data with right properties")
-	void integrationTestGivenUserRegisterWhenUpdateShouldReturnUserResponseData() throws Throwable {
+	void integrationTestGivenUserRegisterWhenUpdateShouldReturnUserResponseDTO() throws Throwable {
 
 		userRegisterDTO.setName("Updated User");
 		userRegisterDTO.setEmail("updateduser@example.com");
