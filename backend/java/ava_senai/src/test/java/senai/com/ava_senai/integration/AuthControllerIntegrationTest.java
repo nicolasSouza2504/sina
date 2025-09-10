@@ -36,7 +36,7 @@ class AuthControllerIntegrationTest {
         mapper.registerModule(new JavaTimeModule());
 
         specification = new RequestSpecBuilder()
-                .setBasePath("/api/v1/auth")
+                .setBasePath("/api/auth")
                 .setPort(TestConfig.SERVER_PORT)
                 .addFilter(new ResponseLoggingFilter(LogDetail.BODY))
                 .build();

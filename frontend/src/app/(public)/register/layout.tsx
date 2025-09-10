@@ -6,10 +6,10 @@ import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "next-themes"
 
 export const metadata: Metadata = {
-    title: "Financial Software - Register",
-    description: "Financial Software - Register",
-    generator: "Financial Software",
-}
+    title: "Ava UniSenai",
+    description: "Ava UniSenai",
+    generator: "Ava UniSenai",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (

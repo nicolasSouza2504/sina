@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
-import senai.com.ava_senai.domain.user.UserResponseData;
+import senai.com.ava_senai.domain.user.UserResponseDTO;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.UserAlreadyExistsException;
 import senai.com.ava_senai.exception.UserNotFoundException;
@@ -32,19 +32,19 @@ public class UserService implements IUserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserResponseData getUserByid(Long id) {
+    public UserResponseDTO getUserByid(Long id) {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Usuario não encontrado!"));
 
-        return new UserResponseData(user);
+        return new UserResponseDTO(user);
 
     }
 
     @Override
-    public List<UserResponseData> getAllUsers() {
+    public List<UserResponseDTO> getAllUsers() {
 
-        List<UserResponseData> userList = userRepository.findAll().stream().map(UserResponseData::new).toList();
+        List<UserResponseDTO> userList = userRepository.findAll().stream().map(UserResponseDTO::new).toList();
 
         if (userList.isEmpty()) {
             throw new NullListException("Lista de Usuarios Vazia");
@@ -55,7 +55,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserResponseData createUser(UserRegisterDTO request) {
+    public UserResponseDTO createUser(UserRegisterDTO request) {
 
         return Optional.of(request)
                 .filter(user -> !userRepository.existsByEmail(request.getEmail()))
@@ -69,7 +69,7 @@ public class UserService implements IUserService {
 
                     saveImage(request.getImage(), user);
 
-                    return new UserResponseData(user);
+                    return new UserResponseDTO(user);
 
                 })
                 .orElseThrow(() -> new UserAlreadyExistsException("Oops! User already exists!"));
@@ -77,7 +77,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserResponseData updateUser(UserRegisterDTO request, Long id) {
+    public UserResponseDTO updateUser(UserRegisterDTO request, Long id) {
 
         validateMandatoryFields(request);
 
@@ -91,7 +91,7 @@ public class UserService implements IUserService {
 
                     userRepository.save(userDb);
 
-                    return new UserResponseData(userDb);
+                    return new UserResponseDTO(userDb);
 
                 })
                 .orElseThrow(() -> new UserNotFoundException("Usuario não existe!"));
