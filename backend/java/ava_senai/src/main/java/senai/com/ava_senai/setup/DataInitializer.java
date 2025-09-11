@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import senai.com.ava_senai.domain.Role.Role;
+import senai.com.ava_senai.domain.role.Role;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.repository.RolesRepository;
 import senai.com.ava_senai.services.user.IUserService;

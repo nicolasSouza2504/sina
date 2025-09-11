@@ -1,4 +1,4 @@
-package senai.com.ava_senai.domain.turma;
+package senai.com.ava_senai.domain.clazz;
 
 import jakarta.persistence.*;
 import lombok.*;

@@ -2,7 +2,7 @@ package senai.com.ava_senai.domain.user;
 
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
-import senai.com.ava_senai.domain.Role.Role;
+import senai.com.ava_senai.domain.role.Role;
 
 @Data
 public class UserRegisterDTO {

@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import senai.com.ava_senai.domain.DefaultEntity;
-import senai.com.ava_senai.domain.Role.Role;
+import senai.com.ava_senai.domain.role.Role;
 
 @Entity
 @Getter

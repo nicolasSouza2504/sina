@@ -1,4 +1,4 @@
-package senai.com.ava_senai.domain.Role;
+package senai.com.ava_senai.domain.role;
 
 public enum Roles {
 

@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class JwtUtils {
+
     @Value("${auth.token.jwtSecret}")
     private String jwtSecret;
 
@@ -30,6 +31,7 @@ public class JwtUtils {
         return Jwts.builder()
                 .setSubject(userPrincipal.getEmail())
                 .claim("id", userPrincipal.getId())
+                .claim("idEntity", userPrincipal.getIdInstitution())
                 .claim("role", userPrincipal.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining("")))
@@ -56,6 +58,16 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody().getSubject();
     }
+
+    public Long getIDInstitutionFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("idInstitution", Long.class);
+    }
+
 
     public boolean validateToken(String token) {
 
