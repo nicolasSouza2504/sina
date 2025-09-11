@@ -11,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import senai.com.ava_senai.domain.Role.Role;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
-import senai.com.ava_senai.domain.user.UserResponseData;
+import senai.com.ava_senai.domain.user.UserResponseDTO;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.UserAlreadyExistsException;
 import senai.com.ava_senai.exception.UserNotFoundException;
@@ -57,10 +57,10 @@ class UserServiceTest {
 
     @Test
     @DisplayName("Given userId when getUserById should return response data")
-    void givenUserIdWhenGetUserByIdShouldReturnUserResponseData() {
+    void givenUserIdWhenGetUserByIdShouldReturnUserResponseDTO() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        UserResponseData response = userService.getUserByid(1L);
+        UserResponseDTO response = userService.getUserByid(1L);
 
         assertNotNull(response);
         assertEquals(user.getId(), response.id());
@@ -79,11 +79,11 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Given users when getAllUsers should return list of UserResponseData")
-    void givenUsersWhenGetAllUsersShouldReturnUserResponseDataList() {
+    @DisplayName("Given users when getAllUsers should return list of UserResponseDTO")
+    void givenUsersWhenGetAllUsersShouldReturnUserResponseDTOList() {
         when(userRepository.findAll()).thenReturn(List.of(user));
 
-        List<UserResponseData> users = userService.getAllUsers();
+        List<UserResponseDTO> users = userService.getAllUsers();
 
         assertNotNull(users);
         assertEquals(1, users.size());
@@ -101,13 +101,13 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Given user register when createUser should return UserResponseData")
-    void givenUserRegisterWhenCreateUserShouldReturnUserResponseData() {
+    @DisplayName("Given user register when createUser should return UserResponseDTO")
+    void givenUserRegisterWhenCreateUserShouldReturnUserResponseDTO() {
         when(userRepository.existsByEmail(userRegisterDTO.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(userRegisterDTO.getPassword())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        UserResponseData response = userService.createUser(userRegisterDTO);
+        UserResponseDTO response = userService.createUser(userRegisterDTO);
 
         assertNotNull(response);
         assertEquals(user.getId(), response.id());
@@ -126,13 +126,13 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Given user register and userId when updateUser should return UserResponseData")
-    void givenUserRegisterAndUserIdWhenUpdateUserShouldReturnUserResponseData() {
+    @DisplayName("Given user register and userId when updateUser should return UserResponseDTO")
+    void givenUserRegisterAndUserIdWhenUpdateUserShouldReturnUserResponseDTO() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(passwordEncoder.encode(userRegisterDTO.getPassword())).thenReturn("newEncodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        UserResponseData response = userService.updateUser(userRegisterDTO, 1L);
+        UserResponseDTO response = userService.updateUser(userRegisterDTO, 1L);
 
         assertNotNull(response);
         assertEquals(user.getId(), response.id());

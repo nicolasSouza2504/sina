@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import senai.com.ava_senai.domain.Role.Role;
 import senai.com.ava_senai.domain.Role.Roles;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
-import senai.com.ava_senai.domain.user.UserResponseData;
+import senai.com.ava_senai.domain.user.UserResponseDTO;
 import senai.com.ava_senai.exception.UserAlreadyExistsException;
 import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.repository.RolesRepository;
@@ -32,7 +32,7 @@ public class UserController {
 
         try {
 
-            UserResponseData user = iUserService.getUserByid(id);
+            UserResponseDTO user = iUserService.getUserByid(id);
 
             return ResponseEntity.ok().body(new ApiResponse("Sucesso!", user));
 
@@ -55,7 +55,7 @@ public class UserController {
             userRegisterDTO.setRole(rolesRepository.findById(role.getValue()).get());
             userRegisterDTO.setImage(image);
 
-            UserResponseData userResponse = iUserService.createUser(userRegisterDTO);
+            UserResponseDTO userResponse = iUserService.createUser(userRegisterDTO);
 
             return ResponseEntity.ok().body(new ApiResponse(role.getDescription() + " Registrado com sucesso!", userResponse));
 
@@ -80,7 +80,7 @@ public class UserController {
             userRegisterDTO.setImage(image);
             userRegisterDTO.setRole(role);
 
-            UserResponseData userResponseData = iUserService.updateUser(userRegisterDTO, userId);
+            UserResponseDTO userResponseData = iUserService.updateUser(userRegisterDTO, userId);
 
             return ResponseEntity.ok().body(new ApiResponse(role.getName() + " Editado com sucesso!", userResponseData));
 

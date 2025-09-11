@@ -1,15 +1,15 @@
-FROM openjdk:17-jdk-slim
+FROM maven:3.9-eclipse-temurin-17
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the jar file into the container
-COPY ./target/backend-atividades-0.0.1-SNAPSHOT.jar /app/app.jar
+# Startup script (builds then runs)
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Pass environment variables to the Docker container
-ENV SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-ENV SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-ENV SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+# Optional Spring profile (override at runtime)
+ENV SPRING_PROFILES_ACTIVE=default
 
-# Run the Java application
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# Spring Boot default port
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

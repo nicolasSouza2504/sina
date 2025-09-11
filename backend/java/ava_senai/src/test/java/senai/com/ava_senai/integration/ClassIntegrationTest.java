@@ -45,7 +45,7 @@ class ClassIntegrationTest {
         mapper.registerModule(new JavaTimeModule());
 
         specification = new RequestSpecBuilder()
-                .setBasePath("/api/v1/class")
+                .setBasePath("/api/class")
                 .setPort(TestConfig.SERVER_PORT)
                 .addFilter(new ResponseLoggingFilter(LogDetail.BODY))
                 .build();
@@ -63,7 +63,7 @@ class ClassIntegrationTest {
                 .contentType(ContentType.JSON)
                 .body(loginRequest)
                 .when()
-                .post("/api/v1/auth/login")
+                .post("/api/auth/login")
                 .then()
                 .statusCode(200)
                 .extract()
