@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import senai.com.ava_senai.domain.role.Role;
+import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseDTO;

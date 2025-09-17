@@ -1,4 +1,4 @@
-package senai.com.ava_senai.domain.institution;
+package senai.com.ava_senai.domain.course.institution;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -16,5 +16,9 @@ public class Institution {
 
     @Column(name = "role_name")
     private String name;
+
+
+    @OneToMany(mappedBy = "institution", cascade = CascadeType.ALL)
+    private List<InstitutionCourse> courses;
 
 }

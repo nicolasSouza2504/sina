@@ -1,4 +1,4 @@
-package senai.com.ava_senai.domain.role;
+package senai.com.ava_senai.domain.user.role;
 
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package senai.com.ava_senai.services.clazz;
 
-import senai.com.ava_senai.domain.clazz.ClassRegisterDTO;
-import senai.com.ava_senai.domain.clazz.ClassResponseDTO;
+import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
+import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 
 import java.util.List;
 

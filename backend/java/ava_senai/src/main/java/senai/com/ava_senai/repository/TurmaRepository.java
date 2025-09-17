@@ -1,7 +1,7 @@
 package senai.com.ava_senai.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import senai.com.ava_senai.domain.clazz.Class;
+import senai.com.ava_senai.domain.course.clazz.Class;
 
 public interface TurmaRepository  extends JpaRepository<Class, Long> {
     boolean existsByName(String turmaNome);
