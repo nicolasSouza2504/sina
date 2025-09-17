@@ -10,9 +10,9 @@ services:
     image: postgres:16
     container_name: postgres-sesi-senai
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: avadbdev
-      POSTGRES_DB: avadbdev
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-sesi_senai}
     ports:
       - "5432:5432"
     volumes:
