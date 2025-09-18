@@ -78,7 +78,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Institution institution = new Institution();
 
-        institution.setName("SENAI_JOINVILLE");
+        institution.setInstitutionName("SENAI_JOINVILLE");
 
         institutionRepository.save(institution);
 
