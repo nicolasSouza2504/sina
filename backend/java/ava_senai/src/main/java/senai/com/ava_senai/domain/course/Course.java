@@ -16,7 +16,7 @@ public class Course extends DefaultEntity {
     @Column(name = "quantity_semester")
     private Integer quantitySemester;
 
-    @Column(length = 80)
+    @Column(length = 80, nullable = false)
     private String name;
 
     @OneToMany(mappedBy = "course")

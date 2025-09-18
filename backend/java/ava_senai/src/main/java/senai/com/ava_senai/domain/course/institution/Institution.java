@@ -3,6 +3,9 @@ package senai.com.ava_senai.domain.course.institution;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import senai.com.ava_senai.domain.course.institutioncourse.InstitutionCourse;
+
+import java.util.List;
 
 @Data
 @Entity
@@ -14,8 +17,8 @@ public class Institution {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "role_name")
-    private String name;
+    @Column(name = "institution_name")
+    private String institutionName;
 
 
     @OneToMany(mappedBy = "institution", cascade = CascadeType.ALL)

@@ -3,6 +3,7 @@ package senai.com.ava_senai.domain.course.institutioncourse;
 import jakarta.persistence.*;
 import lombok.Data;
 import senai.com.ava_senai.domain.DefaultEntity;
+import senai.com.ava_senai.domain.course.Course;
 import senai.com.ava_senai.domain.course.institution.Institution;
 
 @Entity
