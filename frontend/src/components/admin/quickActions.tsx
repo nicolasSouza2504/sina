@@ -49,12 +49,18 @@ export default function QuickActions() {
       },
       {
         key: 3,
+        title: "Gerenciar Turmas",
+        link: "/admin/class",
+        icon: <Code className="h-4 w-4" />,
+      },
+      {
+        key: 4,
         title: "Gerenciar EADs",
         link: "/admin/eads",
         icon: <Database className="h-4 w-4" />,
       },
       {
-        key: 4,
+        key: 5,
         title: "Relatórios",
         link: "/admin/reports",
         icon: <AlertCircle className="h-4 w-4" />,

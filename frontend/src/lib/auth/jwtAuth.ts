@@ -1,3 +1,4 @@
+import { cookies } from "next/headers"
 import { UserFromToken } from "../interfaces/userInterfaces"
 
 export type AuthPayload = {
@@ -37,4 +38,10 @@ export function hasAnyRole(payload: AuthPayload | null, required: string | strin
     if (!payload?.role?.length) return false
     const req = Array.isArray(required) ? required : [required]
     return req.some(r => payload.role!.includes(r))
+}
+
+
+export async function getTokenFromSession() {
+    const cookiesStore = await cookies();
+    return cookiesStore.get('token')?.value;
 }
