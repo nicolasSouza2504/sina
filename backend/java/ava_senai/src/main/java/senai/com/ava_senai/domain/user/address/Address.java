@@ -16,5 +16,6 @@ public class Address extends DefaultEntity {
     private String street;
     private String number;
     private String complement;
+    private String zipCode;
 
 }
