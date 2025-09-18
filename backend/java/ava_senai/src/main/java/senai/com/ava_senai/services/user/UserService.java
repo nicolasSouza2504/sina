@@ -163,6 +163,7 @@ public class UserService implements IUserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
         user.setCpf(request.getCpf());
+        user.setIdInstitution(request.getIdInstitution());
 
         return user;
 

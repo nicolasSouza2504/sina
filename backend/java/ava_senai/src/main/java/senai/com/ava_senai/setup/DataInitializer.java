@@ -4,8 +4,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import senai.com.ava_senai.domain.Role.Role;
+import senai.com.ava_senai.domain.course.institution.Institution;
+import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
+import senai.com.ava_senai.repository.InstitutionRepository;
 import senai.com.ava_senai.repository.RolesRepository;
 import senai.com.ava_senai.services.user.IUserService;
 
@@ -18,11 +20,13 @@ public class DataInitializer implements CommandLineRunner {
 
     private final IUserService iUserService;
     private final RolesRepository rolesRepository;
+    private final InstitutionRepository institutionRepository;
 
-    public DataInitializer(IUserService iUserService, RolesRepository rolesRepository ) {
+    public DataInitializer(IUserService iUserService, RolesRepository rolesRepository, InstitutionRepository institutionRepository) {
 
         this.iUserService = iUserService;
         this.rolesRepository = rolesRepository;
+        this.institutionRepository = institutionRepository;
 
     }
 
@@ -31,6 +35,7 @@ public class DataInitializer implements CommandLineRunner {
 
         try {
 
+            createInstitution();
             createRoles();
             createUser();
 
@@ -59,6 +64,7 @@ public class DataInitializer implements CommandLineRunner {
                 new Role("USER"));
     }
 
+    @Transactional
     public void createUser() {
 
         UserRegisterDTO userRegister = buildDefaultAdmin();
@@ -67,14 +73,26 @@ public class DataInitializer implements CommandLineRunner {
 
     }
 
+    @Transactional
+    public void createInstitution() {
+
+        Institution institution = new Institution();
+
+        institution.setInstitutionName("SENAI_JOINVILLE");
+
+        institutionRepository.save(institution);
+
+    }
+
     private UserRegisterDTO buildDefaultAdmin() {
         return new UserRegisterDTO("admin",
                 "admin@gmail.com",
-                "admin@65468*/62.98+/*52989856*//*/",
+                "admin",
                 "00000000000",
                 null,
                 rolesRepository.findById(Long.valueOf(1)).get(),
-                null);
+                null,
+                1l);
     }
 
     public Boolean existsRole(String roleStr) {
