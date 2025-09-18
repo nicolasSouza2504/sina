@@ -31,8 +31,9 @@ public class ClassService implements IClassService {
 
                     clazz.setName(classRegisterDTO.name());
                     clazz.setStartDate(classRegisterDTO.startDate());
-                    clazz.setFinalDate(classRegisterDTO.finalDate());
+                    clazz.setEndDate(classRegisterDTO.endDate());
                     clazz.setImgClass(classRegisterDTO.imgClass());
+                    clazz.setCourseId(classRegisterDTO.courseId());
 
                     clazz = turmaRepository.save(clazz);
 
@@ -78,7 +79,7 @@ public class ClassService implements IClassService {
 
         clazz.setName(clazzEdit.name());
         clazz.setStartDate(clazzEdit.startDate());
-        clazz.setFinalDate(clazzEdit.finalDate());
+        clazz.setEndDate(clazzEdit.endDate());
         clazz.setImgClass(clazzEdit.imgClass());
 
         turmaRepository.save(clazz);

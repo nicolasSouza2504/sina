@@ -11,10 +11,12 @@ import org.springframework.web.multipart.MultipartFile;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseDTO;
+import senai.com.ava_senai.domain.user.userclass.UserClass;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.UserAlreadyExistsException;
 import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.exception.Validation;
+import senai.com.ava_senai.repository.UserClassRepository;
 import senai.com.ava_senai.repository.UserRepository;
 import senai.com.ava_senai.util.CPFCNPJValidator;
 
@@ -30,6 +32,7 @@ public class UserService implements IUserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserClassRepository userClassRepository;
 
     @Override
     public UserResponseDTO getUserByid(Long id) {
@@ -68,11 +71,25 @@ public class UserService implements IUserService {
                     user = userRepository.save(user);
 
                     saveImage(request.getImage(), user);
+                    saveClasses(request, user);
 
                     return new UserResponseDTO(user);
 
                 })
                 .orElseThrow(() -> new UserAlreadyExistsException("Oops! User already exists!"));
+
+    }
+
+
+    public void saveClasses(UserRegisterDTO userRegisterDTO, User userDb) {
+
+        if (userRegisterDTO.getClassesId() != null && !userRegisterDTO.getClassesId().isEmpty()) {
+
+            userRegisterDTO.getClassesId().forEach(classId -> {
+                userClassRepository.save(new UserClass(userDb.getId(), classId));
+            });
+
+        }
 
     }
 
