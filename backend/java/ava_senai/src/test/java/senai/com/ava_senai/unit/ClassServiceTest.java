@@ -39,12 +39,12 @@ class ClassServiceTest {
 
     @BeforeEach
     void setUp() {
-        classRegisterDTO = new ClassRegisterDTO("Test Class", LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "class_image.jpg");
+        classRegisterDTO = new ClassRegisterDTO("Test Class",1L,  LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "class_image.jpg");
         clazz = new Class();
         clazz.setId(1L);
         clazz.setName("Test Class");
         clazz.setStartDate(LocalDate.of(2023, 1, 1));
-        clazz.setFinalDate(LocalDate.of(2023, 12, 31));
+        clazz.setEndDate(LocalDate.of(2023, 12, 31));
         clazz.setImgClass("class_image.jpg");
     }
 
