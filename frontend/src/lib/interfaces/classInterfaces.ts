@@ -18,3 +18,13 @@ export interface CreateClass {
     courseId: number |null | string
     imgClass: string | null
 }
+
+export interface ClassFormData {
+    code: string | null ;
+    name: string;
+    startDate: string | null;
+    endDate: string | null;
+    semester: number | null | string;
+    courseId: number | null | string;
+    imgClass: string | null;
+}

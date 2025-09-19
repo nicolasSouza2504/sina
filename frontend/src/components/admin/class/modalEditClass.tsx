@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
@@ -23,22 +23,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Class } from "@/lib/interfaces/classInterfaces";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-interface ClassFormData {
-    code: string;
-    name: string;
-    startDate: string | null;
-    endDate: string | null;
-    semester: number | null | string;
-    courseId: number |null | string;
-    imgClass: string | null;
-}
+import {Input} from "@/components/ui/input";
+import {Class, ClassFormData} from "@/lib/interfaces/classInterfaces";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {useEffect, useState} from "react";
+import {useForm} from "react-hook-form";
+import {z} from "zod";
+import EditClassService from "@/lib/api/class/classEdit";
 
 interface ModalEditClassProps {
     isOpen: boolean;
@@ -66,13 +57,13 @@ const editClassSchema = z
             .string()
             .min(1, "Data de término é obrigatória")
             .refine((date) => !isNaN(Date.parse(date)), "Data inválida"),
-        semester: z.number().min(0, "Semestre deve ser preenchido"),
-        courseId: z.number(),
+        semester: z.number().min(1, "Semestre deve ser preenchido"),
+        courseId: z.number().min(1, "Curso deve ser selecionado"),
         imgClass: z.string().nullable().optional(),
     })
     .refine((data) => new Date(data.endDate) > new Date(data.startDate), {
         message: "Data de término deve ser posterior à data de início",
-        path: ["finalDate"],
+        path: ["endDate"],
     });
 
 export type EditClassSchemaValues = z.infer<typeof editClassSchema>;
@@ -84,14 +75,16 @@ export default function ModalEditClass({
                                            onClassUpdated,
                                            imageNames,
                                        }: ModalEditClassProps) {
+    const [editionError, setEditionError] = useState<string | null>(null);
     const form = useForm<EditClassSchemaValues>({
         resolver: zodResolver(editClassSchema),
         defaultValues: {
+            code: "",
             name: "",
             startDate: "",
             endDate: "",
-            semester: undefined,
-            courseId: undefined,
+            semester: 1, // Changed: Always provide a number instead of undefined
+            courseId: 1, // Changed: Always provide a number instead of undefined
             imgClass: null,
         },
         mode: "onSubmit",
@@ -101,12 +94,12 @@ export default function ModalEditClass({
     useEffect(() => {
         if (isOpen && classData) {
             form.reset({
-                code:classData.code || "",
+                code: classData.code || "",
                 name: classData.name,
                 startDate: classData.startDate || "",
                 endDate: classData.endDate || "",
-                semester: classData.semester || undefined,
-                courseId: classData.courseId || undefined,
+                semester: classData.semester || 1, // Changed: Fallback to 1 instead of undefined
+                courseId: classData.courseId || 1, // Changed: Fallback to 1 instead of undefined
                 imgClass: classData.imgClass || null,
             });
         }
@@ -116,44 +109,72 @@ export default function ModalEditClass({
     useEffect(() => {
         if (!isOpen) {
             resetForm();
+            setEditionError(null); // Clear error when closing
         }
     }, [isOpen]);
 
-    const onSubmit = (data: EditClassSchemaValues) => {
+    const onSubmit = async (data: EditClassSchemaValues) => {
         if (!classData) return;
 
         console.log("Editing class:", classData.id, data);
 
-        // Transform the data to match ClassFormData interface
         const formData: ClassFormData = {
             code: data.code || "",
             name: data.name,
             startDate: data.startDate,
             endDate: data.endDate,
             semester: data.semester || null,
-            courseId: data.courseId || "",
-            imgClass: data.imgClass || null,
+            courseId: data.courseId || null,
+            imgClass: data.imgClass === "none" ? null : data.imgClass || null,
         };
 
-        // Call the callback function if provided
-        if (onClassUpdated) {
-            onClassUpdated();
-        }
+        try {
+            setEditionError(null); // Clear previous errors
+            await EditClassService(formData, classData.id);
+            if (onClassUpdated) {
+                onClassUpdated();
+            }
+            onClose();
+        } catch (error) {
+            console.error("Error Editing class:", error);
+            let errorMessage = "Erro durante a Edição de Turma";
 
-        onClose();
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (typeof error === "string") {
+                errorMessage = error;
+            }
+
+            // Reset form to original data on error
+            form.reset({
+                code: classData.code || "",
+                name: classData.name,
+                startDate: classData.startDate || "",
+                endDate: classData.endDate || "",
+                semester: classData.semester || 1,
+                courseId: classData.courseId || 1,
+                imgClass: classData.imgClass || null,
+            });
+
+            setEditionError(errorMessage);
+        }
     };
 
     const resetForm = () => {
         form.reset({
+            code: "",
             name: "",
             startDate: "",
             endDate: "",
+            semester: 1, // Changed: Use 1 instead of undefined
+            courseId: 1, // Changed: Use 1 instead of undefined
             imgClass: null,
         });
     };
 
     const handleCancel = () => {
         resetForm();
+        setEditionError(null); // Clear error on cancel
         onClose();
     };
 
@@ -174,11 +195,29 @@ export default function ModalEditClass({
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid gap-4 py-4">
+                            {/* Code Field */}
+                            <FormField
+                                control={form.control}
+                                name="code"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <FormLabel>Código da Turma</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Ex: DWB-2024.1"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+
                             {/* Name Field */}
                             <FormField
                                 control={form.control}
                                 name="name"
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <FormItem>
                                         <FormLabel>Nome da Turma</FormLabel>
                                         <FormControl>
@@ -187,7 +226,7 @@ export default function ModalEditClass({
                                                 {...field}
                                             />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage/>
                                     </FormItem>
                                 )}
                             />
@@ -197,13 +236,13 @@ export default function ModalEditClass({
                                 <FormField
                                     control={form.control}
                                     name="startDate"
-                                    render={({ field }) => (
+                                    render={({field}) => (
                                         <FormItem>
                                             <FormLabel>Data de Início</FormLabel>
                                             <FormControl>
                                                 <Input type="date" {...field} />
                                             </FormControl>
-                                            <FormMessage />
+                                            <FormMessage/>
                                         </FormItem>
                                     )}
                                 />
@@ -211,13 +250,62 @@ export default function ModalEditClass({
                                 <FormField
                                     control={form.control}
                                     name="endDate"
-                                    render={({ field }) => (
+                                    render={({field}) => (
                                         <FormItem>
                                             <FormLabel>Data de Término</FormLabel>
                                             <FormControl>
                                                 <Input type="date" {...field} />
                                             </FormControl>
-                                            <FormMessage />
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            {/* Semester and Course Fields */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="semester"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Semestre</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="Ex: 1"
+                                                    {...field}
+                                                    value={field.value || ""} // Always provide a string value
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        field.onChange(value ? parseInt(value) : 1);
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="courseId"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>ID do Curso</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="Ex: 123"
+                                                    {...field}
+                                                    value={field.value || ""} // Always provide a string value
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        field.onChange(value ? parseInt(value) : 1);
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage/>
                                         </FormItem>
                                     )}
                                 />
@@ -227,20 +315,22 @@ export default function ModalEditClass({
                             <FormField
                                 control={form.control}
                                 name="imgClass"
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <FormItem>
                                         <FormLabel>Imagem da Turma</FormLabel>
                                         <FormControl>
                                             <div className="space-y-4">
                                                 <Select
-                                                    onValueChange={field.onChange}
-                                                    value={field.value || ""}
+                                                    onValueChange={(value) => {
+                                                        field.onChange(value === "none" ? null : value);
+                                                    }}
+                                                    value={field.value || "none"}
                                                 >
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Selecione uma imagem" />
+                                                        <SelectValue placeholder="Selecione uma imagem"/>
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="">Nenhuma imagem</SelectItem>
+                                                        <SelectItem value="none">Nenhuma imagem</SelectItem>
                                                         {imageNames.map((imageName) => (
                                                             <SelectItem key={imageName} value={imageName}>
                                                                 {imageName}
@@ -250,7 +340,7 @@ export default function ModalEditClass({
                                                 </Select>
 
                                                 {/* Image Preview */}
-                                                {watchedImage && (
+                                                {watchedImage && watchedImage !== "none" && (
                                                     <div className="w-24 h-24">
                                                         <img
                                                             src={`/img/${watchedImage}`}
@@ -261,11 +351,17 @@ export default function ModalEditClass({
                                                 )}
                                             </div>
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage/>
                                     </FormItem>
                                 )}
                             />
                         </div>
+
+                        {editionError && (
+                            <div className="text-red-500 text-sm p-3 bg-red-50 rounded-md border border-red-200">
+                                {editionError}
+                            </div>
+                        )}
 
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={handleCancel}>

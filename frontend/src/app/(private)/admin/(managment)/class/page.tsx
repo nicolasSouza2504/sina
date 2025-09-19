@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import {
     Card,
     CardContent,
@@ -10,10 +10,10 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Badge} from "@/components/ui/badge";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -46,9 +46,10 @@ import {
 } from "lucide-react";
 import ModalAddClass from "@/components/admin/class/modalAddClass";
 import ModalEditClass from "@/components/admin/class/modalEditClass";
-import { Class } from "@/lib/interfaces/classInterfaces";
+import {Class} from "@/lib/interfaces/classInterfaces";
 import ClassList from "@/lib/api/class/classList";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+import ClassRemoveService from "@/lib/api/class/classRemove";
 
 const imgs = ["TurmaIMG1.png", "TurmaIMG2.png", "TurmaIMG3.png", "TurmaIMG4.png"];
 
@@ -72,13 +73,12 @@ export default function ClassesManagement() {
             const classData = await ClassList();
             console.log("Raw API response:", classData);
 
-            // Map the API response to match your component's expected interface
             const mappedClasses = classData?.map((cls: any) => ({
                 id: cls.Id || cls.id,
                 code: cls.code || null,
                 name: cls.nome || cls.name,
                 startDate: cls.startDate,
-                endDate: cls.finalDate || cls.endDate, // Handle both old and new field names
+                endDate: cls.finalDate || cls.endDate,
                 semester: cls.semester || null,
                 courseId: cls.courseId || null,
                 imgClass: cls.imgClass
@@ -106,9 +106,19 @@ export default function ClassesManagement() {
             cls.code?.toLowerCase().includes(searchTerm.toLowerCase())
         ) || [];
 
-    const handleDeleteClass = (id: number) => {
+    const handleDeleteClass = async (id: number) => {
         console.log("Deleting class:", id);
-        setClasses((prev) => prev?.filter((cls) => cls.id !== id) || []);
+        try{
+            await ClassRemoveService(id);
+            setClasses((prev) => prev?.filter((cls) => cls.id !== id) || []);
+        }catch(error){
+            console.error("Error fetching classes:", error);
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Erro desconhecido ao buscar turmas.";
+            setError(message);
+        }
     };
 
     const openEditModal = (cls: Class) => {
@@ -116,8 +126,8 @@ export default function ClassesManagement() {
         setIsEditModalOpen(true);
     };
 
-    const reloadClassList = () => {
-        getClasses();
+    const reloadClassList = async () => {
+        await getClasses();
     };
 
     const formatDate = (dateString: string | null) => {
@@ -134,7 +144,7 @@ export default function ClassesManagement() {
         endDate: string | null
     ) => {
         if (!startDate || !endDate) {
-            return { status: "Sem Data", variant: "outline" as const };
+            return {status: "Sem Data", variant: "outline" as const};
         }
 
         try {
@@ -143,12 +153,12 @@ export default function ClassesManagement() {
             const end = new Date(endDate);
 
             if (now < start)
-                return { status: "Não Iniciada", variant: "secondary" as const };
+                return {status: "Não Iniciada", variant: "secondary" as const};
             if (now > end)
-                return { status: "Finalizada", variant: "destructive" as const };
-            return { status: "Em Andamento", variant: "default" as const };
+                return {status: "Finalizada", variant: "destructive" as const};
+            return {status: "Em Andamento", variant: "default" as const};
         } catch {
-            return { status: "Data inválida", variant: "outline" as const };
+            return {status: "Data inválida", variant: "outline" as const};
         }
     };
 
@@ -234,7 +244,7 @@ export default function ClassesManagement() {
                             onClick={closeError}
                             className="absolute  top-2 right-2 h-6 w-6 p-0 hover:bg-destructive-foreground/10 hover:cursor-pointer"
                         >
-                            <X className="size-5" />
+                            <X className="size-5 hover:cursor-pointer"/>
                         </Button>
                     </Alert>
                 </div>
@@ -252,7 +262,7 @@ export default function ClassesManagement() {
                         </p>
                     </div>
                     <Button onClick={() => setIsCreateModalOpen(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className="h-4 w-4 mr-2"/>
                         Nova Turma
                     </Button>
                 </div>
@@ -267,7 +277,7 @@ export default function ClassesManagement() {
                             <CardTitle className="text-sm font-medium">
                                 Total de Turmas
                             </CardTitle>
-                            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                            <GraduationCap className="h-4 w-4 text-muted-foreground"/>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{classes?.length || 0}</div>
@@ -282,7 +292,7 @@ export default function ClassesManagement() {
                             <CardTitle className="text-sm font-medium">
                                 Em Andamento
                             </CardTitle>
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <Calendar className="h-4 w-4 text-muted-foreground"/>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
@@ -299,7 +309,7 @@ export default function ClassesManagement() {
                             <CardTitle className="text-sm font-medium">
                                 Não Iniciadas
                             </CardTitle>
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <Calendar className="h-4 w-4 text-muted-foreground"/>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
@@ -312,7 +322,7 @@ export default function ClassesManagement() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Finalizadas</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <Users className="h-4 w-4 text-muted-foreground"/>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
@@ -331,7 +341,8 @@ export default function ClassesManagement() {
                     <CardContent>
                         <div className="flex gap-4">
                             <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                <Search
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4"/>
                                 <Input
                                     placeholder="Buscar por nome ou código da turma..."
                                     value={searchTerm}
@@ -354,7 +365,7 @@ export default function ClassesManagement() {
                     <CardContent>
                         {filteredClasses.length === 0 ? (
                             <div className="text-center py-8">
-                                <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" />
+                                <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground"/>
                                 <h3 className="mt-2 text-sm font-semibold text-gray-900">
                                     Nenhuma turma encontrada
                                 </h3>
@@ -366,7 +377,7 @@ export default function ClassesManagement() {
                                 {!searchTerm && (
                                     <div className="mt-6">
                                         <Button onClick={() => setIsCreateModalOpen(true)}>
-                                            <Plus className="h-4 w-4 mr-2" />
+                                            <Plus className="h-4 w-4 mr-2"/>
                                             Nova Turma
                                         </Button>
                                     </div>
@@ -388,7 +399,7 @@ export default function ClassesManagement() {
                                 </TableHeader>
                                 <TableBody>
                                     {filteredClasses.map((cls) => {
-                                        const { status, variant } = getClassStatus(
+                                        const {status, variant} = getClassStatus(
                                             cls.startDate,
                                             cls.endDate
                                         );
@@ -426,12 +437,12 @@ export default function ClassesManagement() {
                                                             size="sm"
                                                             onClick={() => openEditModal(cls)}
                                                         >
-                                                            <Edit className="h-4 w-4" />
+                                                            <Edit className="h-4 w-4"/>
                                                         </Button>
                                                         <AlertDialog>
                                                             <AlertDialogTrigger asChild>
                                                                 <Button variant="outline" size="sm">
-                                                                    <Trash2 className="h-4 w-4" />
+                                                                    <Trash2 className="h-4 w-4"/>
                                                                 </Button>
                                                             </AlertDialogTrigger>
                                                             <AlertDialogContent>
@@ -441,7 +452,8 @@ export default function ClassesManagement() {
                                                                     </AlertDialogTitle>
                                                                     <AlertDialogDescription>
                                                                         Tem certeza que deseja excluir a turma "
-                                                                        {cls.name || cls.code || "esta turma"}"? Esta ação não
+                                                                        {cls.name || cls.code || "esta turma"}"? Esta
+                                                                        ação não
                                                                         pode ser desfeita.
                                                                     </AlertDialogDescription>
                                                                 </AlertDialogHeader>
@@ -474,8 +486,8 @@ export default function ClassesManagement() {
             <ModalAddClass
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
-                onClassCreated={() => {
-                    reloadClassList();
+                onClassCreated={async () => {
+                    await reloadClassList();
                 }}
                 imageNames={imgs}
             />
@@ -488,8 +500,8 @@ export default function ClassesManagement() {
                     setSelectedClass(null);
                 }}
                 classData={selectedClass}
-                onClassUpdated={() => {
-                    reloadClassList();
+                onClassUpdated={async () => {
+                    await reloadClassList();
                 }}
                 imageNames={imgs}
             />

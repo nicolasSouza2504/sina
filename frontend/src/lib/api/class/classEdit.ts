@@ -1,9 +1,9 @@
 "use server"
+import {ClassFormData} from "@/lib/interfaces/classInterfaces";
 import getApiBaseUrl from '@/lib/api/api';
 import {getTokenFromSession} from "@/lib/auth/jwtAuth";
-import type {CreateClass} from "@/lib/interfaces/classInterfaces";
 
-export default async function CreateClassService(classForm: CreateClass) {
+export default async function EditClassService(classForm: ClassFormData, classId: number) {
     const token = await getTokenFromSession();
     const baseURL = getApiBaseUrl();
     try {
@@ -11,8 +11,8 @@ export default async function CreateClassService(classForm: CreateClass) {
             throw new Error("No auth token found in session. Please login and try again.");
         }
 
-        const response = await fetch(`${baseURL}/class/add`, {
-            method: "POST",
+        const response = await fetch(`${baseURL}/class/${classId}/edit`, {
+            method: "PUT",
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -36,6 +36,6 @@ export default async function CreateClassService(classForm: CreateClass) {
         return await response.json();
     } catch (err) {
         console.error("Network or unexpected error:", err);
-        throw err; // rethrow so the caller can handle it
+        throw err;
     }
 }

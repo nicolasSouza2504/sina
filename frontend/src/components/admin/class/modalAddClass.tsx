@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
@@ -8,28 +8,15 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
+import {Input} from "@/components/ui/input";
 import CreateClassService from "@/lib/api/class/createClass";
-import { CreateClass } from "@/lib/interfaces/classInterfaces";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import {CreateClass} from "@/lib/interfaces/classInterfaces";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {useEffect, useState} from "react";
+import {useForm} from "react-hook-form";
+import {z} from "zod";
 
 interface ModalAddClassProps {
     isOpen: boolean;
@@ -62,8 +49,8 @@ const classSchema = z
                 (date) => !date || (date && !isNaN(Date.parse(date))),
                 "Data inválida"
             ),
-        semester: z.number().min(0, "Semestre deve ser preenchido"),
-        courseId: z.number(),
+        semester: z.number().min(1, "Semestre deve ser preenchido").optional(),
+        courseId: z.number().min(1, "Curso deve ser selecionado").optional(),
         imgClass: z.string().nullable().optional(),
     })
     .refine(
@@ -75,7 +62,7 @@ const classSchema = z
         },
         {
             message: "Data de término deve ser posterior à data de início",
-            path: ["finalDate"],
+            path: ["endDate"],
         }
     );
 
@@ -87,14 +74,12 @@ export default function ModalAddClass({
                                           onClassCreated,
                                           imageNames,
                                       }: ModalAddClassProps) {
-    const [creationError, setCreationError] = useState<
-        string | null | undefined | {}
-    >(null);
+    const [creationError, setCreationError] = useState<string | null>(null);
 
     const form = useForm<ClassSchemaValues>({
         resolver: zodResolver(classSchema),
         defaultValues: {
-            code:"",
+            code: "",
             name: "",
             startDate: "",
             endDate: "",
@@ -113,16 +98,18 @@ export default function ModalAddClass({
 
     const onSubmit = async (data: ClassSchemaValues) => {
         console.log("Creating class:", data);
+        setCreationError(null); // Clear previous errors
 
         const classData: CreateClass = {
-            code:data.code,
+            code: data.code,
             name: data.name,
             startDate: data.startDate || null,
             endDate: data.endDate || null,
             semester: data.semester || null,
             courseId: data.courseId || null,
-            imgClass: data.imgClass || null,
+            imgClass: data.imgClass === "none" ? null : data.imgClass || null,
         };
+
         try {
             await createClassOnSubmit(classData);
             if (onClassCreated) {
@@ -130,15 +117,21 @@ export default function ModalAddClass({
             }
             onClose();
         } catch (err) {
-            const message: string | {} = err
-                ? err
-                : "Erro durante a Criação de Turma";
-            setCreationError(message);
+            console.error("Error creating class:", err);
+            let errorMessage = "Erro durante a Criação de Turma";
+
+            if (err instanceof Error) {
+                errorMessage = err.message;
+            } else if (typeof err === "string") {
+                errorMessage = err;
+            }
+
+            setCreationError(errorMessage);
         }
     };
 
     const createClassOnSubmit = async (CreateClassForm: CreateClass) => {
-        const response = await CreateClassService(CreateClassForm);
+        return await CreateClassService(CreateClassForm);
     };
 
     const resetForm = () => {
@@ -167,19 +160,37 @@ export default function ModalAddClass({
                 <DialogHeader>
                     <DialogTitle>Cadastrar Nova Turma</DialogTitle>
                     <DialogDescription>
-                        Preencha os dados da nova turma. O nome é obrigatório, as demais
-                        informações são opcionais.
+                        Preencha os dados da nova turma. O nome e código são obrigatórios,
+                        as demais informações são opcionais.
                     </DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid gap-4 py-4">
+                            {/* Code Field */}
+                            <FormField
+                                control={form.control}
+                                name="code"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <FormLabel>Código da Turma</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Ex: TUR001"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+
                             {/* Name Field */}
                             <FormField
                                 control={form.control}
                                 name="name"
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <FormItem>
                                         <FormLabel>Nome da Turma</FormLabel>
                                         <FormControl>
@@ -188,7 +199,55 @@ export default function ModalAddClass({
                                                 {...field}
                                             />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Semester Field */}
+                            <FormField
+                                control={form.control}
+                                name="semester"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <FormLabel>Semestre (opcional)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                placeholder="Ex: 1"
+                                                min={1}
+                                                value={field.value || ""}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    field.onChange(value ? parseInt(value, 10) : undefined);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Course ID Field */}
+                            <FormField
+                                control={form.control}
+                                name="courseId"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <FormLabel>ID do Curso (opcional)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                placeholder="Ex: 1"
+                                                min={1}
+                                                value={field.value || ""}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    field.onChange(value ? parseInt(value, 10) : undefined);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage/>
                                     </FormItem>
                                 )}
                             />
@@ -198,13 +257,13 @@ export default function ModalAddClass({
                                 <FormField
                                     control={form.control}
                                     name="startDate"
-                                    render={({ field }) => (
+                                    render={({field}) => (
                                         <FormItem>
-                                            <FormLabel>Data de Início</FormLabel>
+                                            <FormLabel>Data de Início (opcional)</FormLabel>
                                             <FormControl>
                                                 <Input type="date" {...field} />
                                             </FormControl>
-                                            <FormMessage />
+                                            <FormMessage/>
                                         </FormItem>
                                     )}
                                 />
@@ -212,13 +271,13 @@ export default function ModalAddClass({
                                 <FormField
                                     control={form.control}
                                     name="endDate"
-                                    render={({ field }) => (
+                                    render={({field}) => (
                                         <FormItem>
-                                            <FormLabel>Data de Término</FormLabel>
+                                            <FormLabel>Data de Término (opcional)</FormLabel>
                                             <FormControl>
                                                 <Input type="date" {...field} />
                                             </FormControl>
-                                            <FormMessage />
+                                            <FormMessage/>
                                         </FormItem>
                                     )}
                                 />
@@ -228,9 +287,9 @@ export default function ModalAddClass({
                             <FormField
                                 control={form.control}
                                 name="imgClass"
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <FormItem>
-                                        <FormLabel>Imagem da Turma</FormLabel>
+                                        <FormLabel>Imagem da Turma (opcional)</FormLabel>
                                         <FormControl>
                                             <div className="space-y-4">
                                                 <Select
@@ -240,7 +299,7 @@ export default function ModalAddClass({
                                                     value={field.value || "none"}
                                                 >
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Selecione uma imagem" />
+                                                        <SelectValue placeholder="Selecione uma imagem"/>
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="none">Nenhuma imagem</SelectItem>
@@ -264,11 +323,17 @@ export default function ModalAddClass({
                                                 )}
                                             </div>
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage/>
                                     </FormItem>
                                 )}
                             />
                         </div>
+
+                        {creationError && (
+                            <div className="text-red-500 text-sm p-3 bg-red-50 rounded-md border border-red-200">
+                                {creationError}
+                            </div>
+                        )}
 
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={handleCancel}>
@@ -281,13 +346,6 @@ export default function ModalAddClass({
                             </Button>
                         </DialogFooter>
                     </form>
-                    {creationError !== null && (
-                        <div className="text-red-500 text-sm mt-2">
-                            {typeof creationError === "string"
-                                ? creationError
-                                : "Erro durante a Criação de Turma"}
-                        </div>
-                    )}
                 </Form>
             </DialogContent>
         </Dialog>
