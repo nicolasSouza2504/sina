@@ -15,10 +15,6 @@ import java.util.List;
 @Table(name = "class")
 public class Class extends DefaultEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(name = "name", nullable = false)
     private String name;
 
@@ -28,8 +24,8 @@ public class Class extends DefaultEntity {
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "final_date", nullable = false)
-    private LocalDate finalDate;
+    @Column(name = "end_date", nullable = false)
+    private LocalDate endDate;
 
     @Column(name = "img_class")
     private String imgClass;
@@ -37,8 +33,11 @@ public class Class extends DefaultEntity {
     private Integer semester;
 
     @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
+    @JoinColumn(name = "course_id", updatable = false, insertable = false)
     private Course course;
+
+    @Column(name = "course_id", nullable = false)
+    private Long courseId;
 
     @OneToMany(mappedBy = "classEntity")
     private List<UserClass> userClasses;

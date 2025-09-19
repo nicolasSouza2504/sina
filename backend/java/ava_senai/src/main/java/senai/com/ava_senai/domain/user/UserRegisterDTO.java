@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 import senai.com.ava_senai.domain.user.role.Role;
 
+import java.util.List;
+
 @Data
 public class UserRegisterDTO {
 
@@ -16,6 +18,7 @@ public class UserRegisterDTO {
     private MultipartFile image;
     private Long roleId;
     private Long idInstitution;
+    private List<Long> classesId;
 
     public UserRegisterDTO() {
     }
