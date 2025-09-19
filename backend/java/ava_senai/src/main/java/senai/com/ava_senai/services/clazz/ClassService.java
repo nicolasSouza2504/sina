@@ -3,9 +3,9 @@ package senai.com.ava_senai.services.clazz;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import senai.com.ava_senai.domain.turma.Class;
-import senai.com.ava_senai.domain.turma.ClassRegisterDTO;
-import senai.com.ava_senai.domain.turma.ClassResponseDTO;
+import senai.com.ava_senai.domain.course.clazz.Class;
+import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
+import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 import senai.com.ava_senai.exception.AlreadyExistsException;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
@@ -31,8 +31,9 @@ public class ClassService implements IClassService {
 
                     clazz.setName(classRegisterDTO.name());
                     clazz.setStartDate(classRegisterDTO.startDate());
-                    clazz.setFinalDate(classRegisterDTO.finalDate());
+                    clazz.setEndDate(classRegisterDTO.endDate());
                     clazz.setImgClass(classRegisterDTO.imgClass());
+                    clazz.setCourseId(classRegisterDTO.courseId());
 
                     clazz = turmaRepository.save(clazz);
 
@@ -78,7 +79,7 @@ public class ClassService implements IClassService {
 
         clazz.setName(clazzEdit.name());
         clazz.setStartDate(clazzEdit.startDate());
-        clazz.setFinalDate(clazzEdit.finalDate());
+        clazz.setEndDate(clazzEdit.endDate());
         clazz.setImgClass(clazzEdit.imgClass());
 
         turmaRepository.save(clazz);

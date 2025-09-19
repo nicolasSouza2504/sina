@@ -1,9 +1,9 @@
-package senai.com.ava_senai.domain.turma;
+package senai.com.ava_senai.domain.course.clazz;
 
 import java.time.LocalDate;
 
 public record ClassResponseDTO(Long Id, String nome, LocalDate startDate, LocalDate finalDate, String imgClass) {
     public ClassResponseDTO(Class clazz) {
-        this(clazz.getId(), clazz.getName(), clazz.getStartDate(), clazz.getFinalDate(), clazz.getImgClass());
+        this(clazz.getId(), clazz.getName(), clazz.getStartDate(), clazz.getEndDate(), clazz.getImgClass());
     }
 }

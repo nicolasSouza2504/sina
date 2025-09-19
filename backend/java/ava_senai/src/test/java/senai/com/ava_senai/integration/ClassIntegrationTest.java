@@ -13,8 +13,8 @@ import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import senai.com.ava_senai.config.TestConfig;
-import senai.com.ava_senai.domain.turma.ClassRegisterDTO;
-import senai.com.ava_senai.domain.turma.ClassResponseDTO;
+import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
+import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 import senai.com.ava_senai.domain.user.UserLogin;
 import senai.com.ava_senai.response.ApiResponse;
 
