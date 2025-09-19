@@ -1,9 +1,9 @@
-"use server"
-import getApiBaseUrl from '@/lib/api/api';
-import {getTokenFromSession} from "@/lib/auth/jwtAuth";
-import type {CreateClass} from "@/lib/interfaces/classInterfaces";
+"use server";
 
-export default async function CreateClassService(classForm: CreateClass) {
+import {getTokenFromSession} from "@/lib/auth/jwtAuth";
+import getApiBaseUrl from "@/lib/api/api";
+
+export default async  function ClassRemoveService(classId: number) {
     const token = await getTokenFromSession();
     const baseURL = getApiBaseUrl();
     try {
@@ -11,14 +11,12 @@ export default async function CreateClassService(classForm: CreateClass) {
             throw new Error("No auth token found in session. Please login and try again.");
         }
 
-        const response = await fetch(`${baseURL}/class/add`, {
-            method: "POST",
+        const response = await fetch(`${baseURL}/class/delete/${classId}`, {
+            method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
-                Accept: "application/json",
                 Authorization: token,
             },
-            body: JSON.stringify(classForm),
         });
 
         if (!response.ok) {
@@ -36,6 +34,6 @@ export default async function CreateClassService(classForm: CreateClass) {
         return await response.json();
     } catch (err) {
         console.error("Network or unexpected error:", err);
-        throw err; // rethrow so the caller can handle it
+        throw err;
     }
 }
