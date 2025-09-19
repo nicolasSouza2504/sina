@@ -58,6 +58,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional(rollbackOn = Exception.class)
     public UserResponseDTO createUser(UserRegisterDTO request) {
 
         return Optional.of(request)

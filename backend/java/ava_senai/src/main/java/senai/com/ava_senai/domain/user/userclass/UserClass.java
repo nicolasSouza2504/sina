@@ -20,7 +20,7 @@ public class UserClass {
     private Long userId;
 
     @ManyToOne
-    @JoinColumn(name = "class_id")
+    @JoinColumn(name = "class_id", insertable = false, updatable = false)
     private Class classEntity;
 
     @Column(name = "class_id", nullable = false)
