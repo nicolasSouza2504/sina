@@ -15,7 +15,7 @@ public class Task extends DefaultEntity {
     @Column(length = 200, nullable = false)
     private String name;
 
-    private Integer order;
+    private Integer taskOrder;
 
     @Column(columnDefinition = "TEXT")
     private String description;
