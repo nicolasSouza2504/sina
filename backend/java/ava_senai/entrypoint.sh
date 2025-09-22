@@ -4,7 +4,7 @@ set -e
 cd /app
 
 # Toggle tests (default: skip tests for faster startup)
-SKIP_TESTS="${SKIP_TESTS:-false}"
+SKIP_TESTS="${SKIP_TESTS:-true}"
 
 echo "JAVA: $(java -version 2>&1 | head -n1)"
 echo "MAVEN: $(mvn -v | head -n1)"
