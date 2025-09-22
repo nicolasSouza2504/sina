@@ -63,7 +63,7 @@ class UserIntegrationTest {
 
 	private void loginAndRetrieveToken() {
 
-		UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin@65468*/62.98+/*52989856*//*/");
+		UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin");
 
 		token = given()
 				.contentType(ContentType.JSON)
@@ -87,7 +87,7 @@ class UserIntegrationTest {
 				.header("Authorization", "Bearer " + token)
 				.contentType(ContentType.MULTIPART)
 				.multiPart("user", mapper.writeValueAsString(userRegisterDTO))
-				.multiPart("image", new File("src/test/resources/img/7.jpg"))
+				.multiPart("image", new File("src/test/resources/img/10.png"))
 				.when()
 				.post("/add/USER")
 				.then()
@@ -152,7 +152,7 @@ class UserIntegrationTest {
 				.header("Authorization", "Bearer " + token)
 				.contentType(ContentType.MULTIPART)
 				.multiPart("user", mapper.writeValueAsString(userRegisterDTO))
-				.multiPart("image", new File("src/test/resources/img/7.jpg"))
+				.multiPart("image", new File("src/test/resources/img/10.png"))
 				.when()
 				.put("/update/{userId}", userResponseData.id())
 				.then()

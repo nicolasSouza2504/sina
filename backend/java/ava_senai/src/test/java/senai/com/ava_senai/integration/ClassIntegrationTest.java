@@ -57,7 +57,7 @@ class ClassIntegrationTest {
     }
 
     private void loginAndRetrieveToken() {
-        UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin@65468*/62.98+/*52989856*//*/");
+        UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin");
 
         token = given()
                 .contentType(ContentType.JSON)
