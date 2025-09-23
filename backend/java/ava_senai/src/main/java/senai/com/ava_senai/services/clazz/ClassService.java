@@ -9,7 +9,7 @@ import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 import senai.com.ava_senai.exception.AlreadyExistsException;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
-import senai.com.ava_senai.repository.TurmaRepository;
+import senai.com.ava_senai.repository.ClassRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,13 +18,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ClassService implements IClassService {
 
-    private final TurmaRepository turmaRepository;
+    private final ClassRepository classRepository;
 
     @Override
     public ClassResponseDTO createClass(ClassRegisterDTO classRegisterDTO) {
 
         return Optional.of(classRegisterDTO)
-                .filter(turma -> !turmaRepository.existsByName(classRegisterDTO.name()))
+                .filter(turma -> !classRepository.existsByName(classRegisterDTO.name()))
                 .map(registro -> {
 
                     Class clazz = new Class();
@@ -35,7 +35,7 @@ public class ClassService implements IClassService {
                     clazz.setImgClass(classRegisterDTO.imgClass());
                     clazz.setCourseId(classRegisterDTO.courseId());
 
-                    clazz = turmaRepository.save(clazz);
+                    clazz = classRepository.save(clazz);
 
                     return new ClassResponseDTO(clazz);
 
@@ -46,7 +46,7 @@ public class ClassService implements IClassService {
     @Override
     public List<ClassResponseDTO> getTurmas() {
 
-        return Optional.of(turmaRepository.findAll()
+        return Optional.of(classRepository.findAll()
                         .stream()
                         .map(ClassResponseDTO::new).toList())
                 .filter(list -> !list.isEmpty())
@@ -58,8 +58,8 @@ public class ClassService implements IClassService {
     public ClassResponseDTO getTurmaById(Long turmaId) {
 
         return Optional.of(turmaId)
-                .filter(turma -> turmaRepository.existsById(turmaId))
-                .map(turma -> new ClassResponseDTO(turmaRepository.getReferenceById(turmaId)))
+                .filter(turma -> classRepository.existsById(turmaId))
+                .map(turma -> new ClassResponseDTO(classRepository.getReferenceById(turmaId)))
                 .orElseThrow(() -> new NotFoundException("Turma não econtrada pelo id:" + turmaId + "!"));
 
     }
@@ -68,10 +68,10 @@ public class ClassService implements IClassService {
     @Transactional
     public ClassResponseDTO updateClass(ClassRegisterDTO clazzEdit, Long turmaId) {
 
-        Class clazz = turmaRepository.findById(turmaId)
+        Class clazz = classRepository.findById(turmaId)
                 .orElseThrow(() -> new NotFoundException("Turma para edição não encontrada!"));
 
-        boolean existsWithSameNome = turmaRepository.existsByNameLikeAndIdNot(clazzEdit.name(), turmaId);
+        boolean existsWithSameNome = classRepository.existsByNameLikeAndIdNot(clazzEdit.name(), turmaId);
 
         if (existsWithSameNome) {
             throw new AlreadyExistsException("Turma com esse Nome já existe");
@@ -82,7 +82,7 @@ public class ClassService implements IClassService {
         clazz.setEndDate(clazzEdit.endDate());
         clazz.setImgClass(clazzEdit.imgClass());
 
-        turmaRepository.save(clazz);
+        classRepository.save(clazz);
 
         return new ClassResponseDTO(clazz);
 
@@ -91,8 +91,8 @@ public class ClassService implements IClassService {
     @Override
     public void deleteTurma(Long turmaId) {
 
-        turmaRepository.findById(turmaId)
-                .ifPresentOrElse(turmaRepository::delete,
+        classRepository.findById(turmaId)
+                .ifPresentOrElse(classRepository::delete,
                         () -> {
                             throw new NotFoundException("Turma para deletar não encontrada");
                         });

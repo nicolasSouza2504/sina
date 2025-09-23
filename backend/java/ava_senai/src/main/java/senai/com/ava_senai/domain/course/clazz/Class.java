@@ -42,5 +42,15 @@ public class Class extends DefaultEntity {
     @OneToMany(mappedBy = "classEntity")
     private List<UserClass> userClasses;
 
+    @PrePersist
+    @PreUpdate
+    public void setOptions() {
+
+        if (this.course != null) {
+            this.courseId = this.course.getId();
+        }
+
+    }
+
 
 }

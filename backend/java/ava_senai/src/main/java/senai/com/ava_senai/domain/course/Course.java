@@ -4,6 +4,7 @@ package senai.com.ava_senai.domain.course;
 import jakarta.persistence.*;
 import lombok.Data;
 import senai.com.ava_senai.domain.DefaultEntity;
+import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.section.Section;
 
 import java.util.List;
@@ -21,5 +22,8 @@ public class Course extends DefaultEntity {
 
     @OneToMany(mappedBy = "course")
     private List<Section> sections;
+
+    @OneToMany(mappedBy = "course")
+    private List<Class> classes;
 
 }

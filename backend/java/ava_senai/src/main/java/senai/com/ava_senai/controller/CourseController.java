@@ -1,0 +1,78 @@
+package senai.com.ava_senai.controller;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.*;
+import senai.com.ava_senai.domain.course.CourseRegisterDTO;
+import senai.com.ava_senai.domain.course.CourseResponseDTO;
+import senai.com.ava_senai.exception.UserAlreadyExistsException;
+import senai.com.ava_senai.exception.UserNotFoundException;
+import senai.com.ava_senai.repository.CourseRepository;
+import senai.com.ava_senai.response.ApiResponse;
+import senai.com.ava_senai.services.course.ICourseService;
+
+@RestController
+@RequestMapping("${api.prefix}/course")
+@RequiredArgsConstructor
+public class CourseController {
+
+
+    private final ICourseService courseService;
+    private final CourseRepository courseRepository;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> getUserById(@PathVariable @Valid Long id) {
+
+        try {
+
+            CourseResponseDTO courseResponseDTO = courseService.getCourseById(id);
+
+            return ResponseEntity.ok().body(new ApiResponse("Sucesso!", courseResponseDTO));
+
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        }
+
+    }
+
+    @Secured({"ADMIN", "TEACHER"})
+    @PostMapping("add/{role}")
+    public ResponseEntity<ApiResponse> addUser(@RequestBody @Valid CourseRegisterDTO courseRegisterDTO) {
+
+        try {
+
+            CourseResponseDTO courseResponse = courseService.createCourse(courseRegisterDTO);
+
+            return ResponseEntity.ok().body(new ApiResponse("Curso registrado com sucesso!", courseResponse));
+
+        } catch (Throwable e) {
+            return ResponseEntity.status(409).body(new ApiResponse(e.getMessage(), null));
+        }
+
+    }
+
+    @Secured({"ADMIN", "TEACHER"})
+    @PutMapping("update/{courseId}")
+    public ResponseEntity<ApiResponse> addUser(@PathVariable("courseId") Long courseId,
+                                               @RequestBody @Valid CourseRegisterDTO courseRegisterDTO) {
+
+        try {
+
+            CourseResponseDTO courseResponseDTO = courseService.updateUser(courseRegisterDTO, courseId);
+
+            return ResponseEntity.ok().body(new ApiResponse("Curso editado com sucesso", courseResponseDTO));
+
+        } catch (UserAlreadyExistsException e) {
+            return ResponseEntity.status(409).body(new ApiResponse(e.getMessage(), null));
+        }
+
+    }
+
+    @GetMapping("/list-all")
+    public ResponseEntity<ApiResponse> listAll() {
+        return ResponseEntity.ok().body(new ApiResponse("Usuários", courseRepository.findAll()));
+    }
+
+}
