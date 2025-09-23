@@ -50,6 +50,7 @@ import {Class} from "@/lib/interfaces/classInterfaces";
 import ClassList from "@/lib/api/class/classList";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import ClassRemoveService from "@/lib/api/class/classRemove";
+import QuickActions from "@/components/admin/quickActions";
 
 const imgs = ["TurmaIMG1.png", "TurmaIMG2.png", "TurmaIMG3.png", "TurmaIMG4.png"];
 
@@ -480,7 +481,10 @@ export default function ClassesManagement() {
                         )}
                     </CardContent>
                 </Card>
+                <QuickActions />
             </main>
+
+
 
             {/* Create Class Modal */}
             <ModalAddClass
