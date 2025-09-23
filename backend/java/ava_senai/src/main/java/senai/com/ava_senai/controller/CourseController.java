@@ -7,7 +7,6 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import senai.com.ava_senai.domain.course.CourseRegisterDTO;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
-import senai.com.ava_senai.exception.UserAlreadyExistsException;
 import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.repository.CourseRepository;
 import senai.com.ava_senai.response.ApiResponse;
@@ -60,11 +59,11 @@ public class CourseController {
 
         try {
 
-            CourseResponseDTO courseResponseDTO = courseService.updateUser(courseRegisterDTO, courseId);
+            CourseResponseDTO courseResponseDTO = courseService.updateCourse(courseRegisterDTO, courseId);
 
             return ResponseEntity.ok().body(new ApiResponse("Curso editado com sucesso", courseResponseDTO));
 
-        } catch (UserAlreadyExistsException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(409).body(new ApiResponse(e.getMessage(), null));
         }
 
