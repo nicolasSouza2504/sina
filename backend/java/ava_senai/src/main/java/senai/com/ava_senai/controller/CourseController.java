@@ -17,7 +17,6 @@ import senai.com.ava_senai.services.course.ICourseService;
 @RequiredArgsConstructor
 public class CourseController {
 
-
     private final ICourseService courseService;
     private final CourseRepository courseRepository;
 
@@ -36,9 +35,9 @@ public class CourseController {
 
     }
 
+    @PostMapping
     @Secured({"ADMIN", "TEACHER"})
-    @PostMapping("add/{role}")
-    public ResponseEntity<ApiResponse> addUser(@RequestBody @Valid CourseRegisterDTO courseRegisterDTO) {
+    public ResponseEntity<ApiResponse> addCourse(@RequestBody @Valid CourseRegisterDTO courseRegisterDTO) {
 
         try {
 
@@ -53,8 +52,8 @@ public class CourseController {
     }
 
     @Secured({"ADMIN", "TEACHER"})
-    @PutMapping("update/{courseId}")
-    public ResponseEntity<ApiResponse> addUser(@PathVariable("courseId") Long courseId,
+    @PutMapping("/{courseId}")
+    public ResponseEntity<ApiResponse> updateCourse(@PathVariable("courseId") Long courseId,
                                                @RequestBody @Valid CourseRegisterDTO courseRegisterDTO) {
 
         try {
@@ -69,9 +68,9 @@ public class CourseController {
 
     }
 
-    @GetMapping("/list-all")
+    @GetMapping
     public ResponseEntity<ApiResponse> listAll() {
-        return ResponseEntity.ok().body(new ApiResponse("Usuários", courseRepository.findAll()));
+        return ResponseEntity.ok().body(new ApiResponse("Usuários", courseService.getAllCourses()));
     }
 
 }

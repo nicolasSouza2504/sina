@@ -1,10 +1,12 @@
 package senai.com.ava_senai.services.course;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import senai.com.ava_senai.domain.course.Course;
 import senai.com.ava_senai.domain.course.CourseRegisterDTO;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
+import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.repository.ClassRepository;
@@ -65,28 +67,50 @@ public class CourseService implements ICourseService {
 
     }
 
-    public void updateClasses(Course course, CourseRegisterDTO courseRegisterDTO) {
+    // todo backend - cadastro de session cadsatro de knowledge trail
+
+    @Transactional
+    public void updateClasses(Course courseDb, CourseRegisterDTO courseRegisterDTO) {
 
         if (courseRegisterDTO.classesId() != null && !courseRegisterDTO.classesId().isEmpty()) {
 
+            courseDb.getClasses().forEach(clazz -> {
+
+                clazz.setCourseId(null);
+                classRepository.save(clazz);
+
+            });
+
             courseRegisterDTO.classesId().forEach(classID -> {
-
-                classRepository.findById(classID).ifPresent(clazz -> {
-
-                    clazz.setCourse(course);
-
-                    classRepository.save(clazz);
-
-                });
-
+                updateClass(classID, courseDb);
             });
 
         }
 
     }
 
+    public void updateClass(Long classID, Course course) {
+
+        Class clazz = classRepository.findById(classID).orElseThrow(() -> new NotFoundException("Turma não encontrada pelo id:" + classID + "!"));
+
+        if (clazz.getCourseId() != null) {
+            throw new RuntimeException("Turma " + clazz.getName() + " ja está em um curso!");
+        } else {
+            clazz.setCourseId(course.getId());
+            classRepository.save(clazz);
+        }
+
+    }
+
     private Course buildCourse(CourseRegisterDTO courseRegisterDTO) {
-        return null;
+
+        Course course = new Course();
+
+        course.setName(courseRegisterDTO.name());
+        course.setQuantitySemester(courseRegisterDTO.quantitySemester());
+
+        return course;
+
     }
 
     private void validateMandatoryFields(CourseRegisterDTO courseRegisterDTO) {
@@ -105,6 +129,8 @@ public class CourseService implements ICourseService {
                     validateMandatoryFields(courseRegisterDTO);
 
                     courseRepository.save(updateData(courseDB, courseRegisterDTO));
+
+                    updateClasses(courseDB, courseRegisterDTO);
 
                     return new CourseResponseDTO(courseDB);
 
