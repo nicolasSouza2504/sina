@@ -46,7 +46,7 @@ class AuthControllerIntegrationTest {
     @Order(1)
     @DisplayName("Integration test given valid credentials when login then return JWT token")
     void integrationTestGivenValidCredentialsWhenLoginThenReturnJwtToken() {
-        UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin@65468*/62.98+/*52989856*//*/");
+        UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin");
 
         String response = given()
                 .spec(specification)
