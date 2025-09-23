@@ -1,0 +1,381 @@
+"use client";
+import {Button} from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {Input} from "@/components/ui/input";
+import {Class, ClassFormData} from "@/lib/interfaces/classInterfaces";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {useEffect, useState} from "react";
+import {useForm} from "react-hook-form";
+import {z} from "zod";
+import EditClassService from "@/lib/api/class/classEdit";
+
+interface ModalEditClassProps {
+    isOpen: boolean;
+    onClose: () => void;
+    classData: Class | null;
+    onClassUpdated?: () => void;
+    imageNames: string[];
+}
+
+const editClassSchema = z
+    .object({
+        code: z
+            .string()
+            .min(1, "Code é obrigatório")
+            .max(70, "Code deve conter somente 70 caracteres"),
+        name: z
+            .string()
+            .min(1, "Nome é obrigatório")
+            .max(70, "Nome deve conter somente 70 caracteres"),
+        startDate: z
+            .string()
+            .min(1, "Data de início é obrigatória")
+            .refine((date) => !isNaN(Date.parse(date)), "Data inválida"),
+        endDate: z
+            .string()
+            .min(1, "Data de término é obrigatória")
+            .refine((date) => !isNaN(Date.parse(date)), "Data inválida"),
+        semester: z.number().min(1, "Semestre deve ser preenchido"),
+        courseId: z.number().min(1, "Curso deve ser selecionado"),
+        imgClass: z.string().nullable().optional(),
+    })
+    .refine((data) => new Date(data.endDate) > new Date(data.startDate), {
+        message: "Data de término deve ser posterior à data de início",
+        path: ["endDate"],
+    });
+
+export type EditClassSchemaValues = z.infer<typeof editClassSchema>;
+
+export default function ModalEditClass({
+                                           isOpen,
+                                           onClose,
+                                           classData,
+                                           onClassUpdated,
+                                           imageNames,
+                                       }: ModalEditClassProps) {
+    const [editionError, setEditionError] = useState<string | null>(null);
+    const form = useForm<EditClassSchemaValues>({
+        resolver: zodResolver(editClassSchema),
+        defaultValues: {
+            code: "",
+            name: "",
+            startDate: "",
+            endDate: "",
+            semester: 1, // Changed: Always provide a number instead of undefined
+            courseId: 1, // Changed: Always provide a number instead of undefined
+            imgClass: null,
+        },
+        mode: "onSubmit",
+    });
+
+    // Load class data when modal opens or classData changes
+    useEffect(() => {
+        if (isOpen && classData) {
+            form.reset({
+                code: classData.code || "",
+                name: classData.name,
+                startDate: classData.startDate || "",
+                endDate: classData.endDate || "",
+                semester: classData.semester || 1, // Changed: Fallback to 1 instead of undefined
+                courseId: classData.courseId || 1, // Changed: Fallback to 1 instead of undefined
+                imgClass: classData.imgClass || null,
+            });
+        }
+    }, [isOpen, classData, form]);
+
+    // Reset form when modal closes
+    useEffect(() => {
+        if (!isOpen) {
+            resetForm();
+            setEditionError(null); // Clear error when closing
+        }
+    }, [isOpen]);
+
+    const onSubmit = async (data: EditClassSchemaValues) => {
+        if (!classData) return;
+
+        console.log("Editing class:", classData.id, data);
+
+        const formData: ClassFormData = {
+            code: data.code || "",
+            name: data.name,
+            startDate: data.startDate,
+            endDate: data.endDate,
+            semester: data.semester || null,
+            courseId: data.courseId || null,
+            imgClass: data.imgClass === "none" ? null : data.imgClass || null,
+        };
+
+        try {
+            setEditionError(null); // Clear previous errors
+            await EditClassService(formData, classData.id);
+            if (onClassUpdated) {
+                onClassUpdated();
+            }
+            onClose();
+        } catch (error) {
+            console.error("Error Editing class:", error);
+            let errorMessage = "Erro durante a Edição de Turma";
+
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (typeof error === "string") {
+                errorMessage = error;
+            }
+
+            // Reset form to original data on error
+            form.reset({
+                code: classData.code || "",
+                name: classData.name,
+                startDate: classData.startDate || "",
+                endDate: classData.endDate || "",
+                semester: classData.semester || 1,
+                courseId: classData.courseId || 1,
+                imgClass: classData.imgClass || null,
+            });
+
+            setEditionError(errorMessage);
+        }
+    };
+
+    const resetForm = () => {
+        form.reset({
+            code: "",
+            name: "",
+            startDate: "",
+            endDate: "",
+            semester: 1, // Changed: Use 1 instead of undefined
+            courseId: 1, // Changed: Use 1 instead of undefined
+            imgClass: null,
+        });
+    };
+
+    const handleCancel = () => {
+        resetForm();
+        setEditionError(null); // Clear error on cancel
+        onClose();
+    };
+
+    const watchedImage = form.watch("imgClass");
+
+    if (!classData) return null;
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                    <DialogTitle>Editar Turma</DialogTitle>
+                    <DialogDescription>
+                        Atualize os dados da turma selecionada.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <div className="grid gap-4 py-4">
+                            {/* Code Field */}
+                            <FormField
+                                control={form.control}
+                                name="code"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <FormLabel>Código da Turma</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Ex: DWB-2024.1"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Name Field */}
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <FormLabel>Nome da Turma</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Ex: Desenvolvimento Web Full-Stack 2024.1"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Date Fields */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="startDate"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Data de Início</FormLabel>
+                                            <FormControl>
+                                                <Input type="date" {...field} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="endDate"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Data de Término</FormLabel>
+                                            <FormControl>
+                                                <Input type="date" {...field} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            {/* Semester and Course Fields */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="semester"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Semestre</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="Ex: 1"
+                                                    {...field}
+                                                    value={field.value || ""} // Always provide a string value
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        field.onChange(value ? parseInt(value) : 1);
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="courseId"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>ID do Curso</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="Ex: 123"
+                                                    {...field}
+                                                    value={field.value || ""} // Always provide a string value
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        field.onChange(value ? parseInt(value) : 1);
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            {/* Image Field */}
+                            <FormField
+                                control={form.control}
+                                name="imgClass"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <FormLabel>Imagem da Turma</FormLabel>
+                                        <FormControl>
+                                            <div className="space-y-4">
+                                                <Select
+                                                    onValueChange={(value) => {
+                                                        field.onChange(value === "none" ? null : value);
+                                                    }}
+                                                    value={field.value || "none"}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Selecione uma imagem"/>
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="none">Nenhuma imagem</SelectItem>
+                                                        {imageNames.map((imageName) => (
+                                                            <SelectItem key={imageName} value={imageName}>
+                                                                {imageName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+
+                                                {/* Image Preview */}
+                                                {watchedImage && watchedImage !== "none" && (
+                                                    <div className="w-24 h-24">
+                                                        <img
+                                                            src={`/img/${watchedImage}`}
+                                                            alt="Preview"
+                                                            className="w-full h-full object-cover rounded-md border"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        {editionError && (
+                            <div className="text-red-500 text-sm p-3 bg-red-50 rounded-md border border-red-200">
+                                {editionError}
+                            </div>
+                        )}
+
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={handleCancel}>
+                                Cancelar
+                            </Button>
+                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                                {form.formState.isSubmitting
+                                    ? "Salvando..."
+                                    : "Salvar Alterações"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    );
+}

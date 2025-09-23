@@ -1,4 +1,5 @@
-import { UserFromToken } from "../interfaces/userInterfaces"
+import {cookies} from "next/headers"
+import {UserFromToken} from "../interfaces/userInterfaces"
 
 export type AuthPayload = {
     sub: string
@@ -38,3 +39,28 @@ export function hasAnyRole(payload: AuthPayload | null, required: string | strin
     const req = Array.isArray(required) ? required : [required]
     return req.some(r => payload.role!.includes(r))
 }
+
+
+export async function getTokenFromSession() {
+    const cookiesStore = await cookies();
+    let token = normalizeToken(cookiesStore.get('token')?.value);
+    return token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+}
+
+function normalizeToken(raw?: string | null): string | null {
+    if (!raw) return null;
+    let t = raw.trim();
+
+    // remove aspas acidentais no cookie (ex: token salvo como string JSON)
+    if (t.startsWith('"') && t.endsWith('"')) {
+        t = t.slice(1, -1);
+    }
+
+    // remove prefixo Bearer duplicado se houver
+    if (t.toLowerCase().startsWith('bearer ')) {
+        t = t.slice(7).trim();
+    }
+
+    return t;
+}
+

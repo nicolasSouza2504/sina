@@ -8,7 +8,7 @@ export default async function createUser(userData: UserRegister, role: string | 
     }
     const res = await fetch(`${base}/users/${role}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json", },
         body: JSON.stringify(userData),
     })
 

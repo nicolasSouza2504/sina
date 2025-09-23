@@ -136,7 +136,9 @@ export function AppSidebar() {
             <div>
               <h2>{user?.nome}</h2>
             </div>
-            <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer">
+            <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
+            onClick={() => router.push("/user/profile")}
+            >
               <UserPen className=" size-6" />
             </Button>
           </div>

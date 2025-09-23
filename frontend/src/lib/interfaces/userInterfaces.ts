@@ -33,3 +33,10 @@ export interface UserFromToken {
     nome: string,
     roles: Array<string>
 }
+
+export interface UserUpdate {
+    name?: string;
+    email?: string;
+    password?: string;
+    role?: string;
+}
