@@ -27,7 +27,7 @@ export default async function PrivateLayout({
   return (
     <SidebarProvider defaultOpen={false}>
       <AppSidebar />
-      <div className=" top-4 border-r md:peer-data-[state=collapsed]:pr-1 pt-4 md:peer-data-[state=expanded]:hidden md:peer-data-[state=collapsed]:pl-1  bg-sky-800 text-white">
+      <div className="h-full fixed border-r md:peer-data-[state=collapsed]:pr-1 pt-4 md:peer-data-[state=expanded]:hidden md:peer-data-[state=collapsed]:pl-1 bg-sky-800 text-white">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -39,7 +39,7 @@ export default async function PrivateLayout({
           </Tooltip>
         </TooltipProvider>
       </div>
-      <main className="flex flex-1 flex-col overflow-hidden ">{children}</main>
+      <main className="flex flex-1 flex-col overflow-hidden sm:pl-10 pl-3">{children}</main>
     </SidebarProvider>
   );
 }
