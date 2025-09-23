@@ -5,13 +5,8 @@ import org.springframework.stereotype.Service;
 import senai.com.ava_senai.domain.course.Course;
 import senai.com.ava_senai.domain.course.CourseRegisterDTO;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
-import senai.com.ava_senai.domain.course.clazz.Class;
-import senai.com.ava_senai.domain.user.User;
-import senai.com.ava_senai.domain.user.UserRegisterDTO;
-import senai.com.ava_senai.domain.user.UserResponseDTO;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
-import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.repository.ClassRepository;
 import senai.com.ava_senai.repository.CourseRepository;
 
@@ -99,8 +94,33 @@ public class CourseService implements ICourseService {
     }
 
     @Override
-    public CourseResponseDTO updateUser(UserRegisterDTO user, Long id) {
-        return null;
+    public CourseResponseDTO updateCourse(CourseRegisterDTO courseRegisterDTO, Long id) throws Exception {
+
+        validateMandatoryFields(courseRegisterDTO);
+
+        return Optional.ofNullable(courseRepository.findById(id))
+                .get()
+                .map((courseDB) -> {
+
+                    validateMandatoryFields(courseRegisterDTO);
+
+                    courseRepository.save(updateData(courseDB, courseRegisterDTO));
+
+                    return new CourseResponseDTO(courseDB);
+
+                })
+                .orElseThrow(() -> new NotFoundException("Curso não existe!"));
+
+    }
+
+
+    private Course updateData(Course courseDB, CourseRegisterDTO courseRegisterDTO) {
+
+        courseDB.setName(courseRegisterDTO.name());
+        courseDB.setQuantitySemester(courseRegisterDTO.quantitySemester());
+
+        return courseDB;
+
     }
 
 }

@@ -13,6 +13,6 @@ public interface ICourseService {
 
     CourseResponseDTO createCourse(CourseRegisterDTO courseRegisterDTO) throws Exception;
 
-    CourseResponseDTO updateUser(CourseRegisterDTO user, Long id);
+    CourseResponseDTO updateCourse(CourseRegisterDTO user, Long id) throws Exception;
 
 }
