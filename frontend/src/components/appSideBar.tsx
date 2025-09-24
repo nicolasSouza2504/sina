@@ -34,17 +34,17 @@ import { UserFromToken } from "@/lib/interfaces/userInterfaces";
 const items = [
   {
     title: "Turmas",
-    url: "/turmas",
+    url: "/admin/class",
     icon: School,
   },
   {
     title: "Cursos",
-    url: "/cursos",
+    url: "/admin/courses",
     icon: BookOpen,
   },
   {
     title: "Alunos",
-    url: "/alunos",
+    url: "/admin/students",
     icon: Users,
   },
   {
