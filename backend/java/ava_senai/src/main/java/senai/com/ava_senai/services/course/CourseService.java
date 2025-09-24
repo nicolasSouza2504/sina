@@ -1,7 +1,9 @@
 package senai.com.ava_senai.services.course;
 
+import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.domain.course.Course;
@@ -10,6 +12,7 @@ import senai.com.ava_senai.domain.course.CourseResponseDTO;
 import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
+import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.ClassRepository;
 import senai.com.ava_senai.repository.CourseRepository;
 
@@ -149,18 +152,28 @@ public class CourseService implements ICourseService {
 
     private void validateMandatoryFields(CourseRegisterDTO courseRegisterDTO) {
 
+        Validation validation = new Validation();
+
+        if (StringUtils.isEmpty(courseRegisterDTO.name())) {
+            validation.add("Name", "Nome é obrigatório");
+        }
+
+        if (courseRegisterDTO.quantitySemester() != null && courseRegisterDTO.quantitySemester() <= 0) {
+            validation.add("Quantidade Semestre", "O curso deve ter no mínimo 1 semestre");
+        }
+
+        validation.throwIfHasErrors();
+
     }
 
     @Override
-    public CourseResponseDTO updateCourse(CourseRegisterDTO courseRegisterDTO, Long id) throws Exception {
+    public CourseResponseDTO updateCourse(CourseRegisterDTO courseRegisterDTO, Long id) {
 
         validateMandatoryFields(courseRegisterDTO);
 
         return Optional.ofNullable(courseRepository.findById(id))
                 .get()
                 .map((courseDB) -> {
-
-                    validateMandatoryFields(courseRegisterDTO);
 
                     courseRepository.save(updateData(courseDB, courseRegisterDTO));
 
