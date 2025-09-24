@@ -20,7 +20,6 @@ import senai.com.ava_senai.services.course.ICourseService;
 public class CourseController {
 
     private final ICourseService courseService;
-    private final CourseRepository courseRepository;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getUserById(@PathVariable @Valid Long id) {
@@ -74,7 +73,7 @@ public class CourseController {
 
     @GetMapping
     public ResponseEntity<ApiResponse> listAll() {
-        return ResponseEntity.ok().body(new ApiResponse("Usuários", courseService.getAllCourses()));
+        return ResponseEntity.ok().body(new ApiResponse("Cursos", courseService.getAllCourses()));
     }
 
 }
