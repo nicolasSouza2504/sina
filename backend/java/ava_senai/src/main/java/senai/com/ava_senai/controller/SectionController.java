@@ -37,11 +37,11 @@ public class SectionController {
 
     @PostMapping
     @Secured({"ADMIN", "TEACHER"})
-    public ResponseEntity<ApiResponse> addSection(@RequestBody @Valid SectionRegisterDTO courseRegisterDTO) {
+    public ResponseEntity<ApiResponse> addSection(@RequestBody @Valid SectionRegisterDTO sectionRegisterDTO) {
 
         try {
 
-            SectionResponseDTO sectionResponse = sectionService.createSection(courseRegisterDTO);
+            SectionResponseDTO sectionResponse = sectionService.createSection(sectionRegisterDTO);
 
             return ResponseEntity.ok().body(new ApiResponse("Sessão registrada com sucesso!", sectionResponse));
 
