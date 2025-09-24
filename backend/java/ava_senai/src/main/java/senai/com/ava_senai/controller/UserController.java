@@ -92,7 +92,7 @@ public class UserController {
 
     @GetMapping("/list-all")
     public ResponseEntity<ApiResponse> listAll() {
-        return ResponseEntity.ok().body(new ApiResponse("Usuários", userRepository.findAll()));
+        return ResponseEntity.ok().body(new ApiResponse("Usuários", iUserService.getAllUsers()));
     }
 
 }
