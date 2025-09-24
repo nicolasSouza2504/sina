@@ -36,11 +36,21 @@ public class Class extends DefaultEntity {
     @JoinColumn(name = "course_id", updatable = false, insertable = false)
     private Course course;
 
-    @Column(name = "course_id", nullable = false)
+    @Column(name = "course_id")
     private Long courseId;
 
     @OneToMany(mappedBy = "classEntity")
     private List<UserClass> userClasses;
+
+    @PrePersist
+    @PreUpdate
+    public void setOptions() {
+
+        if (this.course != null) {
+            this.courseId = this.course.getId();
+        }
+
+    }
 
 
 }

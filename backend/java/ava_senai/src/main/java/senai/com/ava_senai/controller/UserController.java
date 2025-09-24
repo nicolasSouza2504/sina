@@ -25,7 +25,6 @@ public class UserController {
 
     private final IUserService iUserService;
     private final RolesRepository rolesRepository;
-    private final UserRepository userRepository;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getUserById(@PathVariable @Valid Long id) {
@@ -92,7 +91,7 @@ public class UserController {
 
     @GetMapping("/list-all")
     public ResponseEntity<ApiResponse> listAll() {
-        return ResponseEntity.ok().body(new ApiResponse("Usuários", userRepository.findAll()));
+        return ResponseEntity.ok().body(new ApiResponse("Usuários", iUserService.getAllUsers()));
     }
 
 }
