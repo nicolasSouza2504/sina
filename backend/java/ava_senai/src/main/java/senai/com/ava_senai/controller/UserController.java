@@ -25,7 +25,6 @@ public class UserController {
 
     private final IUserService iUserService;
     private final RolesRepository rolesRepository;
-    private final UserRepository userRepository;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getUserById(@PathVariable @Valid Long id) {
