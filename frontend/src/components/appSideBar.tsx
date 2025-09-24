@@ -128,7 +128,7 @@ export function AppSidebar() {
           <SidebarTrigger className="hover:bg-transparent hover:text-white"></SidebarTrigger>
         </div>
         <div className="mt-auto">
-          <div className="flex justify-between items-center py-3 mb-2 gap-6 px-3 border-2 rounded-2xl mx-1">
+          <div className="flex justify-between items-center py-3 mb-2 gap-6 px-3  rounded-2xl mx-1">
             <Avatar>
               <AvatarImage src="https://github.com/shadcn.png" />
               <AvatarFallback>CN</AvatarFallback>
