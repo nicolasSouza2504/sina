@@ -20,7 +20,7 @@ public class SectionController {
     private final ISectionService sectionService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> getUserById(@PathVariable @Valid Long id) {
+    public ResponseEntity<ApiResponse> getSectionById(@PathVariable @Valid Long id) {
 
         try {
 

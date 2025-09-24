@@ -23,7 +23,7 @@ public class CourseController {
     private final CourseRepository courseRepository;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> getUserById(@PathVariable @Valid Long id) {
+    public ResponseEntity<ApiResponse> getCourseById(@PathVariable @Valid Long id) {
 
         try {
 
