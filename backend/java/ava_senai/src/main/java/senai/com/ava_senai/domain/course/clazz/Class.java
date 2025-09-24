@@ -36,7 +36,7 @@ public class Class extends DefaultEntity {
     @JoinColumn(name = "course_id", updatable = false, insertable = false)
     private Course course;
 
-    @Column(name = "course_id", nullable = false)
+    @Column(name = "course_id")
     private Long courseId;
 
     @OneToMany(mappedBy = "classEntity")

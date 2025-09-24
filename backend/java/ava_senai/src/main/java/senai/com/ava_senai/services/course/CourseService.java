@@ -3,6 +3,7 @@ package senai.com.ava_senai.services.course;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.domain.course.Course;
 import senai.com.ava_senai.domain.course.CourseRegisterDTO;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
@@ -12,6 +13,7 @@ import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.repository.ClassRepository;
 import senai.com.ava_senai.repository.CourseRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,38 +69,70 @@ public class CourseService implements ICourseService {
 
     }
 
-    // todo backend - cadastro de session cadsatro de knowledge trail
-
+    // todo backend - cadastro de session e cadastro de knowledge trail
     @Transactional
     public void updateClasses(Course courseDb, CourseRegisterDTO courseRegisterDTO) {
 
-        if (courseRegisterDTO.classesId() != null && !courseRegisterDTO.classesId().isEmpty()) {
+        removeOldClassesRelatedData(courseDb);
+        insertNewClassesRelationship(courseDb, courseRegisterDTO);
+
+    }
+
+    @Transactional
+    public void insertNewClassesRelationship(Course courseDb, CourseRegisterDTO courseRegisterDTO) {
+
+        if (!CollectionUtils.isEmpty(courseRegisterDTO.classesId())) {
+
+            final List<Class> newClasses = new ArrayList<>();
+
+            courseRegisterDTO.classesId().forEach(classID -> {
+                newClasses.add(insertNewClassRelationship(classID, courseDb));
+            });
+
+            courseDb.setClasses(newClasses);
+
+        }
+
+    }
+
+    @Transactional
+    public void removeOldClassesRelatedData(Course courseDb) {
+
+        if (!CollectionUtils.isEmpty(courseDb.getClasses())) {
 
             courseDb.getClasses().forEach(clazz -> {
 
                 clazz.setCourseId(null);
+                clazz.setCourse(null);
+
                 classRepository.save(clazz);
 
-            });
-
-            courseRegisterDTO.classesId().forEach(classID -> {
-                updateClass(classID, courseDb);
             });
 
         }
 
     }
 
-    public void updateClass(Long classID, Course course) {
+    public Class insertNewClassRelationship(Long classID, Course courseDb) {
 
         Class clazz = classRepository.findById(classID).orElseThrow(() -> new NotFoundException("Turma não encontrada pelo id:" + classID + "!"));
 
         if (clazz.getCourseId() != null) {
-            throw new RuntimeException("Turma " + clazz.getName() + " ja está em um curso!");
+
+            if (!clazz.getCourseId().equals(courseDb.getId())) {
+                throw new RuntimeException("Turma " + clazz.getName() + " ja está em um curso!");
+            }
+
         } else {
-            clazz.setCourseId(course.getId());
-            classRepository.save(clazz);
+
+            clazz.setCourseId(courseDb.getId());
+            clazz.setCourse(courseDb);
+
+            clazz = classRepository.save(clazz);
+
         }
+
+        return clazz;
 
     }
 
