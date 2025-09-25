@@ -22,7 +22,7 @@ public class CourseController {
     private final ICourseService courseService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> getUserById(@PathVariable @Valid Long id) {
+    public ResponseEntity<ApiResponse> getCourseById(@PathVariable @Valid Long id) {
 
         try {
 
