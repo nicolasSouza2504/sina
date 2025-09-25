@@ -34,6 +34,8 @@ public class ClassService implements IClassService {
                     clazz.setEndDate(classRegisterDTO.endDate());
                     clazz.setImgClass(classRegisterDTO.imgClass());
                     clazz.setCourseId(classRegisterDTO.courseId());
+                    clazz.setSemester(classRegisterDTO.semester());
+                    clazz.setCode(classRegisterDTO.code());
 
                     clazz = classRepository.save(clazz);
 
@@ -81,6 +83,8 @@ public class ClassService implements IClassService {
         clazz.setStartDate(clazzEdit.startDate());
         clazz.setEndDate(clazzEdit.endDate());
         clazz.setImgClass(clazzEdit.imgClass());
+        clazz.setSemester(clazzEdit.semester());
+        clazz.setCode(clazzEdit.code());
 
         classRepository.save(clazz);
 

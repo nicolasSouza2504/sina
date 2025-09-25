@@ -9,7 +9,6 @@ import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrailRegisterDTO;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrailResponseDTO;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
-import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.knowledgetrail.IKnowledgeTrailService;
@@ -61,10 +60,12 @@ public class KnowledgeTrailController {
 
         try {
 
-            KnowledgeTrailResponseDTO courseResponseDTO = knowledgeTrailService.updateKnowledgeTrail(knowledgeTrailRegisterDTO, knowledgeTrailId);
+            KnowledgeTrailResponseDTO knowledgeTrailResponseDTO = knowledgeTrailService.updateKnowledgeTrail(knowledgeTrailRegisterDTO, knowledgeTrailId);
 
-            return ResponseEntity.ok().body(new ApiResponse("Trilha de conhecimento editada com sucesso", courseResponseDTO));
+            return ResponseEntity.ok().body(new ApiResponse("Trilha de conhecimento editada com sucesso", knowledgeTrailResponseDTO));
 
+        } catch (Validation validation) {
+            throw validation;
         } catch (Exception e) {
             return ResponseEntity.status(409).body(new ApiResponse(e.getMessage(), null));
         }

@@ -112,7 +112,7 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
 
         Boolean existsSectionWithSameNameDiffID = false;
 
-        List<Section> knowledgeTrailsSameName = knowledgeTrailRepository.findByNameAndSectionId(knowledgeTrailRegister.name(), knowledgeTrailRegister.sectionId());
+        List<KnowledgeTrail> knowledgeTrailsSameName = knowledgeTrailRepository.findByNameAndSectionId(knowledgeTrailRegister.name(), knowledgeTrailRegister.sectionId());
 
         if (!knowledgeTrailsSameName.isEmpty()) {
 
