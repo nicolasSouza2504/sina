@@ -7,6 +7,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrailRegisterDTO;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrailResponseDTO;
+import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.exception.Validation;
@@ -29,7 +30,7 @@ public class KnowledgeTrailController {
 
             return ResponseEntity.ok().body(new ApiResponse("Sucesso!", knowledgeTrailResponseDTO));
 
-        } catch (UserNotFoundException e) {
+        } catch (NotFoundException e) {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }
 
@@ -37,11 +38,11 @@ public class KnowledgeTrailController {
 
     @PostMapping
     @Secured({"ADMIN", "TEACHER"})
-    public ResponseEntity<ApiResponse> addKnowledgeTrail(@RequestBody @Valid KnowledgeTrailRegisterDTO sectionRegisterDTO) {
+    public ResponseEntity<ApiResponse> addKnowledgeTrail(@RequestBody @Valid KnowledgeTrailRegisterDTO knowledgeTrailRegisterDTO) {
 
         try {
 
-            KnowledgeTrailResponseDTO knowledgeTrailResponseDTO = knowledgeTrailService.createKnowledgeTrail(sectionRegisterDTO);
+            KnowledgeTrailResponseDTO knowledgeTrailResponseDTO = knowledgeTrailService.    createKnowledgeTrail(knowledgeTrailRegisterDTO);
 
             return ResponseEntity.ok().body(new ApiResponse("Trilha de conhecimento registrada com sucesso!", knowledgeTrailResponseDTO));
 
@@ -54,13 +55,13 @@ public class KnowledgeTrailController {
     }
 
     @Secured({"ADMIN", "TEACHER"})
-    @PutMapping("/{sectionId}")
-    public ResponseEntity<ApiResponse> updateKnowledgeTrail(@PathVariable("sectionId") Long sectionId,
-                                                     @RequestBody @Valid KnowledgeTrailRegisterDTO sectionRegisterDTO) {
+    @PutMapping("/{knowledgeTrailId}")
+    public ResponseEntity<ApiResponse> updateKnowledgeTrail(@PathVariable("knowledgeTrailId") Long knowledgeTrailId,
+                                                     @RequestBody @Valid KnowledgeTrailRegisterDTO knowledgeTrailRegisterDTO) {
 
         try {
 
-            KnowledgeTrailResponseDTO courseResponseDTO = knowledgeTrailService.updateKnowledgeTrail(sectionRegisterDTO, sectionId);
+            KnowledgeTrailResponseDTO courseResponseDTO = knowledgeTrailService.updateKnowledgeTrail(knowledgeTrailRegisterDTO, knowledgeTrailId);
 
             return ResponseEntity.ok().body(new ApiResponse("Trilha de conhecimento editada com sucesso", courseResponseDTO));
 

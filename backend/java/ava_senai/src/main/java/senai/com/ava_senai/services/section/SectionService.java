@@ -8,6 +8,7 @@ import senai.com.ava_senai.domain.course.section.SectionResponseDTO;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.Validation;
+import senai.com.ava_senai.repository.CourseRepository;
 import senai.com.ava_senai.repository.SectionRepository;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Optional;
 public class SectionService implements ISectionService {
 
     private final SectionRepository sectionRepository;
+    private final CourseRepository courseRepository;
 
     @Override
     public SectionResponseDTO getSectionById(Long id) {
@@ -84,6 +86,8 @@ public class SectionService implements ISectionService {
 
         if (sectionRegister.courseId() == null) {
             validation.add("Curso", "A sessão deve estar vinculada a um curso.");
+        } else if (!courseRepository.existsById(sectionRegister.courseId())) {
+            validation.add("Curso", "O curso informado não existe.");
         }
 
         validation.throwIfHasErrors();

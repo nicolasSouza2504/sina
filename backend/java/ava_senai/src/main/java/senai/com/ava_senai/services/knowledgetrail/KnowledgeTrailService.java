@@ -11,6 +11,7 @@ import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.KnowledgeTrailRepository;
+import senai.com.ava_senai.repository.SectionRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,12 +21,13 @@ import java.util.Optional;
 public class KnowledgeTrailService implements IKnowledgeTrailService {
 
     private final KnowledgeTrailRepository knowledgeTrailRepository;
+    private final SectionRepository sectionRepository;
 
     @Override
     public KnowledgeTrailResponseDTO getKnowledgeTrailById(Long id) {
 
         KnowledgeTrail knowledgeTrail = knowledgeTrailRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Sessão não encontrada!"));
+                .orElseThrow(() -> new NotFoundException("Trilha do conhecimento não encontrada!"));
 
         return new KnowledgeTrailResponseDTO(knowledgeTrail);
 
@@ -36,7 +38,7 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
         List<KnowledgeTrailResponseDTO> knowledgeTrailList = knowledgeTrailRepository.findAll().stream().map(KnowledgeTrailResponseDTO::new).toList();
 
         if (knowledgeTrailList.isEmpty()) {
-            throw new NullListException("Lista de sessões Vazia");
+            throw new NullListException("Lista de trilhas do conhecimento esta vazia");
         }
 
         return knowledgeTrailList;
@@ -49,7 +51,7 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
         validateMandatoryFields(knowledgeTrailRegister);
 
         return Optional.of(knowledgeTrailRegister)
-                .filter(knowledgeTrailRequest -> !knowledgeTrailRepository.existsByNameAndKnowledgeTrailId(knowledgeTrailRequest.name(), knowledgeTrailRequest.sectionId()))
+                .filter(knowledgeTrailRequest -> !knowledgeTrailRepository.existsByNameAndSectionId(knowledgeTrailRequest.name(), knowledgeTrailRequest.sectionId()))
                 .map(knowledgeTrailRequest -> {
 
                     KnowledgeTrail knowledgeTrail = buildKnowledgeTrail(knowledgeTrailRequest);
@@ -77,7 +79,9 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
         }
 
         if (knowledgeTrailRegister.sectionId() == null) {
-            validation.add("Curso", "A trilha deve estar vinculada a uma sessão");
+            validation.add("Sessão", "A trilha deve estar vinculada a uma sessão");
+        } else if (!sectionRepository.existsById(knowledgeTrailRegister.sectionId())) {
+            validation.add("Sessão", "A sessão informada não existe");
         }
 
         validation.throwIfHasErrors();
