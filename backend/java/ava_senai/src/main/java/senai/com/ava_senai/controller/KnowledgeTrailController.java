@@ -48,7 +48,7 @@ public class KnowledgeTrailController {
         } catch (Validation validation) {
             throw validation;
         } catch (Throwable e) {
-            return ResponseEntity.status(409).body(new ApiResponse(e.getMessage(), null));
+            return ResponseEntity.status(400).body(new ApiResponse(e.getMessage(), null));
         }
 
     }
@@ -67,7 +67,7 @@ public class KnowledgeTrailController {
         } catch (Validation validation) {
             throw validation;
         } catch (Exception e) {
-            return ResponseEntity.status(409).body(new ApiResponse(e.getMessage(), null));
+            return ResponseEntity.status(400).body(new ApiResponse(e.getMessage(), null));
         }
 
     }
@@ -78,7 +78,7 @@ public class KnowledgeTrailController {
         try {
             return ResponseEntity.ok().body(new ApiResponse("Trilhas de conhecimento", knowledgeTrailService.getAllKnowledgeTrails()));
         }  catch (NullListException ex) {
-            return ResponseEntity.status(202).body(new ApiResponse(ex.getMessage(), null));
+            return ResponseEntity.status(404).body(new ApiResponse(ex.getMessage(), null));
         }
 
     }
