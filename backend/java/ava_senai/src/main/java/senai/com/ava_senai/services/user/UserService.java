@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import senai.com.ava_senai.domain.user.User;
+import senai.com.ava_senai.domain.user.UserFinderDTO;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseDTO;
 import senai.com.ava_senai.domain.user.userclass.UserClass;
@@ -45,9 +46,9 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public List<UserResponseDTO> getAllUsers() {
+    public List<UserResponseDTO> getAllUsers(UserFinderDTO userFinderDTO) {
 
-        List<UserResponseDTO> userList = userRepository.findAll().stream().map(UserResponseDTO::new).toList();
+        List<UserResponseDTO> userList = userRepository.findAll(userFinderDTO.name(), userFinderDTO.role(), userFinderDTO.idClass(), userFinderDTO.idCourse()).stream().map(UserResponseDTO::new).toList();
 
         if (userList.isEmpty()) {
             throw new NullListException("Lista de Usuarios Vazia");

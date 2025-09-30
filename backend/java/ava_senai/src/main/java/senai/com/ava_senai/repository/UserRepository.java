@@ -3,14 +3,34 @@ package senai.com.ava_senai.repository;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import senai.com.ava_senai.domain.user.User;
+import senai.com.ava_senai.domain.user.UserFinderDTO;
 
+import java.util.List;
 import java.util.Optional;
 
-public interface UserRepository  extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
-        User findByEmail(String email);
-        Optional<User> findById(Long id);
+    User findByEmail(String email);
+    Optional<User> findById(Long id);
 
-        boolean existsByEmail(@NotBlank(message = "Nome de Usuario deve ser preenchido") @Email(message = "Email deve ser Válido!") String email);
+    boolean existsByEmail(@NotBlank(message = "Nome de Usuario deve ser preenchido") @Email(message = "Email deve ser Válido!") String email);
+
+    @Query(
+            nativeQuery = true,
+            value = "SELECT * FROM users u " +
+                    "WHERE (:name IS NULL OR UPPER(u.name) = UPPER(:name)) " +
+                    "AND (:role IS NULL OR u.role_id = (:role)) " +
+                    "AND (:idClass IS NULL OR EXISTS (SELECT 1 FROM user_class uc WHERE uc.user_id = u.id AND uc.class_id = :idClass)) " +
+                    "AND (:idCourse IS NULL OR EXISTS (SELECT 1 FROM user_class uc JOIN class c ON uc.class_id = c.id WHERE uc.user_id = u.id AND c.course_id = :idCourse))"
+    )
+    List<User> findAll(
+            @Param("name") String name,
+            @Param("role") Long role,
+            @Param("idClass") Long idClass,
+            @Param("idCourse") Long idCourses
+
+    );
 }

@@ -7,14 +7,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import senai.com.ava_senai.domain.user.UserFinderDTO;
 import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.role.Roles;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseDTO;
+import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.UserAlreadyExistsException;
 import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.repository.RolesRepository;
-import senai.com.ava_senai.repository.UserRepository;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.user.IUserService;
 
@@ -90,8 +91,12 @@ public class UserController {
     }
 
     @GetMapping("/list-all")
-    public ResponseEntity<ApiResponse> listAll() {
-        return ResponseEntity.ok().body(new ApiResponse("Usuários", iUserService.getAllUsers()));
+    public ResponseEntity<ApiResponse> listAll(@ModelAttribute UserFinderDTO finder) {
+        try {
+            return ResponseEntity.ok().body(new ApiResponse("Usuários", iUserService.getAllUsers(finder)));
+        } catch (NullListException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        }
     }
 
 }
