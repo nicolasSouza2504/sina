@@ -156,6 +156,8 @@ public class CourseService implements ICourseService {
 
         if (StringUtils.isEmpty(courseRegisterDTO.name())) {
             validation.add("Name", "Nome é obrigatório");
+        } else if (courseRegisterDTO.name().length() > 80) {
+            validation.add("Name", "Nome deve ter no máximo 80 caracteres");
         }
 
         if (courseRegisterDTO.quantitySemester() != null && courseRegisterDTO.quantitySemester() <= 0) {
