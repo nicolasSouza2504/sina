@@ -53,7 +53,7 @@ class ClassIntegrationTest {
         // Perform login and retrieve token
         loginAndRetrieveToken();
 
-        classRegisterDTO = new ClassRegisterDTO("Test Class", 1L,  LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "class_image.jpg");
+        classRegisterDTO = new ClassRegisterDTO("Test Class", 1L,  LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "class_image.jpg", "cide", 1);
     }
 
     private void loginAndRetrieveToken() {
@@ -123,7 +123,7 @@ class ClassIntegrationTest {
     @Order(3)
     @DisplayName("Integration test given a ClassRegister when update should return a class response data with right properties")
     void integrationTestGivenClassRegisterWhenUpdateShouldReturnClassResponseData() throws Throwable {
-        classRegisterDTO = new ClassRegisterDTO("Updated Class",1L, LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "updated_image.jpg");
+        classRegisterDTO = new ClassRegisterDTO("Updated Class",1L, LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "updated_image.jpg", "codeup", 2);
 
         String response = given()
                 .spec(specification)
