@@ -14,12 +14,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthyUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final UserRepository UserRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        User user = Optional.ofNullable(userRepository.findByEmail(email))
+        User user = Optional.ofNullable(UserRepository.findByEmail(email))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
 
         return AuthyUserDetails.buildUserDetails(user);

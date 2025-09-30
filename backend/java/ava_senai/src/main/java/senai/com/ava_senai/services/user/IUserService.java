@@ -1,5 +1,6 @@
 package senai.com.ava_senai.services.user;
 
+import senai.com.ava_senai.domain.user.UserFinderDTO;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseDTO;
 
@@ -10,7 +11,7 @@ public interface IUserService {
 
     UserResponseDTO getUserByid(Long id);
 
-    List<UserResponseDTO> getAllUsers();
+    List<UserResponseDTO> getAllUsers(UserFinderDTO userFinderDTO);
 
     UserResponseDTO createUser(UserRegisterDTO user);
 
