@@ -1,9 +1,11 @@
 package senai.com.ava_senai.domain.user;
 
-import java.util.List;
+import senai.com.ava_senai.domain.course.institution.Institution;
+import senai.com.ava_senai.domain.user.role.Role;
 
-public record UserResponseDTO(Long id, String email, String nome, List<String> roles) {
+
+public record UserResponseDTO(Long id, String email, String nome, Role role, String institutionName, String cpf ) {
     public UserResponseDTO(User user ) {
-        this(user.getId(), user.getEmail(), user.getName(), List.of(user.getRole().getName()));
+        this(user.getId(), user.getEmail(), user.getName(), user.getRole(), user.getInstitution().getInstitutionName(),  user.getCpf());
     }
 }

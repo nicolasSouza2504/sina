@@ -1,5 +1,7 @@
 package senai.com.ava_senai.domain.user;
 
 
-public record UserFinderDTO(Long role, String name, Long idClass, Long idCourse) {
+import jakarta.annotation.Nullable;
+
+public record UserFinderDTO(@Nullable Long role, @Nullable String name, @Nullable Long idClass, @Nullable Long idCourse) {
 }

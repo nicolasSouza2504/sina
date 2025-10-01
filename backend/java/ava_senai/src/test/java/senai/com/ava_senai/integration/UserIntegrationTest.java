@@ -104,7 +104,7 @@ class UserIntegrationTest {
 		assertNotNull(userResponseData.id());
 		assertEquals(userRegisterDTO.getName(), userResponseData.nome());
 		assertEquals(userRegisterDTO.getEmail(), userResponseData.email());
-		assertTrue(userResponseData.roles().contains("USER"));
+		assertTrue(userResponseData.role().getName().contains("USER"));
 
 	}
 
@@ -134,7 +134,7 @@ class UserIntegrationTest {
 		assertNotNull(userResponseData.id());
 		assertEquals(userRegisterDTO.getName(), userResponseData.nome());
 		assertEquals(userRegisterDTO.getEmail(), userResponseData.email());
-		assertTrue(userResponseData.roles().contains("USER"));
+		assertTrue(userResponseData.role().getName().contains("USER"));
 
 	}
 
@@ -169,7 +169,7 @@ class UserIntegrationTest {
 		assertNotNull(userResponseData.id());
 		assertEquals(userRegisterDTO.getName(), userResponseData.nome());
 		assertEquals(userRegisterDTO.getEmail(), userResponseData.email());
-		assertTrue(userResponseData.roles().contains("USER"));
+		assertTrue(userResponseData.role().getName().contains("USER"));
 
 	}
 

@@ -7,11 +7,13 @@ import org.springframework.stereotype.Service;
 import senai.com.ava_senai.domain.course.institution.Institution;
 import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
+import senai.com.ava_senai.exception.UserAlreadyExistsException;
 import senai.com.ava_senai.repository.InstitutionRepository;
 import senai.com.ava_senai.repository.RolesRepository;
 import senai.com.ava_senai.services.user.IUserService;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @Service
@@ -80,8 +82,10 @@ public class DataInitializer implements CommandLineRunner {
 
         institution.setInstitutionName("SENAI_JOINVILLE");
 
-        institutionRepository.save(institution);
-
+        Optional.of(institution)
+                        .filter(inst -> !institutionRepository.findByInstitutionName("SENAI_JOINVILLE"))
+                        .map(req -> institutionRepository.save(institution))
+                        .orElseThrow(() -> new UserAlreadyExistsException("Oops! User already exists!"));
     }
 
     private UserRegisterDTO buildDefaultAdmin() {
