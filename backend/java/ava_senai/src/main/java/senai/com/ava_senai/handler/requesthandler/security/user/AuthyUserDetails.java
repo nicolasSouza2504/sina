@@ -11,6 +11,7 @@ import senai.com.ava_senai.domain.course.institution.Institution;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.UserStatus;
+import senai.com.ava_senai.domain.user.role.Role;
 
 import java.util.Collection;
 import java.util.List;
@@ -28,10 +29,6 @@ public class AuthyUserDetails implements UserDetails {
     private Long idInstitution;
     private UserStatus status;
     private List<GrantedAuthority> authorities;
-    private Role role;
-    private Institution institution;
-    private String cpf;
-    private String userImage;
 
     public static AuthyUserDetails buildUserDetails(User user) {
 
@@ -44,11 +41,7 @@ public class AuthyUserDetails implements UserDetails {
                 user.getName(),
                 user.getIdInstitution(),
                 user.getUserStatus(),
-                authorities,
-                user.getRole(),
-                user.getInstitution(),
-                user.getCpf(),
-                user.getNameImage());
+                authorities);
 
     }
 
@@ -70,12 +63,6 @@ public class AuthyUserDetails implements UserDetails {
     public String getName(){
         return name;
     }
-    public String getCpf(){return cpf;}
-
-    public Role getRole(){return role;}
-
-    public Institution getInstitution(){return institution;}
-    public String getUserImage(){return  userImage;}
 
     @Override
     public boolean isAccountNonExpired() {
