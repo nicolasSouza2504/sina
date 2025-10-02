@@ -29,6 +29,9 @@ public class AuthyUserDetails implements UserDetails {
     private Long idInstitution;
     private UserStatus status;
     private List<GrantedAuthority> authorities;
+    private Role role;
+    private Institution institution;
+    private String cpf;
 
     public static AuthyUserDetails buildUserDetails(User user) {
 
@@ -41,7 +44,10 @@ public class AuthyUserDetails implements UserDetails {
                 user.getName(),
                 user.getIdInstitution(),
                 user.getUserStatus(),
-                authorities);
+                authorities,
+                user.getRole(),
+                user.getInstitution(),
+                user.getCpf());
 
     }
 
@@ -63,6 +69,13 @@ public class AuthyUserDetails implements UserDetails {
     public String getName(){
         return name;
     }
+    public String getCpf(){return cpf;}
+
+    public Role getRole(){return role;}
+
+    public Institution getInstitution(){return institution;}
+
+    public UserStatus getStatus(){ return status;}
 
     @Override
     public boolean isAccountNonExpired() {

@@ -52,7 +52,8 @@ public class JwtUtils {
                         userPrincipal.getStatus(),
                         userPrincipal.getRole(),
                         userPrincipal.getInstitution().getInstitutionName(),
-                        userPrincipal.getCpf())
+                        userPrincipal.getCpf(),
+                        userPrincipal.getUserImage())
                 )
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + expirationTime))
