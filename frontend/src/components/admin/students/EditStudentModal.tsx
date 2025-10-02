@@ -1,0 +1,310 @@
+"use client"
+
+import { useState, useEffect, useRef } from "react"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Upload, AlertCircle } from "lucide-react"
+import { UserData } from "@/lib/interfaces/userInterfaces"
+import { z } from "zod"
+import { toast } from "sonner"
+import UpdateUserService from "@/lib/api/user/userUpdate";
+
+interface EditUserModalProps {
+    isOpen: boolean
+    onClose: () => void
+    onSuccess: () => void
+    user: UserData | null
+}
+
+const roles = [
+    { id: 3, name: "STUDENT" },
+    { id: 2, name: "TEACHER" },
+    { id: 1, name: "ADMIN" },
+]
+
+const updateUserSchema = z.object({
+    name: z.string()
+        .min(3, "Nome deve ter no mínimo 3 caracteres")
+        .max(100, "Nome deve ter no máximo 100 caracteres"),
+    email: z.string()
+        .email("Email inválido")
+        .min(1, "Email é obrigatório"),
+    cpf: z.string()
+        .length(11, "CPF deve ter exatamente 11 dígitos")
+        .regex(/^\d+$/, "CPF deve conter apenas números"),
+    roleId: z.number().int().positive("Tipo de usuário é obrigatório"),
+})
+
+export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserModalProps) {
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        cpf: "",
+        roleId: 3,
+    })
+    const [selectedImage, setSelectedImage] = useState<File | null>(null)
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
+    const [errors, setErrors] = useState<Record<string, string>>({})
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                name: user.nome || "",
+                email: user.email || "",
+                cpf: user.cpf || "",
+                roleId: user.role?.id || 3,
+            })
+        }
+    }, [user])
+
+    const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+        if (file) {
+            setSelectedImage(file)
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                setImagePreview(e.target?.result as string)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const formatCPF = (value: string) => {
+        const numbers = value.replace(/\D/g, "")
+        if (numbers.length <= 11) {
+            return numbers
+                .replace(/(\d{3})(\d)/, "$1.$2")
+                .replace(/(\d{3})(\d)/, "$1.$2")
+                .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+        }
+        return value
+    }
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setErrors({})
+
+        if (!user?.id) {
+            toast.error("Usuário não identificado")
+            return
+        }
+
+        try {
+            // Validar dados com Zod
+            updateUserSchema.parse({
+                name: formData.name,
+                email: formData.email,
+                cpf: formData.cpf,
+                roleId: formData.roleId,
+            })
+
+            setIsSubmitting(true)
+
+            const userData = {
+                name: formData.name,
+                email: formData.email,
+                cpf: formData.cpf,
+                roleId: formData.roleId,
+            }
+
+            await UpdateUserService(userData, user.id, selectedImage)
+
+            toast.success("Usuário atualizado com sucesso!")
+            resetForm()
+            onClose()
+            onSuccess()
+
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                const fieldErrors: Record<string, string> = {}
+                error.issues.forEach((issue) => {
+                    if (issue.path[0]) {
+                        fieldErrors[issue.path[0] as string] = issue.message
+                    }
+                })
+                setErrors(fieldErrors)
+            } else {
+                console.error("[EditStudentModal] Erro ao atualizar usuário:", error)
+            }
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const resetForm = () => {
+        setFormData({ name: "", email: "", cpf: "", roleId: 3 })
+        setSelectedImage(null)
+        setImagePreview(null)
+        setErrors({})
+    }
+
+    const handleClose = () => {
+        if (!isSubmitting) {
+            resetForm()
+            onClose()
+        }
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={handleClose}>
+            <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                    <DialogTitle>Editar Usuário</DialogTitle>
+                    <DialogDescription>
+                        Atualize as informações do usuário abaixo
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Nome Completo</Label>
+                            <Input
+                                id="name"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                placeholder="Digite o nome completo"
+                                className={errors.name ? "border-red-500" : ""}
+                                disabled={isSubmitting}
+                            />
+                            {errors.name && (
+                                <div className="flex items-center gap-1 text-red-500 text-xs mt-1">
+                                    <AlertCircle className="h-3 w-3" />
+                                    <span>{errors.name}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                placeholder="email@techuni.edu.br"
+                                className={errors.email ? "border-red-500" : ""}
+                                disabled={isSubmitting}
+                            />
+                            {errors.email && (
+                                <div className="flex items-center gap-1 text-red-500 text-xs mt-1">
+                                    <AlertCircle className="h-3 w-3" />
+                                    <span>{errors.email}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="cpf">CPF</Label>
+                            <Input
+                                id="cpf"
+                                value={formatCPF(formData.cpf)}
+                                onChange={(e) => setFormData({ ...formData, cpf: e.target.value.replace(/\D/g, "") })}
+                                placeholder="000.000.000-00"
+                                maxLength={14}
+                                className={errors.cpf ? "border-red-500" : ""}
+                                disabled={isSubmitting}
+                            />
+                            {errors.cpf && (
+                                <div className="flex items-center gap-1 text-red-500 text-xs mt-1">
+                                    <AlertCircle className="h-3 w-3" />
+                                    <span>{errors.cpf}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="role">Tipo de Usuário</Label>
+                            <Select
+                                value={formData.roleId.toString()}
+                                onValueChange={(value) => setFormData({ ...formData, roleId: parseInt(value) })}
+                                disabled={isSubmitting}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o tipo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {roles.map((role) => (
+                                        <SelectItem key={role.id} value={role.id.toString()}>
+                                            {role.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.roleId && (
+                                <div className="flex items-center gap-1 text-red-500 text-xs mt-1">
+                                    <AlertCircle className="h-3 w-3" />
+                                    <span>{errors.roleId}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="institution">Instituição</Label>
+                        <Input
+                            id="institution"
+                            value="SENAI Joinville"
+                            disabled
+                            className="bg-muted cursor-not-allowed"
+                        />
+                        <p className="text-xs text-muted-foreground">Instituição padrão</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Foto do Usuário</Label>
+                        <div className="flex items-center gap-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex items-center gap-2"
+                                disabled={isSubmitting}
+                            >
+                                <Upload className="h-4 w-4" />
+                                Selecionar Imagem
+                            </Button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageSelect}
+                                className="hidden"
+                                disabled={isSubmitting}
+                            />
+                            {imagePreview && (
+                                <Avatar className="h-12 w-12">
+                                    <AvatarImage src={imagePreview} />
+                                    <AvatarFallback>IMG</AvatarFallback>
+                                </Avatar>
+                            )}
+                        </div>
+                        {selectedImage && (
+                            <p className="text-xs text-muted-foreground">Arquivo selecionado: {selectedImage.name}</p>
+                        )}
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleClose}
+                            disabled={isSubmitting}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Atualizando..." : "Atualizar Usuário"}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
+}
