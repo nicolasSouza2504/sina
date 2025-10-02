@@ -63,7 +63,7 @@ public class DataInitializer implements CommandLineRunner {
     private List<Role> buildDefaultRoles() {
         return List.of(new Role("ADMIN"),
                 new Role("TEACHER"),
-                new Role("USER"));
+                new Role("STUDENT"));
     }
 
     @Transactional

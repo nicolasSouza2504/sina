@@ -69,7 +69,7 @@ public class UserController {
     @PutMapping("update/{userId}")
     public ResponseEntity<ApiResponse> addUser(@PathVariable("userId") Long userId,
                                                @Valid @RequestParam String user,
-                                               @RequestParam("image") MultipartFile image) {
+                                               @RequestParam(value = "image", required = false) MultipartFile image) {
 
         try {
 
@@ -81,7 +81,8 @@ public class UserController {
             userRegisterDTO.setRole(role);
 
             UserResponseDTO userResponseData = iUserService.updateUser(userRegisterDTO, userId);
-
+            System.out.println("Save Data");
+            System.out.println(userResponseData.toString());
             return ResponseEntity.ok().body(new ApiResponse(role.getName() + " Editado com sucesso!", userResponseData));
 
         } catch (UserAlreadyExistsException e) {

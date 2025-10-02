@@ -8,19 +8,19 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import senai.com.ava_senai.domain.course.institution.Institution;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.domain.user.UserFinderDTO;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseDTO;
 import senai.com.ava_senai.domain.user.userclass.UserClass;
-import senai.com.ava_senai.exception.NullListException;
-import senai.com.ava_senai.exception.UserAlreadyExistsException;
-import senai.com.ava_senai.exception.UserNotFoundException;
-import senai.com.ava_senai.exception.Validation;
+import senai.com.ava_senai.exception.*;
+import senai.com.ava_senai.repository.InstitutionRepository;
 import senai.com.ava_senai.repository.UserClassRepository;
 import senai.com.ava_senai.repository.UserRepository;
 import senai.com.ava_senai.util.CPFCNPJValidator;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -34,6 +34,7 @@ public class UserService implements IUserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserClassRepository userClassRepository;
+    private final InstitutionRepository institutionRepository;
 
     @Override
     public UserResponseDTO getUserByid(Long id) {
@@ -66,13 +67,15 @@ public class UserService implements IUserService {
                 .filter(user -> !userRepository.existsByEmail(request.getEmail()))
                 .map(req -> {
 
-                    validateMandatoryFields(request);
+                    validateMandatoryFields(request, 1);
 
                     User user = buildUser(request);
 
                     user = userRepository.save(user);
 
-                    saveImage(request.getImage(), user);
+                    String imageName = saveImage(request.getImage(), user);
+                    user.setNameImage(imageName);
+                    userRepository.updateNameImageById(imageName, user.getId());
                     saveClasses(request, user);
 
                     return new UserResponseDTO(user);
@@ -96,9 +99,10 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public UserResponseDTO updateUser(UserRegisterDTO request, Long id) {
 
-        validateMandatoryFields(request);
+        validateMandatoryFields(request, 2);
 
         return Optional.ofNullable(userRepository.findById(id))
                 .get()
@@ -126,7 +130,7 @@ public class UserService implements IUserService {
     }
 
     @Transactional
-    public void validateMandatoryFields(UserRegisterDTO user) {
+    public void validateMandatoryFields(UserRegisterDTO user, Integer action) {
 
         Validation validation = new Validation();
 
@@ -137,9 +141,10 @@ public class UserService implements IUserService {
         if (StringUtils.isBlank(user.getEmail())) {
             validation.add("Email", "Informe o email");
         }
-
-        if (StringUtils.isBlank(user.getPassword())) {
-            validation.add("Senha", "Informe a senha");
+        if(action == 1){
+            if (StringUtils.isBlank(user.getPassword())) {
+                validation.add("Senha", "Informe a senha");
+            }
         }
 
         if (user.getRole() == null) {
@@ -167,7 +172,7 @@ public class UserService implements IUserService {
 
         userDb.setEmail(user.getEmail());
         userDb.setName(user.getName());
-        userDb.setPassword(passwordEncoder.encode(user.getPassword()));
+        userDb.setPassword(passwordEncoder.encode(user.getPassword() != null ? user.getPassword() : userDb.getPassword()));
         userDb.setRole(user.getRole());
         userDb.setCpf(user.getCpf());
 
@@ -182,41 +187,38 @@ public class UserService implements IUserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
         user.setCpf(request.getCpf());
+        Institution institution = institutionRepository.findById(request.getIdInstitution()).orElseThrow(()-> new NotFoundException("Instituicao nao encontrada!"));
+        user.setInstitution(institution);
         user.setIdInstitution(request.getIdInstitution());
 
         return user;
 
     }
 
-    private Path getFilePath(User user, MultipartFile image) {
-
-        String uniqueFileName = String.valueOf(user.getId()) + "." + FilenameUtils.getExtension(image.getOriginalFilename());
-
-        return Path.of("src/main/resources/img/");
-
+    private Path getFilePath(String uniqueFileName) {
+        return Path.of("src/main/resources/img", uniqueFileName);
     }
 
-    public void saveImage(MultipartFile image, User user) {
-
+    public String saveImage(MultipartFile image, User user) {
         try {
-
-            if (image != null) {
+            if (image != null && !image.isEmpty()) {
 
                 Path uploadPath = Path.of("src/main/resources/img/");
-                Path filePath = getFilePath(user, image);
-
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
                 }
+                String uniqueFileName = user.getId() + "." + FilenameUtils.getExtension(image.getOriginalFilename());
+
+                Path filePath = getFilePath(uniqueFileName);
 
                 Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
+            return uniqueFileName;
             }
-
-        } catch (Throwable t) {
-            t.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao salvar imagem", e);
         }
-
+        throw new RuntimeException("Erro ao salvar imagem");
     }
 
     public Boolean isAdm(UserRegisterDTO userRegisterDTO) {
