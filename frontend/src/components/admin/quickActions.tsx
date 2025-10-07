@@ -44,7 +44,7 @@ export default function QuickActions() {
             {
                 key: 2,
                 title: "Gerenciar Cursos",
-                link: "/admin/courses",
+                link: "/cursos",
                 icon: <Code className="h-4 w-4"/>,
             },
             {
@@ -74,10 +74,8 @@ export default function QuickActions() {
         ],
     };
 
-    // filter out the action if the current route matches
-    const filteredActions = quickActions.quickActionsList.filter(
-        (action) => action.link !== pathname
-    );
+    // Show all actions without filtering
+    const filteredActions = quickActions.quickActionsList;
 
     return (
         <div>
@@ -92,13 +90,13 @@ export default function QuickActions() {
                         </CardHeader>
                     )}
                 <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 w-full">
                         {filteredActions.map((action) => (
                             <Button
                                 onClick={() => handleRedirectRoute(action.link)}
                                 key={action.key}
-                                variant="outline"
-                                className="h-20 flex-col gap-2 bg-transparent hover:cursor-pointer"
+                                variant="outline"                                                                                                                                                                   
+                                className="h-16 flex-col gap-3 bg-transparent hover:cursor-pointer w-full"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
                             >
                                 {action.icon}
                                 <span className="text-xs">{action.title}</span>

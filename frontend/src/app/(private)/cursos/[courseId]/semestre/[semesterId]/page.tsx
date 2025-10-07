@@ -387,28 +387,6 @@ export default function SemesterPage({ params }: SemesterPageProps) {
 
             {/* Actions */}
             <div className="flex gap-3">
-              {targetTrack ? (
-                <Button asChild className="flex items-center gap-2">
-                  <Link href={`/trilhas/${targetTrack.id}`}>
-                    <Play className="w-4 h-4" />
-                    Continuar Semestre
-                  </Link>
-                </Button>
-              ) : semester.status === 'completed' ? (
-                <Button className="flex items-center gap-2" disabled>
-                  <CheckCircle className="w-4 h-4" />
-                  Semestre Concluído
-                </Button>
-              ) : (
-                <Button className="flex items-center gap-2" disabled>
-                  <Lock className="w-4 h-4" />
-                  Semestre Bloqueado
-                </Button>
-              )}
-              
-              <Button variant="outline">
-                Ver Certificado
-              </Button>
             </div>
           </CardContent>
         </Card>

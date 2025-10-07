@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { CourseCard } from '@/components/Course/CourseCard'
 import { CourseModal } from '@/components/Course/CourseModal'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useCourses } from '@/hooks/useCourses'
+import QuickActions from '@/components/admin/quickActions'
 import { 
   Search, 
   Filter, 
@@ -43,6 +44,7 @@ export default function CoursesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCourse, setEditingCourse] = useState<Course | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   const {
     courses,
@@ -53,6 +55,18 @@ export default function CoursesPage() {
     deleteCourse,
     refreshCourses
   } = useCourses()
+
+  // Handle hydration
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
+  // Debug logs
+  useEffect(() => {
+    console.log('Courses loaded:', courses.length)
+    console.log('Is loading:', isLoading)
+    console.log('Courses:', courses)
+  }, [courses, isLoading])
 
   // Filter courses based on search and status
   const filteredCourses = useMemo(() => {
@@ -65,15 +79,20 @@ export default function CoursesPage() {
     })
   }, [courses, searchTerm, filterStatus])
 
-  // Statistics
+  // Statistics - with hydration safety
   const stats = useMemo(() => {
+    // Show loading state during hydration
+    if (!isHydrated) {
+      return { total: 0, active: 0, completed: 0, enrolled: 0 }
+    }
+    
     const total = courses.length
     const active = courses.filter(c => c.status === 'active').length
     const completed = courses.filter(c => c.status === 'completed').length
     const enrolled = courses.filter(c => c.isEnrolled).length
 
     return { total, active, completed, enrolled }
-  }, [courses])
+  }, [courses, isHydrated])
 
   // Handle creating new course
   const handleCreateCourse = async (courseData: Omit<Course, 'id'>) => {
@@ -319,6 +338,11 @@ export default function CoursesPage() {
             ))}
           </div>
         )}
+
+        {/* Quick Actions Section */}
+        <div className="mt-8">
+          <QuickActions />
+        </div>
 
         {/* Course Modal */}
         <CourseModal

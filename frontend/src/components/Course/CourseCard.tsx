@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -59,6 +59,7 @@ export function CourseCard({
   showEnrollmentStatus = true,
   className
 }: CourseCardProps) {
+  // Removed hydration state to simplify rendering
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -201,7 +202,7 @@ export function CourseCard({
           </div>
           <div className="flex items-center gap-1">
             <Users className="w-4 h-4" />
-            <span>{course.totalSessions} sessões</span>
+            <span>{course.totalSemesters} semestres</span>
           </div>
         </div>
       </CardHeader>
@@ -231,7 +232,7 @@ export function CourseCard({
             </div>
             <Progress value={course.progress} className="h-2" />
             <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>{course.completedSessions} de {course.totalSessions} sessões</span>
+              <span>{course.completedSemesters} de {course.totalSemesters} semestres</span>
               <span>{course.progress}% concluído</span>
             </div>
           </div>

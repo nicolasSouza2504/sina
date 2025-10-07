@@ -39,15 +39,9 @@ const items = [
     icon: School,
   },
   {
-<<<<<<< Updated upstream
-    title: "Cursos",
-    url: "/admin/courses",
-    icon: BookOpen,
-=======
     title: "Meus Cursos",
     url: "/cursos",
     icon: FolderOpen,
->>>>>>> Stashed changes
   },
   {
     title: "Alunos",

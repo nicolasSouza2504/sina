@@ -144,15 +144,19 @@ export default function TrilhaPage({ params }: TrilhaPageProps) {
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
             <Button variant="ghost" asChild>
-              <Link href="/trilhas">
+              <Link href="/cursos/ads-2024/semestre/semester-1">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar para Trilhas
+                Voltar para o Semestre
               </Link>
             </Button>
           </div>
           
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <Link href="/trilhas" className="hover:underline">Trilhas</Link>
+            <Link href="/cursos" className="hover:underline">Cursos</Link>
+            <span>/</span>
+            <Link href="/cursos/ads-2024" className="hover:underline">ADS 2024</Link>
+            <span>/</span>
+            <Link href="/cursos/ads-2024/semestre/semester-1" className="hover:underline">1º Semestre</Link>
             <span>/</span>
             <span className="font-medium">{trilha.title}</span>
           </div>
@@ -213,9 +217,6 @@ export default function TrilhaPage({ params }: TrilhaPageProps) {
                 </Button>
               )}
               
-              <Button variant="outline">
-                Ver Certificado
-              </Button>
             </div>
           </CardContent>
         </Card>

@@ -34,21 +34,25 @@ export function useCourses(): UseCoursesReturn {
       setIsLoading(true)
       setError(null)
 
-      // Simulate API call with localStorage persistence
-      const storedCourses = localStorage.getItem('courses')
-      if (storedCourses) {
-        const parsedCourses = JSON.parse(storedCourses).map((course: any) => ({
-          ...course,
-          startDate: new Date(course.startDate),
-          endDate: new Date(course.endDate),
-          enrollmentDate: course.enrollmentDate ? new Date(course.enrollmentDate) : undefined
-        }))
-        setCourses(parsedCourses)
-      } else {
-        // Load default mock courses
-        const defaultCourses = await loadDefaultCourses()
-        setCourses(defaultCourses)
-        localStorage.setItem('courses', JSON.stringify(defaultCourses))
+      // Always load default courses first for consistency
+      const defaultCourses = await loadDefaultCourses()
+      setCourses(defaultCourses)
+
+      // Check if we're on the client side for localStorage
+      if (typeof window !== 'undefined') {
+        const storedCourses = localStorage.getItem('courses')
+        if (storedCourses) {
+          const parsedCourses = JSON.parse(storedCourses).map((course: any) => ({
+            ...course,
+            startDate: new Date(course.startDate),
+            endDate: new Date(course.endDate),
+            enrollmentDate: course.enrollmentDate ? new Date(course.enrollmentDate) : undefined
+          }))
+          setCourses(parsedCourses)
+        } else {
+          // Save default courses to localStorage
+          localStorage.setItem('courses', JSON.stringify(defaultCourses))
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar cursos')
@@ -70,10 +74,10 @@ export function useCourses(): UseCoursesReturn {
 
       const newCourse: Course = {
         ...courseData,
-        id: `course-${Date.now()}`,
-        sessions: [],
-        totalSessions: 0,
-        completedSessions: 0,
+        id: `course-${courses.length + 1}`,
+        semesters: [],
+        totalSemesters: 0,
+        completedSemesters: 0,
         progress: 0,
         isEnrolled: false
       }
@@ -84,9 +88,11 @@ export function useCourses(): UseCoursesReturn {
       // Simulate API call
       await simulateApiCall(500)
 
-      // Persist to localStorage
-      const updatedCourses = [...courses, newCourse]
-      localStorage.setItem('courses', JSON.stringify(updatedCourses))
+      // Persist to localStorage (client-side only)
+      if (typeof window !== 'undefined') {
+        const updatedCourses = [...courses, newCourse]
+        localStorage.setItem('courses', JSON.stringify(updatedCourses))
+      }
 
       return newCourse
     } catch (err) {
@@ -111,11 +117,13 @@ export function useCourses(): UseCoursesReturn {
       // Simulate API call
       await simulateApiCall(300)
 
-      // Update localStorage
-      const updatedCourses = courses.map(course => 
-        course.id === id ? { ...course, ...courseData } : course
-      )
-      localStorage.setItem('courses', JSON.stringify(updatedCourses))
+      // Update localStorage (client-side only)
+      if (typeof window !== 'undefined') {
+        const updatedCourses = courses.map(course => 
+          course.id === id ? { ...course, ...courseData } : course
+        )
+        localStorage.setItem('courses', JSON.stringify(updatedCourses))
+      }
 
       const updatedCourse = courses.find(c => c.id === id)!
       return { ...updatedCourse, ...courseData }
@@ -142,9 +150,11 @@ export function useCourses(): UseCoursesReturn {
       // Simulate API call
       await simulateApiCall(200)
 
-      // Update localStorage
-      const updatedCourses = courses.filter(course => course.id !== id)
-      localStorage.setItem('courses', JSON.stringify(updatedCourses))
+      // Update localStorage (client-side only)
+      if (typeof window !== 'undefined') {
+        const updatedCourses = courses.filter(course => course.id !== id)
+        localStorage.setItem('courses', JSON.stringify(updatedCourses))
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao excluir curso')
@@ -198,9 +208,9 @@ async function loadDefaultCourses(): Promise<Course[]> {
       startDate: new Date('2024-01-01'),
       endDate: new Date('2026-12-31'),
       color: '#3b82f6',
-      sessions: [],
-      totalSessions: 8,
-      completedSessions: 2,
+      semesters: [],
+      totalSemesters: 8,
+      completedSemesters: 2,
       progress: 25,
       instructor: {
         id: '1',
@@ -220,9 +230,9 @@ async function loadDefaultCourses(): Promise<Course[]> {
       startDate: new Date('2023-01-01'),
       endDate: new Date('2025-12-31'),
       color: '#10b981',
-      sessions: [],
-      totalSessions: 8,
-      completedSessions: 6,
+      semesters: [],
+      totalSemesters: 8,
+      completedSemesters: 6,
       progress: 75,
       instructor: {
         id: '2',
@@ -242,9 +252,9 @@ async function loadDefaultCourses(): Promise<Course[]> {
       startDate: new Date('2024-02-01'),
       endDate: new Date('2026-12-31'),
       color: '#f59e0b',
-      sessions: [],
-      totalSessions: 6,
-      completedSessions: 1,
+      semesters: [],
+      totalSemesters: 6,
+      completedSemesters: 1,
       progress: 17,
       instructor: {
         id: '4',
