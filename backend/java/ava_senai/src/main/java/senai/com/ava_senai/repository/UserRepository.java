@@ -33,4 +33,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("idCourse") Long idCourses
 
     );
+
+    @Query(
+            nativeQuery = true,
+            value = " SELECT u FROM users u " +
+                    " JOIN user_class uc ON u.id = uc.user_id " +
+                    " JOIN class cl ON cl.id = uc.class_id " +
+                    " JOIN course c ON c.id = cl.course_id " +
+                    " WHERE c.id = :idCourse "
+    )
+    List<User> findByIdCourse(@Param("idCourse") Long idCourse);
+
 }
