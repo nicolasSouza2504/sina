@@ -1,9 +1,11 @@
 package senai.com.ava_senai.domain.user.userclass;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.user.User;
 
+@Data
 @Entity
 @Table(name = "user_class")
 public class UserClass {

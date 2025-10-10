@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.domain.user.UserFinderDTO;
+import senai.com.ava_senai.domain.user.userclass.UserClass;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     " JOIN course c ON c.id = cl.course_id " +
                     " WHERE c.id = :idCourse "
     )
-    List<User> findByIdCourse(@Param("idCourse") Long idCourse);
+    List<User> findByCourseId(@Param("idCourse") Long idCourse);
 
 }

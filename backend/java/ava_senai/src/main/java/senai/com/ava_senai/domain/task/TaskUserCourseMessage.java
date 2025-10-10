@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserTaskMessage {
+public class TaskUserCourseMessage {
     private Long taskId;
     private Long courseId;
 }

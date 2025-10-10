@@ -2,6 +2,7 @@ package senai.com.ava_senai.services.task;
 
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.config.RabbitMQConfig;
@@ -9,12 +10,16 @@ import senai.com.ava_senai.domain.task.Task;
 import senai.com.ava_senai.domain.task.TaskContentUploadStatus;
 import senai.com.ava_senai.domain.task.TaskRegisterDTO;
 import senai.com.ava_senai.domain.task.TaskResponseDTO;
-import senai.com.ava_senai.domain.task.UserTaskMessage;
+import senai.com.ava_senai.domain.task.TaskUserCourseMessage;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
+import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.repository.TaskContentRepository;
 import senai.com.ava_senai.repository.TaskRepository;
+import senai.com.ava_senai.repository.TaskUserRepository;
+import senai.com.ava_senai.repository.UserRepository;
 import senai.com.ava_senai.services.messaging.RabbitMQSender;
+import senai.com.ava_senai.taskuser.TaskUser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,9 +29,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TaskService implements ITaskService {
 
+    private final UserRepository userRepository;
     private final TaskContentRepository taskContentRepository;
     private final TaskRepository taskRepository;
     private final RabbitMQSender rabbitMQSender;
+    private final TaskUserRepository taskUserRepository;
 
     @Override
     public List<TaskResponseDTO> createTasks(List<TaskRegisterDTO> tasksRegister) {
@@ -37,12 +44,39 @@ public class TaskService implements ITaskService {
 
             Task task = createTask(taskRegister);
 
-            createUsersTask(task.getId(), taskRegister.courseId());
-            createTaskContents(task, taskRegister.contents());
+            sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
+
+            List<TaskContent> taskContents = createTaskContents(task, taskRegister.contents());
 
         });
 
         return List.of();
+
+    }
+
+    @Override
+    public void saveTaskUsersForCourse(TaskUserCourseMessage taskUserCourseMessage) {
+
+        // Get all users from the course
+        List<User> users = userRepository.findByCourseId(taskUserCourseMessage.getCourseId());
+
+        // Create user tasks for each user in the course
+        users.forEach(user -> {
+
+            Boolean existsTaskUser = taskUserRepository.existsByTaskIdAndUserId(taskUserCourseMessage.getTaskId(), user.getId());
+
+            if (BooleanUtils.isNotTrue(existsTaskUser)) {
+
+                TaskUser userTask = new TaskUser();
+
+                userTask.setTaskId(taskUserCourseMessage.getTaskId());
+                userTask.setUserId(user.getId());
+
+                taskUserRepository.save(userTask);
+
+            }
+
+        });
 
     }
 
@@ -58,9 +92,9 @@ public class TaskService implements ITaskService {
 
     }
 
-    private void createUsersTask(Long taskID, Long courseID) {
+    private void sendMessageCreateUsersTask(Long taskID, Long courseID) {
 
-        String jsonMessage = new Gson().toJson(new UserTaskMessage(taskID, courseID));
+        String jsonMessage = new Gson().toJson(new TaskUserCourseMessage(taskID, courseID));
 
         rabbitMQSender.sendMessage(
             RabbitMQConfig.EXCHANGE_TASKS,
