@@ -15,6 +15,7 @@ public class UserRegisterDTO {
     private String cpf;
     private String nameImage;
     private Role role;
+    private UserStatus status;
     private MultipartFile image;
     private Long roleId;
     private Long idInstitution;
@@ -23,6 +24,17 @@ public class UserRegisterDTO {
     public UserRegisterDTO() {
     }
 
+    public UserRegisterDTO(User user) {
+        this.name = user.getName();
+        this.email = user.getEmail();
+        this.password = user.getPassword();
+        this.cpf = user.getCpf();
+        this.nameImage = user.getNameImage();
+        this.role = user.getRole();
+        this.status = user.getUserStatus();
+    }
+
+
     public UserRegisterDTO(String name, String email, String password, String cpf, String nameImage, Role role, MultipartFile image) {
         this.name = name;
         this.email = email;
@@ -30,6 +42,7 @@ public class UserRegisterDTO {
         this.cpf = cpf;
         this.nameImage = nameImage;
         this.role = role;
+        this.status = UserStatus.ATIVO;
         this.image = image;
     }
 
@@ -40,6 +53,7 @@ public class UserRegisterDTO {
         this.cpf = cpf;
         this.nameImage = nameImage;
         this.role = role;
+        this.status = UserStatus.ATIVO;
         this.image = image;
         this.idInstitution = idInstitution;
     }

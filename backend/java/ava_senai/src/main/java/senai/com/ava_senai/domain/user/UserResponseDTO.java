@@ -1,7 +1,8 @@
 package senai.com.ava_senai.domain.user;
 
-import senai.com.ava_senai.domain.user.role.Role;
+import java.util.List;
 
+public record UserResponseDTO(Long id, String email, String nome, UserStatus status, List<String> roles) {
 
 public record UserResponseDTO(Long id, String email, String nome, Role role, String institutionName, String cpf, String userImage ) {
     public UserResponseDTO(User user ) {

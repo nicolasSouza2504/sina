@@ -9,10 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import senai.com.ava_senai.domain.course.institution.Institution;
-import senai.com.ava_senai.domain.user.User;
-import senai.com.ava_senai.domain.user.UserFinderDTO;
-import senai.com.ava_senai.domain.user.UserRegisterDTO;
-import senai.com.ava_senai.domain.user.UserResponseDTO;
+import senai.com.ava_senai.domain.user.*;
 import senai.com.ava_senai.domain.user.userclass.UserClass;
 import senai.com.ava_senai.exception.*;
 import senai.com.ava_senai.repository.InstitutionRepository;
@@ -118,6 +115,28 @@ public class UserService implements IUserService {
 
                 })
                 .orElseThrow(() -> new UserNotFoundException("Usuario não existe!"));
+
+    }
+
+
+    @Override
+    public UserResponseDTO changeUserStatus(Long userId, UserStatus status) {
+
+        return Optional.ofNullable(userRepository.findById(userId))
+                .get()
+                .map((userDb) -> {
+
+                    userDb.setUserStatus(status);
+
+                    updateData(new UserRegisterDTO(userDb), userDb);
+
+                    userRepository.save(userDb);
+
+                    return new UserResponseDTO(userDb);
+
+                })
+                .orElseThrow(() -> new UserNotFoundException("Usuario não existe!"));
+
 
     }
 
