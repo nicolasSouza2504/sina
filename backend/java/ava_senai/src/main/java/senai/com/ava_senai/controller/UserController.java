@@ -4,14 +4,13 @@ import com.google.gson.Gson;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import senai.com.ava_senai.domain.user.UserFinderDTO;
+import senai.com.ava_senai.domain.user.*;
 import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.role.Roles;
-import senai.com.ava_senai.domain.user.UserRegisterDTO;
-import senai.com.ava_senai.domain.user.UserResponseDTO;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.UserAlreadyExistsException;
 import senai.com.ava_senai.exception.UserNotFoundException;
@@ -98,5 +97,18 @@ public class UserController {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }
     }
+
+    @PatchMapping("/status/{userId}")
+    public ResponseEntity<ApiResponse> status(@PathVariable("userId") Long userId, @RequestBody UserStatusDTO userStatusDTO) {
+        try {
+            System.out.println(userStatusDTO);
+
+            return ResponseEntity.ok().body(new ApiResponse("Sucesso!", iUserService.changeUserStatus(userId, UserStatus.valueOf(userStatusDTO.getStatus()))));
+        } catch (NullListException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        } catch (IllegalArgumentException e){
+            return ResponseEntity.status(400).body(new ApiResponse("Status não existe: \"" + userStatusDTO.getStatus() + "\"", null));
+    }
+
 
 }

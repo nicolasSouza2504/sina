@@ -3,6 +3,7 @@ package senai.com.ava_senai.services.user;
 import senai.com.ava_senai.domain.user.UserFinderDTO;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseDTO;
+import senai.com.ava_senai.domain.user.UserStatus;
 
 import java.util.List;
 
@@ -19,5 +20,5 @@ public interface IUserService {
 
     void deleteUser(Long id);
 
-
+    UserResponseDTO changeUserStatus(Long userId, UserStatus status);
 }
