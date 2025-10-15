@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import senai.com.ava_senai.domain.user.User;
-import senai.com.ava_senai.domain.user.UserFinderDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,4 +40,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying
     @Query("update User u set u.nameImage = ?1 where u.id = ?2")
     void updateNameImageById(@NonNull String nameImage, Long id);
+
+    @Query(
+            nativeQuery = true,
+            value = " SELECT u FROM users u " +
+                    " JOIN user_class uc ON u.id = uc.user_id " +
+                    " JOIN class cl ON cl.id = uc.class_id " +
+                    " JOIN course c ON c.id = cl.course_id " +
+                    " WHERE c.id = :idCourse "
+    )
+    List<User> findByCourseId(@Param("idCourse") Long idCourse);
+
 }

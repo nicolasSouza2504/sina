@@ -13,11 +13,17 @@ import senai.com.ava_senai.domain.user.User;
 public class TaskUser extends DefaultEntity {
 
     @ManyToOne
-    @JoinColumn(name = "task_id", nullable = false)
+    @JoinColumn(name = "task_id", insertable = false, updatable = false)
     private Task task;
 
+    @Column(name = "task_id", nullable = false)
+    private Long taskId;
+
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
 }

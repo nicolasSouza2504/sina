@@ -36,12 +36,22 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         try {
-
             createInstitution();
-            createRoles();
-            createUser();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        try {
+            createRoles();
         } catch (Exception e) {}
+
+        try {
+            createUser();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
 
     }
 
@@ -83,7 +93,7 @@ public class DataInitializer implements CommandLineRunner {
         institution.setInstitutionName("SENAI_JOINVILLE");
 
         Optional.of(institution)
-                        .filter(inst -> !institutionRepository.findByInstitutionName("SENAI_JOINVILLE"))
+                        .filter(inst -> !institutionRepository.existsByInstitutionName("SENAI_JOINVILLE"))
                         .map(req -> institutionRepository.save(institution))
                         .orElseThrow(() -> new UserAlreadyExistsException("Oops! User already exists!"));
     }

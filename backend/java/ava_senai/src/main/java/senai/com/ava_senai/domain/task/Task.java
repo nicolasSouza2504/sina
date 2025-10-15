@@ -1,6 +1,7 @@
 package senai.com.ava_senai.domain.task;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
@@ -8,6 +9,7 @@ import senai.com.ava_senai.taskuser.TaskUser;
 
 import java.util.List;
 
+@Data
 @Entity
 @Table(name = "task")
 public class Task extends DefaultEntity {
@@ -21,8 +23,11 @@ public class Task extends DefaultEntity {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "knowledge_trail_id", nullable = false)
+    @JoinColumn(name = "knowledge_trail_id", nullable = false, updatable = false, insertable = false)
     private KnowledgeTrail knowledgeTrail;
+
+    @Column(name = "knowledge_trail_id", nullable = false)
+    private Long knowledgeTrailId;
 
     @OneToMany(mappedBy = "task")
     private List<TaskContent> contents;
