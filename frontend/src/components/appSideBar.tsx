@@ -7,6 +7,7 @@ import {
   SettingsIcon,
   UserPen,
   Users,
+  FolderOpen,
 } from "lucide-react";
 
 import {
@@ -38,9 +39,9 @@ const items = [
     icon: School,
   },
   {
-    title: "Cursos",
-    url: "/admin/courses",
-    icon: BookOpen,
+    title: "Meus Cursos",
+    url: "/cursos",
+    icon: FolderOpen,
   },
   {
     title: "Alunos",
