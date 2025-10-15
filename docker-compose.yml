@@ -75,6 +75,7 @@ services:
       - mongodb-sesi-senai
     networks:
       - sesi-senai
+
   rabbitmq:
     image: rabbitmq:3.12-management
     container_name: ava-rabbitmq
@@ -87,6 +88,8 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: unless-stopped
+    networks:
+      - sesi-senai
 
   minio:
     image: minio/minio:latest
@@ -104,6 +107,8 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+    networks:
+      - sesi-senai
 
 networks:
   sesi-senai:
