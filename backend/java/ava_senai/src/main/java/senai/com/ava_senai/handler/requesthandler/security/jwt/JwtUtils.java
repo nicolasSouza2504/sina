@@ -41,7 +41,7 @@ public class JwtUtils {
                 .claim("role", userPrincipal.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining("")))
-                .claim("user", new UserResponseDTO(
+                 .claim("user", new UserResponseDTO(
                         userPrincipal.getId(),
                         userPrincipal.getEmail(),
                         userPrincipal.getName(),
