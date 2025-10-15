@@ -51,7 +51,6 @@ export default function StudentsManagement() {
             setLoading(true);
             setError(null);
             const studentsData = await UserListService(null, 3);
-            console.log("Raw API response:", studentsData);
 
             const mappedStudents = studentsData.data?.map((cls: any) => ({
                 id: cls.id,
@@ -62,7 +61,6 @@ export default function StudentsManagement() {
                 cpf: cls.cpf,
             })) || [];
 
-            console.log("Mapped classes:", mappedStudents);
             setStudents(mappedStudents);
         } catch (err) {
             console.error("Error fetching classes:", err);

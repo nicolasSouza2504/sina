@@ -72,7 +72,6 @@ export default function ClassesManagement() {
             setLoading(true);
             setError(null);
             const classData = await ClassList();
-            console.log("Raw API response:", classData);
 
             const mappedClasses = classData?.map((cls: any) => ({
                 id: cls.Id || cls.id,
@@ -85,8 +84,7 @@ export default function ClassesManagement() {
                 imgClass: cls.imgClass
             })) || [];
 
-            console.log("Mapped classes:", mappedClasses);
-            
+
             setClasses(mappedClasses);
         } catch (err) {
             console.error("Error fetching classes:", err);
@@ -109,7 +107,6 @@ export default function ClassesManagement() {
         ) || [];
 
     const handleDeleteClass = async (id: number) => {
-        console.log("Deleting class:", id);
         try{
             await ClassRemoveService(id);
             setClasses((prev) => prev?.filter((cls) => cls.id !== id) || []);

@@ -28,7 +28,6 @@ export default async function createUser(userData: UserRegister, role: string, i
 
         try {
             const err = await response.json();
-            console.log(err);
             msg = err?.message ?? msg;
         } catch { }
         if (typeof window !== "undefined") {

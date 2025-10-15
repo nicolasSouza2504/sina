@@ -126,7 +126,6 @@ export default function ModalAddClass({
     }, [isOpen]);
 
     const onSubmit = async (data: ClassSchemaValues) => {
-        console.log("Creating class:", data);
         setCreationError(null); // Clear previous errors
 
         const classData: CreateClass = {

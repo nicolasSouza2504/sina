@@ -16,8 +16,6 @@ export default async function UpdateUserService(
     formData.append("user", JSON.stringify(userData));
 
     if (image) formData.append("image", image);
-    console.log(formData);
-    console.log(id)
     const response = await fetch(`${base}/user/update/${id}`, {
         method: "PUT",
         headers: {
@@ -31,7 +29,6 @@ export default async function UpdateUserService(
         let msg = "Erro ao Atualizar usuário";
         try {
             const err = await response.json();
-            console.log(err);
             msg = err?.message ?? msg;
         } catch {}
         if (typeof window !== "undefined") {

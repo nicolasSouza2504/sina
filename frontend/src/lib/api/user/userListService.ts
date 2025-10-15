@@ -31,14 +31,12 @@ export async function UserListService(
     const queryString = params.toString();
     const url = queryString ? `${base}/user/list-all?${queryString}` : `${base}/user/list-all`;
 
-    console.log(url);
 
     const response = await fetch(url, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
     });
 
-    console.log(response);
 
     if (!response.ok) {
         let msg = "Erro ao buscar usuários";

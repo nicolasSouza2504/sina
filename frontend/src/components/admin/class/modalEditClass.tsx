@@ -143,7 +143,6 @@ export default function ModalEditClass({
     const onSubmit = async (data: EditClassSchemaValues) => {
         if (!classData) return;
 
-        console.log("Editing class:", classData.id, data);
 
         const formData: ClassFormData = {
             code: data.code || "",

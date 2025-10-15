@@ -68,7 +68,6 @@ export function ClassFilterModal({
             setLoading(true);
             setError(null);
             const classData = await ClassList();
-            console.log("Raw API response:", classData);
 
             const mappedClasses = classData?.map((cls: any) => ({
                 id: cls.Id || cls.id,
@@ -81,7 +80,6 @@ export function ClassFilterModal({
                 imgClass: cls.imgClass
             })) || [];
 
-            console.log("Mapped classes:", mappedClasses);
             setClasses(mappedClasses);
         } catch (err) {
             console.error("Error fetching classes:", err);
