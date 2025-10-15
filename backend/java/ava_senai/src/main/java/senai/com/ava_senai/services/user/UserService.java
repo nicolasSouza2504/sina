@@ -219,25 +219,31 @@ public class UserService implements IUserService {
     }
 
     public String saveImage(MultipartFile image, User user) {
+
+        String uniqueFileName = null;
+
         try {
+
             if (image != null && !image.isEmpty()) {
 
                 Path uploadPath = Path.of("src/main/resources/img/");
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
                 }
-                String uniqueFileName = user.getId() + "." + FilenameUtils.getExtension(image.getOriginalFilename());
+                uniqueFileName = user.getId() + "." + FilenameUtils.getExtension(image.getOriginalFilename());
 
                 Path filePath = getFilePath(uniqueFileName);
 
                 Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            return uniqueFileName;
             }
+
         } catch (IOException e) {
             throw new RuntimeException("Erro ao salvar imagem", e);
         }
-        throw new RuntimeException("Erro ao salvar imagem");
+
+        return uniqueFileName;
+
     }
 
     public Boolean isAdm(UserRegisterDTO userRegisterDTO) {
