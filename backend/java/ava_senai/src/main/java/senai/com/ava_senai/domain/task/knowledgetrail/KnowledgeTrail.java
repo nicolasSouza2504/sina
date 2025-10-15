@@ -20,7 +20,7 @@ public class KnowledgeTrail extends DefaultEntity {
     @JoinColumn(name = "section_id", insertable = false, updatable = false)
     private Section section;
 
-    @Column(name = "section_id", nullable = false, insertable = true, updatable = true)
+    @Column(name = "section_id", nullable = false)
     private Long sectionId;
 
     @OneToMany(mappedBy = "knowledgeTrail")
