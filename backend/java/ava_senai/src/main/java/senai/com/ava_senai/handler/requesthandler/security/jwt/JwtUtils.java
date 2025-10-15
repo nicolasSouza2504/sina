@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import senai.com.ava_senai.domain.user.UserResponseDTO;
 import senai.com.ava_senai.handler.requesthandler.security.user.AuthyUserDetails;
+import senai.com.ava_senai.services.user.UserService;
 
 import java.security.Key;
 import java.util.Date;
@@ -18,11 +19,16 @@ import java.util.stream.Collectors;
 @Component
 public class JwtUtils {
 
+    private final UserService userService;
     @Value("${auth.token.jwtSecret}")
     private String jwtSecret;
 
     @Value("${auth.token.expirationInMils}")
     private int expirationTime;
+
+    public JwtUtils(UserService userService) {
+        this.userService = userService;
+    }
 
     public String generateTokenForUser(Authentication authentication) {
 
@@ -35,13 +41,15 @@ public class JwtUtils {
                 .claim("role", userPrincipal.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining("")))
-                .claim("user", new UserResponseDTO(
+                 .claim("user", new UserResponseDTO(
                         userPrincipal.getId(),
                         userPrincipal.getEmail(),
                         userPrincipal.getName(),
                         userPrincipal.getStatus(),
-                        userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
-                )
+                        userPrincipal.getRole(),
+                        userPrincipal.getInstitution().getInstitutionName(),
+                        userPrincipal.getCpf()
+                ))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + expirationTime))
                 .signWith(key(), SignatureAlgorithm.HS256).compact();

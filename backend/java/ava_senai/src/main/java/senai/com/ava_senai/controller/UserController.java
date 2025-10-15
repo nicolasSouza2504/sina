@@ -68,7 +68,7 @@ public class UserController {
     @PutMapping("update/{userId}")
     public ResponseEntity<ApiResponse> addUser(@PathVariable("userId") Long userId,
                                                @Valid @RequestParam String user,
-                                               @RequestParam("image") MultipartFile image) {
+                                               @RequestParam(value = "image", required = false) MultipartFile image) {
 
         try {
 

@@ -3,8 +3,11 @@ package senai.com.ava_senai.repository;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
+import org.springframework.transaction.annotation.Transactional;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.domain.user.UserFinderDTO;
 
@@ -33,4 +36,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("idCourse") Long idCourses
 
     );
+
+    @Transactional
+    @Modifying
+    @Query("update User u set u.nameImage = ?1 where u.id = ?2")
+    void updateNameImageById(@NonNull String nameImage, Long id);
 }

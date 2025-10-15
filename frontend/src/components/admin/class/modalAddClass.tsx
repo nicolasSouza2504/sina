@@ -17,6 +17,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
+import CourseListService from "@/lib/api/course/courseList";
 
 interface ModalAddClassProps {
     isOpen: boolean;
@@ -75,6 +76,34 @@ export default function ModalAddClass({
                                           imageNames,
                                       }: ModalAddClassProps) {
     const [creationError, setCreationError] = useState<string | null>(null);
+    const [loadingCourses, setLoadingCourses] = useState(false);
+    const [courses, setCourses] = useState<{ id: number, name: string }[]>([]);
+    const [generatingCode, setGeneratingCode] = useState(false);
+
+
+    useEffect(() => {
+        getCourses();
+    }, []);
+
+    const getCourses = async () => {
+        try {
+            setLoadingCourses(true);
+            const response = await CourseListService();
+            setCourses( response || []);
+        } catch (error) {
+            console.error("Error fetching courses:", error);
+            let errorMessage = "Erro ao carregar cursos";
+
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (typeof error === "string") {
+                errorMessage = error;
+            }
+            setCreationError(errorMessage);
+        } finally {
+            setLoadingCourses(false);
+        }
+    }
 
     const form = useForm<ClassSchemaValues>({
         resolver: zodResolver(classSchema),
@@ -97,7 +126,6 @@ export default function ModalAddClass({
     }, [isOpen]);
 
     const onSubmit = async (data: ClassSchemaValues) => {
-        console.log("Creating class:", data);
         setCreationError(null); // Clear previous errors
 
         const classData: CreateClass = {
@@ -152,11 +180,27 @@ export default function ModalAddClass({
         onClose();
     };
 
+    const createNewClassCode = () => {
+        // Generate random string: 3 uppercase letters + 4 numbers
+        const letters = Array.from({ length: 3 }, () =>
+            String.fromCharCode(65 + Math.floor(Math.random() * 26))
+        ).join('');
+
+        const numbers = Array.from({ length: 4 }, () =>
+            Math.floor(Math.random() * 10)
+        ).join('');
+
+        const randomCode = `${letters}${numbers}`;
+
+        // Set the generated code in the form
+        form.setValue("code", randomCode, { shouldValidate: true });
+    }
+
     const watchedImage = form.watch("imgClass");
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[900px]">
                 <DialogHeader>
                     <DialogTitle>Cadastrar Nova Turma</DialogTitle>
                     <DialogDescription>
@@ -175,12 +219,22 @@ export default function ModalAddClass({
                                 render={({field}) => (
                                     <FormItem>
                                         <FormLabel>Código da Turma</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Ex: TUR001"
-                                                {...field}
-                                            />
-                                        </FormControl>
+                                        <div className="flex gap-2">
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Ex: TUR001"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={createNewClassCode}
+                                                disabled={generatingCode}
+                                            >
+                                                {generatingCode ? "Gerando..." : "Gerar"}
+                                            </Button>
+                                        </div>
                                         <FormMessage/>
                                     </FormItem>
                                 )}
@@ -210,7 +264,7 @@ export default function ModalAddClass({
                                 name="semester"
                                 render={({field}) => (
                                     <FormItem>
-                                        <FormLabel>Semestre (opcional)</FormLabel>
+                                        <FormLabel>Qtd Semestres (opcional)</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="number"
@@ -234,18 +288,38 @@ export default function ModalAddClass({
                                 name="courseId"
                                 render={({field}) => (
                                     <FormItem>
-                                        <FormLabel>ID do Curso (opcional)</FormLabel>
+                                        <FormLabel>Curso</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                type="number"
-                                                placeholder="Ex: 1"
-                                                min={1}
-                                                value={field.value || ""}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    field.onChange(value ? parseInt(value, 10) : undefined);
+                                            <Select
+                                                onValueChange={(value) => {
+                                                    field.onChange(parseInt(value));
                                                 }}
-                                            />
+                                                value={field.value?.toString() || ""}
+                                                disabled={loadingCourses}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={
+                                                        loadingCourses
+                                                            ? "Carregando cursos..."
+                                                            : "Selecione um curso"
+                                                    } />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {courses.map((course) => (
+                                                        <SelectItem
+                                                            key={course.id}
+                                                            value={course.id.toString()}
+                                                        >
+                                                            {course.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                    {courses.length === 0 && !loadingCourses && (
+                                                        <SelectItem value="no-courses" disabled>
+                                                            Nenhum curso encontrado
+                                                        </SelectItem>
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
                                         </FormControl>
                                         <FormMessage/>
                                     </FormItem>

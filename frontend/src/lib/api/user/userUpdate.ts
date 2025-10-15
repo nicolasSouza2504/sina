@@ -16,12 +16,10 @@ export default async function UpdateUserService(
     formData.append("user", JSON.stringify(userData));
 
     if (image) formData.append("image", image);
-
     const response = await fetch(`${base}/user/update/${id}`, {
         method: "PUT",
         headers: {
-            // NÃO defina Content-Type manualmente
-            Authorization: token, // ou `Bearer ${token}`
+            Authorization: token,
             Accept: "application/json",
         },
         body: formData,

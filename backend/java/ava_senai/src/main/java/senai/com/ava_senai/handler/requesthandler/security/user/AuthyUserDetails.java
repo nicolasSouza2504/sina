@@ -7,8 +7,11 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import senai.com.ava_senai.domain.course.institution.Institution;
 import senai.com.ava_senai.domain.user.User;
+import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.UserStatus;
+import senai.com.ava_senai.domain.user.role.Role;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,6 +29,9 @@ public class AuthyUserDetails implements UserDetails {
     private Long idInstitution;
     private UserStatus status;
     private List<GrantedAuthority> authorities;
+    private Role role;
+    private Institution institution;
+    private String cpf;
 
     public static AuthyUserDetails buildUserDetails(User user) {
 
@@ -38,7 +44,10 @@ public class AuthyUserDetails implements UserDetails {
                 user.getName(),
                 user.getIdInstitution(),
                 user.getUserStatus(),
-                authorities);
+                authorities,
+                user.getRole(),
+                user.getInstitution(),
+                user.getCpf());
 
     }
 
@@ -60,6 +69,13 @@ public class AuthyUserDetails implements UserDetails {
     public String getName(){
         return name;
     }
+    public String getCpf(){return cpf;}
+
+    public Role getRole(){return role;}
+
+    public Institution getInstitution(){return institution;}
+
+    public UserStatus getStatus(){ return status;}
 
     @Override
     public boolean isAccountNonExpired() {
