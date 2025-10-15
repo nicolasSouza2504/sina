@@ -39,6 +39,7 @@ public class JwtUtils {
                         userPrincipal.getId(),
                         userPrincipal.getEmail(),
                         userPrincipal.getName(),
+                        userPrincipal.getStatus(),
                         userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
                 )
                 .setIssuedAt(new Date())

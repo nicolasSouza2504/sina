@@ -35,6 +35,9 @@ public class User extends DefaultEntity {
     @JoinColumn(name = "role_id", referencedColumnName = "id", updatable = false, insertable = false, foreignKey = @ForeignKey(name = "fk_user_role"))
     private Role role;
 
+    @Column(name = "user_status")
+    private UserStatus userStatus;
+
     @ManyToOne
     @JoinColumn(name = "address_id")
     private Address address;

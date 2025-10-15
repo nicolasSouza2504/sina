@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import senai.com.ava_senai.domain.user.User;
+import senai.com.ava_senai.domain.user.UserStatus;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,6 +24,7 @@ public class AuthyUserDetails implements UserDetails {
     private String senha;
     private String name;
     private Long idInstitution;
+    private UserStatus status;
     private List<GrantedAuthority> authorities;
 
     public static AuthyUserDetails buildUserDetails(User user) {
@@ -35,6 +37,7 @@ public class AuthyUserDetails implements UserDetails {
                 user.getPassword(),
                 user.getName(),
                 user.getIdInstitution(),
+                user.getUserStatus(),
                 authorities);
 
     }
