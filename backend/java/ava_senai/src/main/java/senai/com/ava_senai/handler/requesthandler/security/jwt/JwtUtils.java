@@ -45,16 +45,11 @@ public class JwtUtils {
                         userPrincipal.getId(),
                         userPrincipal.getEmail(),
                         userPrincipal.getName(),
-                        userPrincipal.getRole(),
-                        userPrincipal.getInstitution().getInstitutionName(),
-                        userPrincipal.getCpf(),
-                        userPrincipal.getUserImage())
                         userPrincipal.getStatus(),
                         userPrincipal.getRole(),
                         userPrincipal.getInstitution().getInstitutionName(),
-                        userPrincipal.getCpf(),
-                        userPrincipal.getUserImage())
-                )
+                        userPrincipal.getCpf()
+                ))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + expirationTime))
                 .signWith(key(), SignatureAlgorithm.HS256).compact();
