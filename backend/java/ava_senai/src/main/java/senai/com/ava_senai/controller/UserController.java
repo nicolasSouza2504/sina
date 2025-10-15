@@ -100,15 +100,15 @@ public class UserController {
 
     @PatchMapping("/status/{userId}")
     public ResponseEntity<ApiResponse> status(@PathVariable("userId") Long userId, @RequestBody UserStatusDTO userStatusDTO) {
-        try {
-            System.out.println(userStatusDTO);
 
+        try {
             return ResponseEntity.ok().body(new ApiResponse("Sucesso!", iUserService.changeUserStatus(userId, UserStatus.valueOf(userStatusDTO.getStatus()))));
         } catch (NullListException e) {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(new ApiResponse("Status não existe: \"" + userStatusDTO.getStatus() + "\"", null));
-    }
+        }
 
+    }
 
 }

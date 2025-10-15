@@ -3,6 +3,7 @@ package senai.com.ava_senai.services.clazz;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
 import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
@@ -10,6 +11,7 @@ import senai.com.ava_senai.exception.AlreadyExistsException;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.repository.ClassRepository;
+import senai.com.ava_senai.repository.UserClassRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +21,8 @@ import java.util.Optional;
 public class ClassService implements IClassService {
 
     private final ClassRepository classRepository;
+
+    private final UserClassRepository userClassRepository;
 
     @Override
     public ClassResponseDTO createClass(ClassRegisterDTO classRegisterDTO) {
@@ -96,11 +100,22 @@ public class ClassService implements IClassService {
     public void deleteTurma(Long turmaId) {
 
         classRepository.findById(turmaId)
-                .ifPresentOrElse(classRepository::delete,
+                .ifPresentOrElse(this::delete,
                         () -> {
                             throw new NotFoundException("Turma para deletar não encontrada");
                         });
 
     }
+
+    public void delete(Class clazz) {
+
+        if (!CollectionUtils.isEmpty(clazz.getUserClasses())) {
+            clazz.getUserClasses().stream().forEach(classUser -> userClassRepository.delete(classUser));
+        }
+
+        classRepository.delete(clazz);
+
+    }
+
 
 }
