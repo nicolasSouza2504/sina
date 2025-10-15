@@ -39,7 +39,7 @@ export default function ProfilePage() {
                     name: user?.nome,
                     email: user?.email,
                     password: "",
-                    cpf: "",
+                    cpf: user?.cpf,
                     image: null,
                 })
                 setImagePreview(null)
@@ -159,13 +159,13 @@ export default function ProfilePage() {
                         <CardTitle className="text-xl">{user.nome || "Nome não disponível"}</CardTitle>
                         <CardDescription>{user.email}</CardDescription>
                         <Badge variant="secondary" className="w-fit mx-auto">
-                            {user.roles && user.roles.length > 0 ? user.roles[0] : "Sem função"}
+                            {user.role && user.role.name ? user.role.name : "Sem Função" }
                         </Badge>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Building className="h-4 w-4" />
-                            <span>Instituição: Sesi Senai</span>
+                            <span>{user.institutionName}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Users className="h-4 w-4" />

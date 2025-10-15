@@ -30,7 +30,6 @@ export default function LoginPage() {
     };
     try {
       const response: AuthLoginResponse = await login(userLoginData);
-      console.log("Sucesso");
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("userId", response.data.id.toString());
       router.push("/home");
