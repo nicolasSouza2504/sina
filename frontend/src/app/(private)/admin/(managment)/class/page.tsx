@@ -42,7 +42,7 @@ import {
     Users,
     GraduationCap,
     X,
-    Hash,
+    Hash, RefreshCcw,
 } from "lucide-react";
 import ModalAddClass from "@/components/admin/class/modalAddClass";
 import ModalEditClass from "@/components/admin/class/modalEditClass";
@@ -86,6 +86,7 @@ export default function ClassesManagement() {
             })) || [];
 
             console.log("Mapped classes:", mappedClasses);
+            
             setClasses(mappedClasses);
         } catch (err) {
             console.error("Error fetching classes:", err);
@@ -213,21 +214,9 @@ export default function ClassesManagement() {
     // Helper function to format semester display
     const formatSemester = (semester: number | null | string) => {
         if (semester === null || semester === undefined) return "N/A";
-        return `${semester}º Semestre`;
+        return `${semester} Semestres`;
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="text-center">
-                    <div className="text-lg font-medium">Carregando turmas...</div>
-                    <div className="text-sm text-muted-foreground mt-2">
-                        Por favor, aguarde
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-background">
@@ -358,127 +347,153 @@ export default function ClassesManagement() {
                 {/* Classes Table */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Lista de Turmas</CardTitle>
-                        <CardDescription>
-                            {filteredClasses.length} turma(s) encontrada(s)
-                        </CardDescription>
+                        <div className="flex items-center justify-between w-full">
+                            <div>
+                                <CardTitle>Lista de Turmas</CardTitle>
+                                <CardDescription>
+                                    {filteredClasses.length} turma(s) encontrada(s)
+                                </CardDescription>
+                            </div>
+                            <div>
+                                <Button onClick={reloadClassList} className="flex items-center gap-2 bg-gray-500">
+                                    <RefreshCcw className="h-4 w-4" />
+                                    Recarregar Alunos
+                                </Button>
+                            </div>
+                        </div>
+
+
                     </CardHeader>
                     <CardContent>
-                        {filteredClasses.length === 0 ? (
-                            <div className="text-center py-8">
-                                <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground"/>
-                                <h3 className="mt-2 text-sm font-semibold text-gray-900">
-                                    Nenhuma turma encontrada
-                                </h3>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    {searchTerm
-                                        ? "Nenhuma turma corresponde à sua pesquisa."
-                                        : "Comece criando uma nova turma."}
-                                </p>
-                                {!searchTerm && (
-                                    <div className="mt-6">
-                                        <Button onClick={() => setIsCreateModalOpen(true)}>
-                                            <Plus className="h-4 w-4 mr-2"/>
-                                            Nova Turma
-                                        </Button>
+                        {loading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <div className="text-center">
+                                    <div className="text-lg font-medium">Carregando Alunos...</div>
+                                    <div className="text-sm text-muted-foreground mt-2">
+                                        Por favor, aguarde
                                     </div>
-                                )}
+                                </div>
                             </div>
                         ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Imagem</TableHead>
-                                        <TableHead>Código</TableHead>
-                                        <TableHead>Nome da Turma</TableHead>
-                                        <TableHead>Semestre</TableHead>
-                                        <TableHead>Data de Início</TableHead>
-                                        <TableHead>Data de Término</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Ações</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredClasses.map((cls) => {
-                                        const {status, variant} = getClassStatus(
-                                            cls.startDate,
-                                            cls.endDate
-                                        );
-                                        return (
-                                            <TableRow key={cls.id}>
-                                                <TableCell>
-                                                    <Avatar className="h-12 w-12">
-                                                        <AvatarImage
-                                                            src={getImagePath(cls.imgClass)}
-                                                            alt={cls.name || "Turma"}
-                                                        />
-                                                        <AvatarFallback>
-                                                            {(cls.name || cls.code || "T").substring(0, 2).toUpperCase()}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                </TableCell>
-                                                <TableCell className="font-mono text-sm">
-                                                    {cls.code || "N/A"}
-                                                </TableCell>
-                                                <TableCell className="font-medium">
-                                                    {cls.name || "Nome não disponível"}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {formatSemester(cls.semester)}
-                                                </TableCell>
-                                                <TableCell>{formatDate(cls.startDate)}</TableCell>
-                                                <TableCell>{formatDate(cls.endDate)}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant={variant}>{status}</Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => openEditModal(cls)}
-                                                        >
-                                                            <Edit className="h-4 w-4"/>
-                                                        </Button>
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <Button variant="outline" size="sm">
-                                                                    <Trash2 className="h-4 w-4"/>
-                                                                </Button>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>
-                                                                        Confirmar Exclusão
-                                                                    </AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        Tem certeza que deseja excluir a turma "
-                                                                        {cls.name || cls.code || "esta turma"}"? Esta
-                                                                        ação não
-                                                                        pode ser desfeita.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>
-                                                                        Cancelar
-                                                                    </AlertDialogCancel>
-                                                                    <AlertDialogAction
-                                                                        onClick={() => handleDeleteClass(cls.id)}
-                                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                                    >
-                                                                        Excluir
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-                                                    </div>
-                                                </TableCell>
+                            <>
+                                {filteredClasses.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground"/>
+                                        <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                                            Nenhuma turma encontrada
+                                        </h3>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            {searchTerm
+                                                ? "Nenhuma turma corresponde à sua pesquisa."
+                                                : "Comece criando uma nova turma."}
+                                        </p>
+                                        {!searchTerm && (
+                                            <div className="mt-6">
+                                                <Button onClick={() => setIsCreateModalOpen(true)}>
+                                                    <Plus className="h-4 w-4 mr-2"/>
+                                                    Nova Turma
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Imagem</TableHead>
+                                                <TableHead>Código</TableHead>
+                                                <TableHead>Nome da Turma</TableHead>
+                                                <TableHead>QTD Semestres</TableHead>
+                                                <TableHead>Data de Início</TableHead>
+                                                <TableHead>Data de Término</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Ações</TableHead>
                                             </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredClasses.map((cls) => {
+                                                const {status, variant} = getClassStatus(
+                                                    cls.startDate,
+                                                    cls.endDate
+                                                );
+                                                return (
+                                                    <TableRow key={cls.id}>
+                                                        <TableCell>
+                                                            <Avatar className="h-12 w-12">
+                                                                <AvatarImage
+                                                                    src={getImagePath(cls.imgClass)}
+                                                                    alt={cls.name || "Turma"}
+                                                                />
+                                                                <AvatarFallback>
+                                                                    {(cls.name || cls.code || "T").substring(0, 2).toUpperCase()}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                        </TableCell>
+                                                        <TableCell className="font-mono text-sm">
+                                                            {cls.code || "N/A"}
+                                                        </TableCell>
+                                                        <TableCell className="font-medium">
+                                                            {cls.name || "Nome não disponível"}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {formatSemester(cls.semester)}
+                                                        </TableCell>
+                                                        <TableCell>{formatDate(cls.startDate)}</TableCell>
+                                                        <TableCell>{formatDate(cls.endDate)}</TableCell>
+                                                        <TableCell>
+                                                            <Badge variant={variant}>{status}</Badge>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex gap-2">
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => openEditModal(cls)}
+                                                                >
+                                                                    <Edit className="h-4 w-4"/>
+                                                                </Button>
+                                                                <AlertDialog>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <Button variant="outline" size="sm">
+                                                                            <Trash2 className="h-4 w-4"/>
+                                                                        </Button>
+                                                                    </AlertDialogTrigger>
+                                                                    <AlertDialogContent>
+                                                                        <AlertDialogHeader>
+                                                                            <AlertDialogTitle>
+                                                                                Confirmar Exclusão
+                                                                            </AlertDialogTitle>
+                                                                            <AlertDialogDescription>
+                                                                                Tem certeza que deseja excluir a turma "
+                                                                                {cls.name || cls.code || "esta turma"}"? Esta
+                                                                                ação não
+                                                                                pode ser desfeita.
+                                                                            </AlertDialogDescription>
+                                                                        </AlertDialogHeader>
+                                                                        <AlertDialogFooter>
+                                                                            <AlertDialogCancel>
+                                                                                Cancelar
+                                                                            </AlertDialogCancel>
+                                                                            <AlertDialogAction
+                                                                                onClick={() => handleDeleteClass(cls.id)}
+                                                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                            >
+                                                                                Excluir
+                                                                            </AlertDialogAction>
+                                                                        </AlertDialogFooter>
+                                                                    </AlertDialogContent>
+                                                                </AlertDialog>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </>
                         )}
+
                     </CardContent>
                 </Card>
                 <QuickActions />

@@ -10,7 +10,6 @@ export async function UserListService(
 ) {
     const base = getApiBaseUrl();
 
-    // Build query params
     const params = new URLSearchParams();
 
     if (nameFilter !== null && nameFilter !== "") {

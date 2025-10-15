@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Upload, AlertCircle } from "lucide-react"
 import { UserData } from "@/lib/interfaces/userInterfaces"
@@ -19,12 +18,6 @@ interface EditUserModalProps {
     onSuccess: () => void
     user: UserData | null
 }
-
-const roles = [
-    { id: 3, name: "STUDENT" },
-    { id: 2, name: "TEACHER" },
-    { id: 1, name: "ADMIN" },
-]
 
 const updateUserSchema = z.object({
     name: z.string()
@@ -44,7 +37,7 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
         name: "",
         email: "",
         cpf: "",
-        roleId: 3,
+        roleId: 3, // Always STUDENT
     })
     const [selectedImage, setSelectedImage] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -58,7 +51,7 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
                 name: user.nome || "",
                 email: user.email || "",
                 cpf: user.cpf || "",
-                roleId: user.role?.id || 3,
+                roleId: 3, // Always preset to STUDENT
             })
         }
     }, [user])
@@ -101,7 +94,7 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
                 name: formData.name,
                 email: formData.email,
                 cpf: formData.cpf,
-                roleId: formData.roleId,
+                roleId: 3, // Always STUDENT
             })
 
             setIsSubmitting(true)
@@ -110,7 +103,7 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
                 name: formData.name,
                 email: formData.email,
                 cpf: formData.cpf,
-                roleId: formData.roleId,
+                roleId: 3, // Always STUDENT
             }
 
             await UpdateUserService(userData, user.id, selectedImage)
@@ -221,28 +214,13 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="role">Tipo de Usuário</Label>
-                            <Select
-                                value={formData.roleId.toString()}
-                                onValueChange={(value) => setFormData({ ...formData, roleId: parseInt(value) })}
-                                disabled={isSubmitting}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o tipo" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {roles.map((role) => (
-                                        <SelectItem key={role.id} value={role.id.toString()}>
-                                            {role.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.roleId && (
-                                <div className="flex items-center gap-1 text-red-500 text-xs mt-1">
-                                    <AlertCircle className="h-3 w-3" />
-                                    <span>{errors.roleId}</span>
-                                </div>
-                            )}
+                            <Input
+                                id="role"
+                                value="STUDENT"
+                                disabled
+                                className="bg-muted cursor-not-allowed"
+                            />
+                            <p className="text-xs text-muted-foreground">Tipo de usuário fixo</p>
                         </div>
                     </div>
 

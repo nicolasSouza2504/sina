@@ -32,6 +32,7 @@ export interface UserData {
     role: Role;
     institutionName: string;
     cpf: string
+    status?: string
 }
 
 export interface UserLoginData {

@@ -30,6 +30,7 @@ import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 import EditClassService from "@/lib/api/class/classEdit";
+import CourseListService from "@/lib/api/course/courseList";
 
 interface ModalEditClassProps {
     isOpen: boolean;
@@ -48,7 +49,7 @@ const editClassSchema = z
         name: z
             .string()
             .min(1, "Nome é obrigatório")
-            .max(70, "Nome deve conter somente 70 caracteres"),
+            .max(80, "Nome deve conter no máximo 80 caracteres"),
         startDate: z
             .string()
             .min(1, "Data de início é obrigatória")
@@ -76,6 +77,10 @@ export default function ModalEditClass({
                                            imageNames,
                                        }: ModalEditClassProps) {
     const [editionError, setEditionError] = useState<string | null>(null);
+    const [courses, setCourses] = useState<{ id: number, name: string }[]>([]);
+    const [loadingCourses, setLoadingCourses] = useState(false);
+    const [generatingCode, setGeneratingCode] = useState(false);
+
     const form = useForm<EditClassSchemaValues>({
         resolver: zodResolver(editClassSchema),
         defaultValues: {
@@ -83,14 +88,13 @@ export default function ModalEditClass({
             name: "",
             startDate: "",
             endDate: "",
-            semester: 1, // Changed: Always provide a number instead of undefined
-            courseId: 1, // Changed: Always provide a number instead of undefined
+            semester: 1,
+            courseId: 1,
             imgClass: null,
         },
         mode: "onSubmit",
     });
 
-    // Load class data when modal opens or classData changes
     useEffect(() => {
         if (isOpen && classData) {
             form.reset({
@@ -98,20 +102,43 @@ export default function ModalEditClass({
                 name: classData.name,
                 startDate: classData.startDate || "",
                 endDate: classData.endDate || "",
-                semester: classData.semester || 1, // Changed: Fallback to 1 instead of undefined
-                courseId: classData.courseId || 1, // Changed: Fallback to 1 instead of undefined
+                semester: classData.semester || 1,
+                courseId: classData.courseId || 1,
                 imgClass: classData.imgClass || null,
             });
         }
     }, [isOpen, classData, form]);
 
-    // Reset form when modal closes
+    useEffect(() => {
+        getCourses();
+    }, []);
+
     useEffect(() => {
         if (!isOpen) {
             resetForm();
-            setEditionError(null); // Clear error when closing
+            setEditionError(null);
         }
     }, [isOpen]);
+
+    const getCourses = async () => {
+        try {
+            setLoadingCourses(true);
+            const response = await CourseListService();
+            setCourses( response || []);
+        } catch (error) {
+            console.error("Error fetching courses:", error);
+            let errorMessage = "Erro ao carregar cursos";
+
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (typeof error === "string") {
+                errorMessage = error;
+            }
+            setEditionError(errorMessage);
+        } finally {
+            setLoadingCourses(false);
+        }
+    }
 
     const onSubmit = async (data: EditClassSchemaValues) => {
         if (!classData) return;
@@ -129,7 +156,7 @@ export default function ModalEditClass({
         };
 
         try {
-            setEditionError(null); // Clear previous errors
+            setEditionError(null);
             await EditClassService(formData, classData.id);
             if (onClassUpdated) {
                 onClassUpdated();
@@ -145,7 +172,6 @@ export default function ModalEditClass({
                 errorMessage = error;
             }
 
-            // Reset form to original data on error
             form.reset({
                 code: classData.code || "",
                 name: classData.name,
@@ -166,17 +192,34 @@ export default function ModalEditClass({
             name: "",
             startDate: "",
             endDate: "",
-            semester: 1, // Changed: Use 1 instead of undefined
-            courseId: 1, // Changed: Use 1 instead of undefined
+            semester: 1,
+            courseId: 1,
             imgClass: null,
         });
     };
 
     const handleCancel = () => {
         resetForm();
-        setEditionError(null); // Clear error on cancel
+        setEditionError(null);
         onClose();
     };
+
+    const createNewClassCode = () => {
+        // Generate random string: 3 uppercase letters + 4 numbers
+        const letters = Array.from({ length: 3 }, () =>
+            String.fromCharCode(65 + Math.floor(Math.random() * 26))
+        ).join('');
+
+        const numbers = Array.from({ length: 4 }, () =>
+            Math.floor(Math.random() * 10)
+        ).join('');
+
+        const randomCode = `${letters}${numbers}`;
+
+        // Set the generated code in the form
+        form.setValue("code", randomCode, { shouldValidate: true });
+    }
+
 
     const watchedImage = form.watch("imgClass");
 
@@ -184,7 +227,7 @@ export default function ModalEditClass({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[900px]">
                 <DialogHeader>
                     <DialogTitle>Editar Turma</DialogTitle>
                     <DialogDescription>
@@ -195,41 +238,56 @@ export default function ModalEditClass({
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid gap-4 py-4">
-                            {/* Code Field */}
-                            <FormField
-                                control={form.control}
-                                name="code"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Código da Turma</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Ex: DWB-2024.1"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* Code Field */}
+                                <FormField
+                                    control={form.control}
+                                    name="code"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Código da Turma</FormLabel>
+                                            <div className="flex gap-2">
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Ex: TUR001"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={createNewClassCode}
+                                                    disabled={generatingCode}
+                                                >
+                                                    {generatingCode ? "Gerando..." : "Gerar"}
+                                                </Button>
+                                            </div>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
 
-                            {/* Name Field */}
-                            <FormField
-                                control={form.control}
-                                name="name"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Nome da Turma</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Ex: Desenvolvimento Web Full-Stack 2024.1"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
+                                {/* Name Field */}
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Nome da Turma</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Ex: Desenvolvimento Web Full-Stack 2024.1"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+
+
 
                             {/* Date Fields */}
                             <div className="grid grid-cols-2 gap-4">
@@ -260,45 +318,66 @@ export default function ModalEditClass({
                                         </FormItem>
                                     )}
                                 />
+
                             </div>
 
                             {/* Semester and Course Fields */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="semester"
-                                    render={({field}) => (
-                                        <FormItem>
-                                            <FormLabel>Semestre</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    placeholder="Ex: 1"
-                                                    {...field}
-                                                    value={field.value || ""} // Always provide a string value
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        field.onChange(value ? parseInt(value) : 1);
-                                                    }}
-                                                />
-                                            </FormControl>
-                                            <FormMessage/>
-                                        </FormItem>
-                                    )}
-                                />
+                            <div className="grid grid-cols-1 gap-4">
 
                                 <FormField
                                     control={form.control}
                                     name="courseId"
                                     render={({field}) => (
                                         <FormItem>
-                                            <FormLabel>ID do Curso</FormLabel>
+                                            <FormLabel>Curso</FormLabel>
+                                            <FormControl>
+                                                <Select
+                                                    onValueChange={(value) => {
+                                                        field.onChange(parseInt(value));
+                                                    }}
+                                                    value={field.value?.toString() || ""}
+                                                    disabled={loadingCourses}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder={
+                                                            loadingCourses
+                                                                ? "Carregando cursos..."
+                                                                : "Selecione um curso"
+                                                        } />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {courses.map((course) => (
+                                                            <SelectItem
+                                                                key={course.id}
+                                                                value={course.id.toString()}
+                                                            >
+                                                                {course.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                        {courses.length === 0 && !loadingCourses && (
+                                                            <SelectItem value="no-courses" disabled>
+                                                                Nenhum curso encontrado
+                                                            </SelectItem>
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="semester"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Qtd Semestres</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="number"
-                                                    placeholder="Ex: 123"
+                                                    placeholder="Ex: 1"
                                                     {...field}
-                                                    value={field.value || ""} // Always provide a string value
+                                                    value={field.value || ""}
                                                     onChange={(e) => {
                                                         const value = e.target.value;
                                                         field.onChange(value ? parseInt(value) : 1);
@@ -367,7 +446,10 @@ export default function ModalEditClass({
                             <Button type="button" variant="outline" onClick={handleCancel}>
                                 Cancelar
                             </Button>
-                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                            <Button
+                                type="submit"
+                                disabled={form.formState.isSubmitting || loadingCourses}
+                            >
                                 {form.formState.isSubmitting
                                     ? "Salvando..."
                                     : "Salvar Alterações"}

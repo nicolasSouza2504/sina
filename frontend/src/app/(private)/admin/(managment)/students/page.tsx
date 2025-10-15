@@ -6,20 +6,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {Search, Plus, Edit, Trash2, Users, GraduationCap, Filter, X, RefreshCcw} from "lucide-react"
+import {Search, Plus, Edit, Trash2, Users, GraduationCap, Filter, X, RefreshCcw, Rotate3d} from "lucide-react"
 import React, {useEffect, useState} from "react"
 import {StudentFormModal} from "@/components/admin/students/StudentFormModal";
 import {UserData} from "@/lib/interfaces/userInterfaces";
 import { EditStudentModal } from "@/components/admin/students/EditStudentModal";
 import {UserListService} from "@/lib/api/user/userListService";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
+import {SidebarTrigger} from "@/components/ui/sidebar";
+import {EditStudentSituationModal} from "@/components/admin/students/EditStudentSituationModal";
+import QuickActions from "@/components/admin/quickActions";
 
-
-const roles = [
-    { id: 2, name: "STUDENT" },
-    { id: 3, name: "TEACHER" },
-    { id: 1, name: "ADMIN" },
-]
 
 
 export default function StudentsManagement() {
@@ -27,6 +25,7 @@ export default function StudentsManagement() {
     const [searchTerm, setSearchTerm] = useState("")
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [isEditSituationModalOpen, setIsEditSituationModalOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
     // const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
     const [loading, setLoading] = useState(true);
@@ -125,9 +124,18 @@ export default function StudentsManagement() {
         setIsEditModalOpen(true)
     }
 
+    const handleStudentSituationEdit = (student: UserData) => {
+        setSelectedUser(student)
+        setIsEditSituationModalOpen(true)
+    }
+
     const handleEditSuccess = async () => {
         await getStudents()
         setIsEditModalOpen(false)
+    }
+    const handleEditSituationSuccess = async () => {
+        await getStudents()
+        setIsEditSituationModalOpen(false)
     }
 
     return (
@@ -168,7 +176,7 @@ export default function StudentsManagement() {
             </header>
 
             <main className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total de Alunos</CardTitle>
@@ -195,20 +203,7 @@ export default function StudentsManagement() {
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
-                                {selectedClassFilter ? "Alunos na Turma" : "Novos Cadastros"}
-                            </CardTitle>
-                            <Plus className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{selectedClassFilter ? filteredStudents.length : 8}</div>
-                            <p className="text-xs text-muted-foreground">
-                                {selectedClassFilter ? "Alunos filtrados" : "Esta semana"}
-                            </p>
-                        </CardContent>
-                    </Card>
+
                 </div>
 
                 <Card>
@@ -315,21 +310,36 @@ export default function StudentsManagement() {
                                                     {/*</TableCell>*/}
                                                     <TableCell>
                                                         <Badge variant={student?.role.name === "STUDENT" ? "default" : "secondary"}>
-                                                            {student?.role.name}
+                                                            {student?.role.name === "STUDENT" ? "Aluno" : student?.role.name}
                                                         </Badge>
                                                     </TableCell>
                                                     <TableCell className="text-right">
                                                         <div className="flex items-center gap-2 justify-end">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handleEdit(student)}
-                                                            >
-                                                                <Edit className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button variant="ghost" size="sm" className="text-destructive">
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
+
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => handleEdit(student)}>
+                                                                            <Edit className="size-6" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>Editar Dados do Aluno</TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button variant="ghost" size="sm" className="text-blue-600"
+                                                                        onClick={() => handleStudentSituationEdit(student)}>
+                                                                            <Rotate3d className="size-6" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>Alterar Situação</TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
                                                         </div>
                                                     </TableCell>
                                                 </TableRow>
@@ -351,6 +361,8 @@ export default function StudentsManagement() {
                         )}
                     </CardContent>
                 </Card>
+
+                {<QuickActions></QuickActions>}
             </main>
 
             <StudentFormModal
@@ -363,6 +375,13 @@ export default function StudentsManagement() {
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 onSuccess={handleEditSuccess}
+                user={selectedUser}
+            />
+
+            <EditStudentSituationModal
+                isOpen={isEditSituationModalOpen}
+                onClose={() => setIsEditSituationModalOpen(false)}
+                onSuccess={handleEditSituationSuccess}
                 user={selectedUser}
             />
 

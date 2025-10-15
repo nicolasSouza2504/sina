@@ -1,5 +1,5 @@
 export interface Class {
-    id: number,
+    id: number
     code: string | null
     name: string
     startDate: string | null
