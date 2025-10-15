@@ -6,11 +6,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.config.RabbitMQConfig;
-import senai.com.ava_senai.domain.task.Task;
-import senai.com.ava_senai.domain.task.TaskContentUploadStatus;
-import senai.com.ava_senai.domain.task.TaskRegisterDTO;
-import senai.com.ava_senai.domain.task.TaskResponseDTO;
-import senai.com.ava_senai.domain.task.TaskUserCourseMessage;
+import senai.com.ava_senai.domain.task.*;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
 import senai.com.ava_senai.domain.user.User;
@@ -38,7 +34,7 @@ public class TaskService implements ITaskService {
     @Override
     public List<TaskResponseDTO> createTasks(List<TaskRegisterDTO> tasksRegister) {
 
-        List<TaskResponseDTO> tasksResponsesDTO = new ArrayList<>();
+        List<TaskResponseDTO> tasksResponsesDTOS = new ArrayList<>();
 
         tasksRegister.forEach(taskRegister -> {
 
@@ -46,11 +42,13 @@ public class TaskService implements ITaskService {
 
             sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
 
-            List<TaskContent> taskContents = createTaskContents(task, taskRegister.contents());
+            List<TaskContentResponseDTO> taskContents = createTaskContents(task, taskRegister.contents());
+
+            tasksResponsesDTOS.add(new TaskResponseDTO(task.getId(), taskContents));
 
         });
 
-        return List.of();
+        return tasksResponsesDTOS;
 
     }
 
@@ -104,9 +102,9 @@ public class TaskService implements ITaskService {
 
     }
 
-    private List<TaskContent> createTaskContents(Task task, List<TaskContentRegisterDTO> contents) {
+    private List<TaskContentResponseDTO> createTaskContents(Task task, List<TaskContentRegisterDTO> contents) {
 
-        List<TaskContent> taskContents = new ArrayList<>();
+        List<TaskContentResponseDTO> taskContents = new ArrayList<>();
 
         if (CollectionUtils.isEmpty(contents)) {
 
@@ -117,9 +115,8 @@ public class TaskService implements ITaskService {
                 taskContent.setTask(task);
                 taskContent.setContentType(contentRegister.taskContentType());
                 taskContent.setIdentifier(contentRegister.identifier());
-                taskContent.setStatus(TaskContentUploadStatus.PENDING);
 
-                taskContents.add(taskContentRepository.save(taskContent));
+                taskContents.add(new TaskContentResponseDTO(taskContentRepository.save(taskContent)));
 
             });
 

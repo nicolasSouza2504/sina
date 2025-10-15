@@ -23,7 +23,7 @@ public class TaskController {
 
     @PostMapping
     @Secured({"ADMIN", "TEACHER"})
-    public ResponseEntity<ApiResponse> addSection(@RequestBody @Valid List<TaskRegisterDTO>  tasksRegisterDTOS) throws Exception {
+    public ResponseEntity<ApiResponse> addTask(@RequestBody @Valid List<TaskRegisterDTO>  tasksRegisterDTOS) throws Exception {
         return ResponseEntity.ok().body(new ApiResponse("Tarefas registradas com sucesso!", taskService.createTasks(tasksRegisterDTOS)));
     }
 
