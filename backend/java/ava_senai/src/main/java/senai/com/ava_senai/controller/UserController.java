@@ -1,6 +1,7 @@
 package senai.com.ava_senai.controller;
 
 import com.google.gson.Gson;
+import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +46,7 @@ public class UserController {
     @PostMapping("add/{role}")
     public ResponseEntity<ApiResponse> addUser(@PathVariable("role") Roles role,
                                                @Valid @RequestParam String user,
-                                               @RequestParam("image") MultipartFile image) {
+                                               @RequestParam("image")@Nullable MultipartFile image) {
 
         try {
 

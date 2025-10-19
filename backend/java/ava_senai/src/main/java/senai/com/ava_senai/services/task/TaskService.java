@@ -68,6 +68,7 @@ public class TaskService implements ITaskService {
                 TaskUser userTask = new TaskUser();
 
                 userTask.setTaskId(taskUserCourseMessage.getTaskId());
+                userTask.setIdInstitution(user.getIdInstitution());
                 userTask.setUserId(user.getId());
 
                 taskUserRepository.save(userTask);
@@ -106,7 +107,7 @@ public class TaskService implements ITaskService {
 
         List<TaskContentResponseDTO> taskContents = new ArrayList<>();
 
-        if (CollectionUtils.isEmpty(contents)) {
+        if (!CollectionUtils.isEmpty(contents)) {
 
             contents.forEach(contentRegister -> {
 

@@ -14,26 +14,21 @@ public class StorageService {
 
     private static final String TASK_CONTENT_BUCKET = "task-contents";
 
-    public void initializeBuckets() {
-
-        try {
-            createBucketIfNotExists(TASK_CONTENT_BUCKET);
-        } catch (Exception e) {
-            throw new RuntimeException("Error initializing buckets", e);
-        }
-
-    }
-
     private void createBucketIfNotExists(String bucketName) throws Exception {
+
         boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+
         if (!exists) {
             minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
         }
+
     }
 
     public String uploadTaskContent(byte[] content, String contentType, String taskId) {
 
         try {
+
+            createBucketIfNotExists(TASK_CONTENT_BUCKET);
 
             String objectKey = generateObjectKey(taskId);
 
