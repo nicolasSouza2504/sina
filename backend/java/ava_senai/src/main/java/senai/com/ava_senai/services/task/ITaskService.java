@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ITaskService {
 
-    List<TaskResponseDTO> createTasks(List<TaskRegisterDTO> tasksRegister) throws Exception;
+    TaskResponseDTO createTasks(TaskRegisterDTO tasksRegister) throws Exception;
 
     void saveTaskUsersForCourse(TaskUserCourseMessage taskUserCourseMessage) throws Exception;
 
