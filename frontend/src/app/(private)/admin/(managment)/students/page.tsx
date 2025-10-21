@@ -11,10 +11,9 @@ import React, {useEffect, useState} from "react"
 import {StudentFormModal} from "@/components/admin/students/StudentFormModal";
 import {UserData} from "@/lib/interfaces/userInterfaces";
 import { EditStudentModal } from "@/components/admin/students/EditStudentModal";
-import {UserListService} from "@/lib/api/user/userListService";
+import UserListService from "@/lib/api/user/userListService";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
-import {SidebarTrigger} from "@/components/ui/sidebar";
 import {EditStudentSituationModal} from "@/components/admin/students/EditStudentSituationModal";
 import QuickActions from "@/components/admin/quickActions";
 
@@ -30,6 +29,7 @@ export default function StudentsManagement() {
     // const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [statusFilter, setStatusFilter] = useState<string | null>(null);
     const [selectedClassFilter, setSelectedClassFilter] = useState<{
         id: number
         code: string | null
@@ -59,8 +59,10 @@ export default function StudentsManagement() {
                 role: cls.role,
                 institutionName: cls.institutionName,
                 cpf: cls.cpf,
+                status: cls.status,
             })) || [];
 
+            console.log(mappedStudents)
             setStudents(mappedStudents);
         } catch (err) {
             console.error("Error fetching classes:", err);
@@ -83,8 +85,10 @@ export default function StudentsManagement() {
             (student.email?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
             (student.cpf || "").includes(searchTerm)
 
+        const matchesStatus = statusFilter === null || student.status === statusFilter
+
         // const matchesClass = selectedClassFilter === null || student.classId === selectedClassFilter.id
-        return matchesSearch;
+        return matchesSearch && matchesStatus;
         // return matchesSearch && matchesClass
     })
 
@@ -94,6 +98,14 @@ export default function StudentsManagement() {
 
     const clearClassFilter = () => {
         setSelectedClassFilter(null)
+    }
+
+    const getStatusFilterLabel = () => {
+        return statusFilter === "ATIVO" ? "Ativos" : statusFilter === "INATIVO" ? "Inativos" : null
+    }
+
+    const clearStatusFilter = () => {
+        setStatusFilter(null)
     }
 
     const handleSubmit = async () => {
@@ -130,10 +142,23 @@ export default function StudentsManagement() {
     const handleEditSuccess = async () => {
         await getStudents()
         setIsEditModalOpen(false)
+        setSelectedUser(null) // Limpa o usuário selecionado
     }
+    
     const handleEditSituationSuccess = async () => {
         await getStudents()
         setIsEditSituationModalOpen(false)
+        setSelectedUser(null) // Limpa o usuário selecionado
+    }
+    
+    const handleEditModalClose = () => {
+        setIsEditModalOpen(false)
+        setSelectedUser(null) // Limpa o usuário selecionado ao cancelar
+    }
+    
+    const handleEditSituationModalClose = () => {
+        setIsEditSituationModalOpen(false)
+        setSelectedUser(null) // Limpa o usuário selecionado ao cancelar
     }
 
     return (
@@ -158,23 +183,24 @@ export default function StudentsManagement() {
                 </div>
             )}
 
-            <header className="border-b bg-card">
-                <div className="flex h-16 items-center justify-between px-6">
+            <header className="border-b bg-card mb-6">
+                <div className="flex h-16 items-center justify-between px-4 md:px-6 lg:px-8 max-w-[95%] mx-auto w-full">
                     <div>
-                        <h1 className="text-2xl font-bold text-foreground">Gerenciamento de Alunos</h1>
-                        <p className="text-sm text-muted-foreground">Universidade de Tecnologia - Sistema de Gestão</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gerenciamento de Alunos</h1>
+                        <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Universidade de Tecnologia - Sistema de Gestão</p>
                     </div>
                     <div className="flex items-center gap-4">
                         <Badge variant="secondary" className="flex items-center gap-2">
                             <Users className="h-4 w-4" />
-                            {students.length} Alunos Cadastrados
+                            <span className="hidden sm:inline">{students.length} Alunos Cadastrados</span>
+                            <span className="sm:hidden">{students.length}</span>
                         </Badge>
                     </div>
                 </div>
             </header>
 
-            <main className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <main className="md:px-6 lg:px-8 pb-8 space-y-6 max-w-[95%] mx-auto w-full">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total de Alunos</CardTitle>
@@ -183,7 +209,7 @@ export default function StudentsManagement() {
                         <CardContent>
                             <div className="text-2xl font-bold">{students.length}</div>
                             <p className="text-xs text-muted-foreground">
-                                <span className="text-green-600">+12</span> novos este mês
+                                Cadastrados no sistema
                             </p>
                         </CardContent>
                     </Card>
@@ -191,62 +217,109 @@ export default function StudentsManagement() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Alunos Ativos</CardTitle>
-                            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                            <GraduationCap className="h-4 w-4 text-green-600" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{students.filter((s) => s.role.name === "STUDENT").length}</div>
+                            <div className="text-2xl font-bold text-green-600">{students.filter((s) => s.status === "ATIVO").length}</div>
                             <p className="text-xs text-muted-foreground">
-                                <span className="text-blue-600">98%</span> taxa de atividade
+                                Status ativo no sistema
                             </p>
                         </CardContent>
                     </Card>
 
-
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Alunos Inativos</CardTitle>
+                            <Users className="h-4 w-4 text-red-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-red-600">{students.filter((s) => s.status === "INATIVO").length}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Status inativo no sistema
+                            </p>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 <Card>
                     <CardHeader>
                         <div className="flex flex-col gap-4">
-                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                            <div className="flex flex-col gap-4">
                                 <div>
                                     <CardTitle>Lista de Alunos</CardTitle>
                                     <CardDescription>Gerencie os alunos cadastrados no sistema</CardDescription>
                                 </div>
-                                <div className="flex gap-2 w-full sm:w-auto">
-                                    <Button onClick={getStudents} className="flex items-center gap-2 bg-gray-500">
+                                <div className="flex flex-col sm:flex-row gap-2 w-full">
+                                    <Button onClick={getStudents} className="flex items-center justify-center gap-2 bg-gray-500 w-full sm:w-auto">
                                         <RefreshCcw className="h-4 w-4" />
-                                        Recarregar Alunos
+                                        <span className="hidden sm:inline">Recarregar Alunos</span>
+                                        <span className="sm:hidden">Recarregar</span>
                                     </Button>
-                                    <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
+                                    <Button onClick={() => setIsModalOpen(true)} className="flex items-center justify-center gap-2 w-full sm:w-auto">
                                         <Plus className="h-4 w-4" />
                                         Novo Aluno
                                     </Button>
                                 </div>
                             </div>
 
-                            {selectedClassFilter !== null && (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm text-muted-foreground">Filtro ativo:</span>
-                                    <Badge variant="default" className="flex items-center gap-2">
-                                        {getSelectedClassName()}
-                                        <button
-                                            onClick={clearClassFilter}
-                                            className="ml-1 hover:bg-primary-foreground/20 rounded-full p-0.5"
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </button>
-                                    </Badge>
+                            {(selectedClassFilter !== null || statusFilter !== null) && (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-sm text-muted-foreground">Filtros ativos:</span>
+                                    {selectedClassFilter !== null && (
+                                        <Badge variant="default" className="flex items-center gap-2">
+                                            {getSelectedClassName()}
+                                            <button
+                                                onClick={clearClassFilter}
+                                                className="ml-1 hover:bg-primary-foreground/20 rounded-full p-0.5"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </Badge>
+                                    )}
+                                    {statusFilter !== null && (
+                                        <Badge variant="secondary" className="flex items-center gap-2">
+                                            {getStatusFilterLabel()}
+                                            <button
+                                                onClick={clearStatusFilter}
+                                                className="ml-1 hover:bg-secondary-foreground/20 rounded-full p-0.5"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </Badge>
+                                    )}
                                 </div>
                             )}
 
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Buscar por nome, email ou CPF..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10"
-                                />
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Buscar por nome, email ou CPF..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-10"
+                                    />
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant={statusFilter === "ATIVO" ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setStatusFilter(statusFilter === "ATIVO" ? null : "ATIVO")}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Filter className="h-4 w-4" />
+                                        Ativos
+                                    </Button>
+                                    <Button
+                                        variant={statusFilter === "INATIVO" ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setStatusFilter(statusFilter === "INATIVO" ? null : "INATIVO")}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Filter className="h-4 w-4" />
+                                        Inativos
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </CardHeader>
@@ -262,41 +335,44 @@ export default function StudentsManagement() {
                             </div>
                         ) : (
                             <>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Aluno</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>CPF</TableHead>
+                                {/* Desktop Table View - Hidden on Mobile */}
+                                <div className="hidden md:block overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Aluno</TableHead>
+                                                <TableHead>Email</TableHead>
+                                                <TableHead>CPF</TableHead>
                                             {/*<TableHead>Turma</TableHead>*/}
-                                            <TableHead>Tipo</TableHead>
-                                            <TableHead className="text-right">Ações</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredStudents.map((student) => {
+                                                <TableHead>Tipo</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-right">Ações</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredStudents.map((student) => {
                                             // const studentClass = getClassById(student.classId)
-                                            return (
-                                                <TableRow key={student?.id}>
-                                                    <TableCell>
-                                                        <div className="flex items-center gap-3">
-                                                            <Avatar className="h-10 w-10">
-                                                                <AvatarFallback>
-                                                                    {student.nome
-                                                                        ?.split(" ")
-                                                                        .map((n) => n[0])
-                                                                        .join("")
-                                                                        .substring(0, 2)}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                            <div>
-                                                                <p className="font-medium">{student?.nome}</p>
-                                                                <p className="text-sm text-muted-foreground">ID: {student?.id}</p>
+                                                return (
+                                                    <TableRow key={student?.id}>
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-3">
+                                                                <Avatar className="h-10 w-10">
+                                                                    <AvatarFallback>
+                                                                        {student.nome
+                                                                            ?.split(" ")
+                                                                            .map((n) => n[0])
+                                                                            .join("")
+                                                                            .substring(0, 2)}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <div>
+                                                                    <p className="font-medium">{student?.nome}</p>
+                                                                    <p className="text-sm text-muted-foreground">ID: {student?.id}</p>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>{student?.email}</TableCell>
-                                                    <TableCell>{formatCPF(student?.cpf)}</TableCell>
+                                                        </TableCell>
+                                                        <TableCell>{student?.email}</TableCell>
+                                                        <TableCell>{formatCPF(student?.cpf)}</TableCell>
                                                     {/*<TableCell>*/}
                                                     {/*    <div className="flex items-center gap-2">*/}
                                                     {/*        <Avatar className="h-6 w-6">*/}
@@ -306,53 +382,131 @@ export default function StudentsManagement() {
                                                     {/*        <span className="text-sm">{studentClass?.nome || "Sem turma"}</span>*/}
                                                     {/*    </div>*/}
                                                     {/*</TableCell>*/}
-                                                    <TableCell>
-                                                        <Badge variant={student?.role.name === "STUDENT" ? "default" : "secondary"}>
+                                                        <TableCell>
+                                                            <Badge variant={student?.role.name === "STUDENT" ? "default" : "secondary"}>
+                                                                {student?.role.name === "STUDENT" ? "Aluno" : student?.role.name}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge variant={student?.status === "ATIVO" ? "default" : "destructive"}>
+                                                                {student?.status === "ATIVO" ? "Ativo" : "Inativo"}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <div className="flex items-center gap-2 justify-end">
+                                                                <TooltipProvider>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                onClick={() => handleEdit(student)}>
+                                                                                <Edit className="size-6" />
+                                                                            </Button>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>Editar Dados do Aluno</TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
+                                                                <TooltipProvider>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Button variant="ghost" size="sm" className="text-blue-600"
+                                                                            onClick={() => handleStudentSituationEdit(student)}>
+                                                                                <Rotate3d className="size-6" />
+                                                                            </Button>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>Alterar Situação</TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+
+                                {/* Mobile Card View - Hidden on Desktop */}
+                                <div className="md:hidden space-y-4">
+                                    {filteredStudents.map((student) => (
+                                        <Card key={student?.id} className="overflow-hidden">
+                                            <CardContent className="p-4">
+                                                <div className="flex items-start gap-3 mb-3">
+                                                    <Avatar className="h-12 w-12">
+                                                        <AvatarFallback>
+                                                            {student.nome
+                                                                ?.split(" ")
+                                                                .map((n) => n[0])
+                                                                .join("")
+                                                                .substring(0, 2)}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-medium text-base truncate">{student?.nome}</p>
+                                                        <p className="text-sm text-muted-foreground">ID: {student?.id}</p>
+                                                        <Badge variant={student?.role.name === "STUDENT" ? "default" : "secondary"} className="mt-1">
                                                             {student?.role.name === "STUDENT" ? "Aluno" : student?.role.name}
                                                         </Badge>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <div className="flex items-center gap-2 justify-end">
-
-                                                            <TooltipProvider>
-                                                                <Tooltip>
-                                                                    <TooltipTrigger asChild>
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="sm"
-                                                                            onClick={() => handleEdit(student)}>
-                                                                            <Edit className="size-6" />
-                                                                        </Button>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>Editar Dados do Aluno</TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
-                                                            <TooltipProvider>
-                                                                <Tooltip>
-                                                                    <TooltipTrigger asChild>
-                                                                        <Button variant="ghost" size="sm" className="text-blue-600"
-                                                                        onClick={() => handleStudentSituationEdit(student)}>
-                                                                            <Rotate3d className="size-6" />
-                                                                        </Button>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>Alterar Situação</TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="space-y-2 mb-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-medium text-muted-foreground min-w-[60px] flex-shrink-0">Email:</span>
+                                                        <div className="flex-1 overflow-x-auto">
+                                                            <span className="text-sm whitespace-nowrap">{student?.email}</span>
                                                         </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            )
-                                        })}
-                                    </TableBody>
-                                </Table>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-medium text-muted-foreground min-w-[60px] flex-shrink-0">CPF:</span>
+                                                        <span className="text-sm">{formatCPF(student?.cpf)}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-medium text-muted-foreground min-w-[60px] flex-shrink-0">Status:</span>
+                                                        <Badge variant={student?.status === "ATIVO" ? "default" : "destructive"} className="text-xs">
+                                                            {student?.status === "ATIVO" ? "Ativo" : "Inativo"}
+                                                        </Badge>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex gap-2 pt-3 border-t">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleEdit(student)}
+                                                        className="flex-1 flex items-center justify-center gap-2"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                        Editar
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleStudentSituationEdit(student)}
+                                                        className="flex-1 flex items-center justify-center gap-2 text-blue-600 border-blue-600 hover:bg-blue-50"
+                                                    >
+                                                        <Rotate3d className="h-4 w-4" />
+                                                        Situação
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
 
                                 {filteredStudents.length === 0 && (
                                     <div className="text-center py-8">
                                         <p className="text-muted-foreground">
-                                            {selectedClassFilter
-                                                ? "Nenhum aluno encontrado nesta turma com os critérios de busca."
-                                                : "Nenhum aluno encontrado com os critérios de busca."}
+                                            {statusFilter || selectedClassFilter || searchTerm
+                                                ? "Nenhum aluno encontrado com os filtros aplicados."
+                                                : "Nenhum aluno cadastrado no sistema."}
                                         </p>
+                                        {(statusFilter || selectedClassFilter || searchTerm) && (
+                                            <p className="text-sm text-muted-foreground mt-2">
+                                                Tente remover alguns filtros ou alterar os critérios de busca.
+                                            </p>
+                                        )}
                                     </div>
                                 )}
                             </>
@@ -371,14 +525,14 @@ export default function StudentsManagement() {
 
             <EditStudentModal
                 isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
+                onClose={handleEditModalClose}
                 onSuccess={handleEditSuccess}
                 user={selectedUser}
             />
 
             <EditStudentSituationModal
                 isOpen={isEditSituationModalOpen}
-                onClose={() => setIsEditSituationModalOpen(false)}
+                onClose={handleEditSituationModalClose}
                 onSuccess={handleEditSituationSuccess}
                 user={selectedUser}
             />

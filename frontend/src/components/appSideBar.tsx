@@ -21,6 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -67,6 +68,7 @@ const items = [
 
 export function AppSidebar() {
   const [user, setUser] = useState<UserFromToken | undefined | null>(null);
+  const { setOpenMobile, isMobile } = useSidebar();
 
   const router = useRouter();
   async function handleSignout() {
@@ -97,6 +99,12 @@ export function AppSidebar() {
     userDecoded();
   }, []);
 
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
     <Sidebar>
       <SidebarContent className="h-screen bg-sky-800 text-white">
@@ -115,6 +123,7 @@ export function AppSidebar() {
                     >
                       <Link
                         href={item.url}
+                        onClick={handleLinkClick}
                         className="flex items-center gap-2 p-2 hover:bg-sky-500 hover:text-white rounded-md text-xl text-center"
                       >
                         <item.icon className="size-2" />
@@ -138,7 +147,10 @@ export function AppSidebar() {
               <h2>{user?.nome}</h2>
             </div>
             <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
-            onClick={() => router.push("/user/profile")}
+            onClick={() => {
+              router.push("/user/profile");
+              handleLinkClick();
+            }}
             >
               <UserPen className=" size-6" />
             </Button>

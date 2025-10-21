@@ -200,7 +200,7 @@ export default function ModalAddClass({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[900px]">
+            <DialogContent className="w-[95vw] max-w-[500px] sm:max-w-[600px] lg:max-w-[700px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Cadastrar Nova Turma</DialogTitle>
                     <DialogDescription>
@@ -210,8 +210,8 @@ export default function ModalAddClass({
                 </DialogHeader>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="grid gap-4 py-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <div className="grid gap-3 py-2">
                             {/* Code Field */}
                             <FormField
                                 control={form.control}
@@ -224,6 +224,7 @@ export default function ModalAddClass({
                                                 <Input
                                                     placeholder="Ex: TUR001"
                                                     {...field}
+                                                    className="text-sm"
                                                 />
                                             </FormControl>
                                             <Button
@@ -231,6 +232,8 @@ export default function ModalAddClass({
                                                 variant="outline"
                                                 onClick={createNewClassCode}
                                                 disabled={generatingCode}
+                                                size="sm"
+                                                className="flex-shrink-0"
                                             >
                                                 {generatingCode ? "Gerando..." : "Gerar"}
                                             </Button>
@@ -251,6 +254,7 @@ export default function ModalAddClass({
                                             <Input
                                                 placeholder="Ex: Desenvolvimento Web Full-Stack 2024.1"
                                                 {...field}
+                                                className="text-sm"
                                             />
                                         </FormControl>
                                         <FormMessage/>
@@ -275,6 +279,7 @@ export default function ModalAddClass({
                                                     const value = e.target.value;
                                                     field.onChange(value ? parseInt(value, 10) : undefined);
                                                 }}
+                                                className="text-sm"
                                             />
                                         </FormControl>
                                         <FormMessage/>
@@ -327,7 +332,7 @@ export default function ModalAddClass({
                             />
 
                             {/* Date Fields */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <FormField
                                     control={form.control}
                                     name="startDate"
@@ -335,7 +340,7 @@ export default function ModalAddClass({
                                         <FormItem>
                                             <FormLabel>Data de Início (opcional)</FormLabel>
                                             <FormControl>
-                                                <Input type="date" {...field} />
+                                                <Input type="date" {...field} className="text-sm" />
                                             </FormControl>
                                             <FormMessage/>
                                         </FormItem>
@@ -349,7 +354,7 @@ export default function ModalAddClass({
                                         <FormItem>
                                             <FormLabel>Data de Término (opcional)</FormLabel>
                                             <FormControl>
-                                                <Input type="date" {...field} />
+                                                <Input type="date" {...field} className="text-sm" />
                                             </FormControl>
                                             <FormMessage/>
                                         </FormItem>
@@ -387,7 +392,7 @@ export default function ModalAddClass({
 
                                                 {/* Image Preview */}
                                                 {watchedImage && watchedImage !== "none" && (
-                                                    <div className="w-24 h-24">
+                                                    <div className="w-20 h-20 sm:w-24 sm:h-24">
                                                         <img
                                                             src={`/img/${watchedImage}`}
                                                             alt="Preview"
@@ -404,16 +409,27 @@ export default function ModalAddClass({
                         </div>
 
                         {creationError && (
-                            <div className="text-red-500 text-sm p-3 bg-red-50 rounded-md border border-red-200">
+                            <div className="text-red-500 text-xs sm:text-sm p-2 sm:p-3 bg-red-50 rounded-md border border-red-200">
                                 {creationError}
                             </div>
                         )}
 
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={handleCancel}>
+                        <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={handleCancel}
+                                className="w-full sm:w-auto order-2 sm:order-1"
+                                size="sm"
+                            >
                                 Cancelar
                             </Button>
-                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                            <Button 
+                                type="submit" 
+                                disabled={form.formState.isSubmitting}
+                                className="w-full sm:w-auto order-1 sm:order-2"
+                                size="sm"
+                            >
                                 {form.formState.isSubmitting
                                     ? "Cadastrando..."
                                     : "Cadastrar Turma"}

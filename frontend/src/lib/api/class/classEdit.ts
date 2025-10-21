@@ -23,6 +23,16 @@ export default async function EditClassService(classForm: ClassFormData, classId
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => null);
+            
+            if (response.status === 404) {
+                const msg = "Turma não encontrada. Verifique se ela ainda existe.";
+                if (typeof window !== "undefined") {
+                    const { toast } = await import("sonner");
+                    toast.error(msg);
+                }
+                throw new Error(msg);
+            }
+            
             console.error("API Error:", {
                 status: response.status,
                 statusText: response.statusText,

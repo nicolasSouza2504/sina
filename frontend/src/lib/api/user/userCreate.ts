@@ -26,10 +26,15 @@ export default async function createUser(userData: UserRegister, role: string, i
     if (!response.ok) {
         let msg = "Erro ao Inserir usuário";
 
-        try {
-            const err = await response.json();
-            msg = err?.message ?? msg;
-        } catch { }
+        if (response.status === 404) {
+            msg = "Endpoint não encontrado. Verifique a configuração da API ou o tipo de usuário.";
+        } else {
+            try {
+                const err = await response.json();
+                msg = err?.message ?? msg;
+            } catch { }
+        }
+        
         if (typeof window !== "undefined") {
             const { toast } = await import("sonner");
             toast.error(msg);

@@ -18,6 +18,11 @@ export default async function ClassList() {
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => null);
+        
+        if (response.status === 404) {
+            return [];
+        }
+        
         const message = errorData?.message || `Request failed: ${response.status}`;
         throw new Error(message);
     }

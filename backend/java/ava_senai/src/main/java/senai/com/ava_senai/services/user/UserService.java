@@ -206,6 +206,7 @@ public class UserService implements IUserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
         user.setCpf(request.getCpf());
+        user.setUserStatus(UserStatus.ATIVO);
         Institution institution = institutionRepository.findById(request.getIdInstitution()).orElseThrow(()-> new NotFoundException("Instituicao nao encontrada!"));
         user.setInstitution(institution);
         user.setIdInstitution(request.getIdInstitution());
