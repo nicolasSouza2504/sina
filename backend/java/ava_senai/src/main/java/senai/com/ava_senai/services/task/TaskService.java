@@ -32,23 +32,16 @@ public class TaskService implements ITaskService {
     private final TaskUserRepository taskUserRepository;
 
     @Override
-    public List<TaskResponseDTO> createTasks(List<TaskRegisterDTO> tasksRegister) {
+    public TaskResponseDTO createTasks(TaskRegisterDTO taskRegister) {
 
-        List<TaskResponseDTO> tasksResponsesDTOS = new ArrayList<>();
 
-        tasksRegister.forEach(taskRegister -> {
+        Task task = createTask(taskRegister);
 
-            Task task = createTask(taskRegister);
+        sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
 
-            sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
+        List<TaskContentResponseDTO> taskContents = createTaskContents(task, taskRegister.contents());
 
-            List<TaskContentResponseDTO> taskContents = createTaskContents(task, taskRegister.contents());
-
-            tasksResponsesDTOS.add(new TaskResponseDTO(task.getId(), taskContents));
-
-        });
-
-        return tasksResponsesDTOS;
+        return new TaskResponseDTO(task.getId(), taskContents);
 
     }
 
@@ -61,6 +54,7 @@ public class TaskService implements ITaskService {
         // Create user tasks for each user in the course
         users.forEach(user -> {
 
+            //todo trazer somente os usuários que não existem para evitar consulta desnecessária
             Boolean existsTaskUser = taskUserRepository.existsByTaskIdAndUserId(taskUserCourseMessage.getTaskId(), user.getId());
 
             if (BooleanUtils.isNotTrue(existsTaskUser)) {
@@ -68,6 +62,7 @@ public class TaskService implements ITaskService {
                 TaskUser userTask = new TaskUser();
 
                 userTask.setTaskId(taskUserCourseMessage.getTaskId());
+                userTask.setIdInstitution(user.getIdInstitution());
                 userTask.setUserId(user.getId());
 
                 taskUserRepository.save(userTask);
@@ -106,7 +101,7 @@ public class TaskService implements ITaskService {
 
         List<TaskContentResponseDTO> taskContents = new ArrayList<>();
 
-        if (CollectionUtils.isEmpty(contents)) {
+        if (!CollectionUtils.isEmpty(contents)) {
 
             contents.forEach(contentRegister -> {
 

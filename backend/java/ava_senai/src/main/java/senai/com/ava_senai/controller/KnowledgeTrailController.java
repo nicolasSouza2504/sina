@@ -41,7 +41,7 @@ public class KnowledgeTrailController {
 
         try {
 
-            KnowledgeTrailResponseDTO knowledgeTrailResponseDTO = knowledgeTrailService.    createKnowledgeTrail(knowledgeTrailRegisterDTO);
+            KnowledgeTrailResponseDTO knowledgeTrailResponseDTO = knowledgeTrailService.createKnowledgeTrail(knowledgeTrailRegisterDTO);
 
             return ResponseEntity.ok().body(new ApiResponse("Trilha de conhecimento registrada com sucesso!", knowledgeTrailResponseDTO));
 

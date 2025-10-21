@@ -37,8 +37,7 @@ public class DataInitializer implements CommandLineRunner {
 
         try {
             createInstitution();
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
 
         try {
             createRoles();
@@ -46,8 +45,7 @@ public class DataInitializer implements CommandLineRunner {
 
         try {
             createUser();
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
 
     }
 

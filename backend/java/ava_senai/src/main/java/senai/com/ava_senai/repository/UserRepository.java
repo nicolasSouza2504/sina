@@ -43,10 +43,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(
             nativeQuery = true,
-            value = " SELECT u FROM users u " +
-                    " JOIN user_class uc ON u.id = uc.user_id " +
-                    " JOIN class cl ON cl.id = uc.class_id " +
-                    " JOIN course c ON c.id = cl.course_id " +
+            value = " SELECT us.* FROM users us " +
+                    " JOIN user_class uc ON uc.user_id = us.id " +
+                    " JOIN class cla ON cla.id = uc.class_id " +
+                    " JOIN course c ON c.id = cla.course_id " +
                     " WHERE c.id = :idCourse "
     )
     List<User> findByCourseId(@Param("idCourse") Long idCourse);
