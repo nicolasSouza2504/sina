@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {Search, Plus, Edit, Trash2, Users, GraduationCap, Filter, X, RefreshCcw, Rotate3d} from "lucide-react"
+import {Search, Plus, Edit, Trash2, Users, GraduationCap, Filter, X, RefreshCcw, Rotate3d, Eye, Mail, Calendar, User, FileText} from "lucide-react"
 import React, {useEffect, useState} from "react"
 import {StudentFormModal} from "@/components/admin/students/StudentFormModal";
 import {UserData} from "@/lib/interfaces/userInterfaces";
@@ -16,8 +16,7 @@ import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {EditStudentSituationModal} from "@/components/admin/students/EditStudentSituationModal";
 import QuickActions from "@/components/admin/quickActions";
-
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 export default function StudentsManagement() {
     const [students, setStudents] = useState<UserData[]>([])
@@ -40,11 +39,11 @@ export default function StudentsManagement() {
         courseId: number |null
         imgClass: string | null
     } | null>(null)
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
     useEffect(() => {
         getStudents();
     }, []);
-
 
     const getStudents = async () => {
         try {
@@ -137,6 +136,16 @@ export default function StudentsManagement() {
     const handleStudentSituationEdit = (student: UserData) => {
         setSelectedUser(student)
         setIsEditSituationModalOpen(true)
+    }
+
+    const handleViewDetails = (student: UserData) => {
+        setSelectedUser(student)
+        setIsDetailModalOpen(true)
+    }
+
+    const handleCloseDetails = () => {
+        setSelectedUser(null)
+        setIsDetailModalOpen(false)
     }
 
     const handleEditSuccess = async () => {
@@ -400,6 +409,19 @@ export default function StudentsManagement() {
                                                                             <Button
                                                                                 variant="ghost"
                                                                                 size="sm"
+                                                                                onClick={() => handleViewDetails(student)}>
+                                                                                <Eye className="size-6" />
+                                                                            </Button>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>Ver Detalhes</TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
+                                                                <TooltipProvider>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
                                                                                 onClick={() => handleEdit(student)}>
                                                                                 <Edit className="size-6" />
                                                                             </Button>
@@ -474,6 +496,15 @@ export default function StudentsManagement() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
+                                                        onClick={() => handleViewDetails(student)}
+                                                        className="flex-1 flex items-center justify-center gap-2"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                        Ver
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
                                                         onClick={() => handleEdit(student)}
                                                         className="flex-1 flex items-center justify-center gap-2"
                                                     >
@@ -537,13 +568,136 @@ export default function StudentsManagement() {
                 user={selectedUser}
             />
 
-            {/*<ClassFilterModal*/}
-            {/*    isOpen={isFilterModalOpen}*/}
-            {/*    onClose={() => setIsFilterModalOpen(false)}*/}
-            {/*    students={students}*/}
-            {/*    selectedClassFilter={selectedClassFilter}*/}
-            {/*    onSelectClass={setSelectedClassFilter}*/}
-            {/*/>*/}
+            {/* Modal de Detalhes do Aluno */}
+            <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <User className="h-5 w-5" />
+                            Detalhes do Aluno
+                        </DialogTitle>
+                    </DialogHeader>
+                    
+                    {selectedUser && (
+                        <div className="space-y-6">
+                            {/* Informações Pessoais */}
+                            <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                                <Avatar className="h-16 w-16">
+                                    <AvatarFallback className="text-lg">
+                                        {selectedUser.nome
+                                            ?.split(" ")
+                                            .map((n: string) => n[0])
+                                            .join("")
+                                            .substring(0, 2)}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-bold text-gray-900">{selectedUser.nome}</h3>
+                                    <p className="text-sm text-gray-600">ID: {selectedUser.id}</p>
+                                    <Badge className="mt-2">
+                                        {selectedUser.role.name === "STUDENT" ? "Aluno" : selectedUser.role.name}
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            {/* Informações de Contato */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Card>
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                            <Mail className="h-4 w-4" />
+                                            Informações de Contato
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        <div>
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</label>
+                                            <p className="text-sm font-medium">{selectedUser.email}</p>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">CPF</label>
+                                            <p className="text-sm font-medium">{formatCPF(selectedUser.cpf)}</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                            <Calendar className="h-4 w-4" />
+                                            Informações do Sistema
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        <div>
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</label>
+                                            <Badge variant={selectedUser.status === "ATIVO" ? "default" : "destructive"}>
+                                                {selectedUser.status === "ATIVO" ? "Ativo" : "Inativo"}
+                                            </Badge>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Instituição</label>
+                                            <p className="text-sm font-medium">{selectedUser.institutionName || 'N/A'}</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* Informações Acadêmicas */}
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                        <GraduationCap className="h-4 w-4" />
+                                        Informações Acadêmicas
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="text-center p-3 bg-blue-50 rounded-lg">
+                                            <div className="text-2xl font-bold text-blue-600">0</div>
+                                            <div className="text-xs text-blue-600">Cursos Matriculados</div>
+                                        </div>
+                                        <div className="text-center p-3 bg-green-50 rounded-lg">
+                                            <div className="text-2xl font-bold text-green-600">0</div>
+                                            <div className="text-xs text-green-600">Trilhas Concluídas</div>
+                                        </div>
+                                        <div className="text-center p-3 bg-purple-50 rounded-lg">
+                                            <div className="text-2xl font-bold text-purple-600">0</div>
+                                            <div className="text-xs text-purple-600">Materiais Estudados</div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Ações */}
+                            <div className="flex gap-3 pt-4 border-t">
+                                <Button 
+                                    className="flex-1" 
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsDetailModalOpen(false);
+                                        handleEdit(selectedUser);
+                                    }}
+                                >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Editar Aluno
+                                </Button>
+                                <Button 
+                                    className="flex-1" 
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsDetailModalOpen(false);
+                                        handleStudentSituationEdit(selectedUser);
+                                    }}
+                                >
+                                    <Rotate3d className="h-4 w-4 mr-2" />
+                                    Alterar Situação
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

@@ -1,7 +1,7 @@
 "use server";
 import getApiBaseUrl from "@/lib/api/api";
 import { UserUpdate } from "@/lib/interfaces/userInterfaces";
-import { getTokenFromSession } from "@/lib/auth/jwtAuth";
+import { getTokenFromSession } from "@/lib/auth/jwtAuth.server";
 
 export default async function UpdateUserService(
     userData: UserUpdate,

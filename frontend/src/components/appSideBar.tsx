@@ -1,6 +1,5 @@
 "use client";
 import {
-  BookOpen,
   ChartBarDecreasing,
   GraduationCap,
   School,
@@ -8,6 +7,7 @@ import {
   UserPen,
   Users,
   FolderOpen,
+  BookOpen,
 } from "lucide-react";
 
 import {
@@ -33,14 +33,54 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { UserFromToken } from "@/lib/interfaces/userInterfaces";
 
-const items = [
+// Sidebar personalizada para professores (inclui funcionalidades originais + criação de conteúdo)
+const teacherItems = [
+  {
+    title: "Dashboard",
+    url: "/professor/dashboard",
+    icon: GraduationCap,
+  },
   {
     title: "Turmas",
     url: "/admin/class",
     icon: School,
   },
   {
-    title: "Meus Cursos",
+    title: "Cursos",
+    url: "/professor/cursos",
+    icon: FolderOpen,
+  },
+  {
+    title: "Conteúdo",
+    url: "/professor/conteudo",
+    icon: BookOpen,
+  },
+  {
+    title: "Alunos",
+    url: "/admin/students",
+    icon: Users,
+  },
+  {
+    title: "Ranking",
+    url: "/ranking",
+    icon: ChartBarDecreasing,
+  },
+];
+
+// Sidebar original (para ADMIN e USER)
+const items = [
+  {
+    title: "Dashboard",
+    url: "/home",
+    icon: SettingsIcon,
+  },
+  {
+    title: "Turmas",
+    url: "/admin/class",
+    icon: School,
+  },
+  {
+    title: "Cursos",
     url: "/cursos",
     icon: FolderOpen,
   },
@@ -50,19 +90,9 @@ const items = [
     icon: Users,
   },
   {
-    title: "Professores",
-    url: "/professores",
-    icon: GraduationCap,
-  },
-  {
     title: "Ranking",
     url: "/ranking",
     icon: ChartBarDecreasing,
-  },
-  {
-    title: "Admin",
-    url: "/admin",
-    icon: SettingsIcon,
   },
 ];
 
@@ -105,9 +135,31 @@ export function AppSidebar() {
     }
   };
 
+  // Get navigation items based on user role
+  const getNavigationItems = () => {
+    if (user?.role.name == "USER") return items;
+    
+    // Professores têm sidebar personalizada
+    if (user?.role.name == "TEACHER") {
+      return teacherItems;
+    }
+    
+    // Admin tem dashboard específico
+    if (user?.role.name == "ADMIN") {
+      const adminItems = [...items];
+      adminItems[0].url = "/admin"; // Dashboard aponta para /admin
+      return adminItems;
+    }
+    
+    // Usuários comuns mantêm sidebar original
+    return items;
+  };
+
+  const navigationItems = getNavigationItems();
+
   return (
     <Sidebar>
-      <SidebarContent className="h-screen bg-sky-800 text-white">
+      <SidebarContent className="h-screen bg-sky-600 text-white">
         <div className="flex h-full justify-between pt-4">
           <SidebarGroup>
             <SidebarGroupLabel className="flex font-bold justify-center text-1xl my-5">
@@ -115,7 +167,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent className="flex flex-col justify-center gap-5 pt-5">
               <SidebarMenu className="flex flex-col gap-3">
-                {items.map((item) => (
+                {navigationItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
@@ -145,6 +197,9 @@ export function AppSidebar() {
             </Avatar>
             <div>
               <h2>{user?.nome}</h2>
+              <p className="text-xs text-gray-300">
+                {user?.roles?.[0] === 'TEACHER' ? 'PROFESSOR' : user?.roles?.[0] || 'USER'}
+              </p>
             </div>
             <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
             onClick={() => {

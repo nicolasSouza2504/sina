@@ -1,4 +1,3 @@
-import {cookies} from "next/headers"
 import {UserFromToken} from "../interfaces/userInterfaces"
 
 export type AuthPayload = {
@@ -35,16 +34,19 @@ export function decodeJwt(token: string | undefined | null): AuthPayload | null 
 }
 
 export function hasAnyRole(payload: AuthPayload | null, required: string | string[]): boolean {
-    if (!payload?.role?.length) return false
+    if (!payload?.role) return false
+    
+    const userRoles = Array.isArray(payload.role) ? payload.role : [payload.role]
     const req = Array.isArray(required) ? required : [required]
-    return req.some(r => payload.role!.includes(r))
+    
+    return req.some(r => userRoles.includes(r))
 }
 
-
-export async function getTokenFromSession() {
-    const cookiesStore = await cookies();
-    let token = normalizeToken(cookiesStore.get('token')?.value);
-    return token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+// Função para obter token do localStorage (Client Component)
+export function getTokenFromLocalStorage(): string | null {
+    if (typeof window === 'undefined') return null;
+    const token = localStorage.getItem('token');
+    return token ? `Bearer ${token}` : null;
 }
 
 function normalizeToken(raw?: string | null): string | null {

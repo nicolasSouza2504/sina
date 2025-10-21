@@ -72,11 +72,21 @@ public class DataInitializer implements CommandLineRunner {
 
     @Transactional
     public void createUser() {
-
-        UserRegisterDTO userRegister = buildDefaultAdmin();
-
-        iUserService.createUser(userRegister);
-
+        try {
+            UserRegisterDTO adminUser = buildDefaultAdmin();
+            iUserService.createUser(adminUser);
+            System.out.println("Usuário admin criado com sucesso!");
+        } catch (Exception e) {
+            System.out.println("Usuário admin já existe ou erro ao criar: " + e.getMessage());
+        }
+        
+        try {
+            UserRegisterDTO teacherUser = buildDefaultTeacher();
+            iUserService.createUser(teacherUser);
+            System.out.println("Usuário professor criado com sucesso!");
+        } catch (Exception e) {
+            System.out.println("Usuário professor já existe ou erro ao criar: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -100,7 +110,18 @@ public class DataInitializer implements CommandLineRunner {
                 null,
                 rolesRepository.findById(Long.valueOf(1)).get(),
                 null,
-                1l);
+                Long.valueOf(1));
+    }
+
+    private UserRegisterDTO buildDefaultTeacher() {
+        return new UserRegisterDTO("professor",
+                "professor@gmail.com",
+                "professor",
+                "12345678909",
+                null,
+                rolesRepository.findById(Long.valueOf(2)).get(),
+                null,
+                Long.valueOf(1));
     }
 
     public Boolean existsRole(String roleStr) {

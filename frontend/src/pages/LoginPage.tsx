@@ -17,6 +17,8 @@ import { UserLoginData } from "@/lib/interfaces/userInterfaces";
 import { AuthLoginResponse } from "@/lib/interfaces/authInterfaces";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { decodeJwt } from "@/lib/auth/jwtAuth";
+import { getDashboardRoute } from "@/lib/auth/roleRedirect";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,14 +27,22 @@ export default function LoginPage() {
   const handleLogin = async (data: LoginFormValues) => {
     setIsLoading(true);
     const userLoginData: UserLoginData = {
-      email: data.email,
-      password: data.password,
+      email: data.email.trim(),
+      password: data.password.trim(),
     };
     try {
       const response: AuthLoginResponse = await login(userLoginData);
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("userId", response.data.id.toString());
-      router.push("/home");
+      
+      // Decodificar o token para obter o role do usuário
+      const decodedToken = decodeJwt(response.data.token);
+      const userRole = decodedToken?.role || 'USER';
+      
+      // Redirecionar para o dashboard apropriado baseado no role
+      const dashboardRoute = getDashboardRoute(userRole);
+      console.log(`Redirecionando para: ${dashboardRoute} (Role: ${userRole})`);
+      router.push(dashboardRoute);
     } catch (e) {
       console.error(e);
       setError(
