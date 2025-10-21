@@ -26,7 +26,6 @@ import java.util.List;
 public class TaskService implements ITaskService {
 
     private final UserRepository userRepository;
-    private final TaskContentRepository taskContentRepository;
     private final TaskRepository taskRepository;
     private final RabbitMQSender rabbitMQSender;
     private final TaskUserRepository taskUserRepository;
@@ -39,9 +38,7 @@ public class TaskService implements ITaskService {
 
         sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
 
-        List<TaskContentResponseDTO> taskContents = createTaskContents(task, taskRegister.contents());
-
-        return new TaskResponseDTO(task.getId(), taskContents);
+        return new TaskResponseDTO(task);
 
     }
 
@@ -94,30 +91,6 @@ public class TaskService implements ITaskService {
             RabbitMQConfig.ROUTING_CREATE_USER_TASK,
             jsonMessage
         );
-
-    }
-
-    private List<TaskContentResponseDTO> createTaskContents(Task task, List<TaskContentRegisterDTO> contents) {
-
-        List<TaskContentResponseDTO> taskContents = new ArrayList<>();
-
-        if (!CollectionUtils.isEmpty(contents)) {
-
-            contents.forEach(contentRegister -> {
-
-                TaskContent taskContent = new TaskContent();
-
-                taskContent.setTask(task);
-                taskContent.setContentType(contentRegister.taskContentType());
-                taskContent.setIdentifier(contentRegister.identifier());
-
-                taskContents.add(new TaskContentResponseDTO(taskContentRepository.save(taskContent)));
-
-            });
-
-        }
-
-        return taskContents;
 
     }
 
