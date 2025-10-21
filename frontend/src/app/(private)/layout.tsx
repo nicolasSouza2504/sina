@@ -39,7 +39,7 @@ export default async function PrivateLayout({
           </Tooltip>
         </TooltipProvider>
       </div>
-      <main className="flex flex-1 flex-col overflow-hidden sm:pl-10 pl-3">{children}</main>
+      <main className="flex flex-1 flex-col overflow-hidden w-full pl-12 md:pl-14">{children}</main>
     </SidebarProvider>
   );
 }

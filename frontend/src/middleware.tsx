@@ -10,6 +10,7 @@ const AUTH_PROTECTED: RegExp[] = [
   /^\/turmas(\/.*)?$/,
   /^\/professores(\/.*)?$/,
   /^\/cursos(\/.*)?$/,
+  /^\/trilhas(\/.*)?$/,
   /^\/ranking(\/.*)?$/,
   /^\/admin(\/.*)?$/,
 ];
@@ -92,7 +93,7 @@ export function middleware(req: NextRequest) {
   const res = NextResponse.next();
   if (auth.user) {
     res.headers.set("x-user-id", auth.user.sub || "");
-    res.headers.set("x-user-roles", (auth.user.roles ?? []).join(","));
+    res.headers.set("x-user-roles", Array.isArray(auth.user.role) ? auth.user.role.join(",") : "");
   }
   return res;
 }
@@ -104,6 +105,7 @@ export const config = {
     "/turmas/:path*",
     "/alunos/:path*",
     "/cursos/:path*",
+    "/trilhas/:path*",
     "/admin/:path*",
     "/ranking/:path*",
     "/professores/:path*",

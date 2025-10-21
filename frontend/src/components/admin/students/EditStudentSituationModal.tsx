@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, CheckCircle2, XCircle, Lock } from "lucide-react"
+import { AlertCircle, CheckCircle2, XCircle } from "lucide-react"
 import { UserData } from "@/lib/interfaces/userInterfaces"
 import { toast } from "sonner"
 import UserUpdateStatusService from "@/lib/api/user/userUpdateStatus"
@@ -15,36 +15,40 @@ interface EditUserModalProps {
     user: UserData | null
 }
 
-const OPTIONS_STATUS = [
-    {
-        value: "active",
+const STATUS_OPTIONS = {
+    active: {
+        value: "ATIVO",
         label: "Ativo",
         icon: CheckCircle2,
         colorClass: "bg-green-500 hover:bg-green-600 text-white"
     },
-    {
-        value: "inactive",
+    inactive: {
+        value: "INATIVO",
         label: "Inativo",
         icon: XCircle,
         colorClass: "bg-red-500 hover:bg-red-600 text-white"
-    },
-    {
-        value: "frozen",
-        label: "Trancado",
-        icon: Lock,
-        colorClass: "bg-yellow-500 hover:bg-yellow-600 text-white"
-    },
-]
+    }
+}
 
 export function EditStudentSituationModal({ isOpen, onClose, onSuccess, user }: EditUserModalProps) {
     const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
+    // Reset state whenever modal opens or user changes
     useEffect(() => {
-        if (user && isOpen) {
+        if (isOpen && user) {
+            console.log('[EditStatusModal] Carregando dados do usuário:', user.id, user.status)
             setSelectedStatus(user.status || null)
         }
-    }, [user, isOpen])
+    }, [isOpen, user?.id, user?.status])
+
+    // Clear state when modal closes
+    useEffect(() => {
+        if (!isOpen) {
+            console.log('[EditStatusModal] Limpando estado ao fechar modal')
+            setSelectedStatus(null)
+        }
+    }, [isOpen])
 
     const handleStatusSelect = async (status: string) => {
         if (!user?.id) {
@@ -78,7 +82,6 @@ export function EditStudentSituationModal({ isOpen, onClose, onSuccess, user }: 
 
     const handleClose = () => {
         if (!isSubmitting) {
-            setSelectedStatus(null)
             onClose()
         }
     }
@@ -87,57 +90,63 @@ export function EditStudentSituationModal({ isOpen, onClose, onSuccess, user }: 
         <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Atualizar Situação do Aluno</DialogTitle>
+                    <DialogTitle>Alterar Situação do Aluno</DialogTitle>
                     <DialogDescription>
-                        Selecione o novo status para {user?.nome || "o usuário"}
+                        {user?.status === "ATIVO" 
+                            ? `Desativar o aluno ${user?.nome || ""}`
+                            : `Ativar o aluno ${user?.nome || ""}`
+                        }
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
-                    <div className="grid grid-cols-3 gap-3">
-                        {OPTIONS_STATUS.map((option) => {
-                            const Icon = option.icon
-                            const isCurrentStatus = user?.status === option.value
-
-                            return (
-                                <Button
-                                    key={option.value}
-                                    type="button"
-                                    onClick={() => handleStatusSelect(option.value)}
-                                    disabled={isSubmitting}
-                                    className={`${option.colorClass} h-24 flex flex-col items-center justify-center gap-2 relative text-black hover:text-white `}
-                                    variant={isCurrentStatus ? "default" : "outline"}
-                                >
-                                    <Icon className="h-6 w-6  " />
-                                    <span className="text-sm font-medium  ">{option.label}</span>
-                                    {isCurrentStatus && (
-                                        <span className="absolute top-1 right-1 text-xs bg-white/20 px-2 py-0.5 rounded">
-                                            Atual
-                                        </span>
-                                    )}
-                                </Button>
-                            )
-                        })}
-                    </div>
-
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleClose}
-                        disabled={isSubmitting}
-                        className="w-full h-12"
-                    >
-                        Cancelar
-                    </Button>
-
                     {user?.status && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted p-3 rounded-md mb-4">
                             <AlertCircle className="h-4 w-4" />
                             <span>
-                                Status atual: <strong className="capitalize">{OPTIONS_STATUS.find(s => s.value === user.status)?.label}</strong>
+                                Status atual: <strong className="capitalize">
+                                    {user.status === "ATIVO" ? "Ativo" : "Inativo"}
+                                </strong>
                             </span>
                         </div>
                     )}
+
+                    <div className="flex flex-col gap-3">
+                        {user?.status && (
+                            <Button
+                                type="button"
+                                onClick={() => handleStatusSelect(user.status === "ATIVO" ? "INATIVO" : "ATIVO")}
+                                disabled={isSubmitting}
+                                className={`${
+                                    user.status === "ATIVO" 
+                                        ? STATUS_OPTIONS.inactive.colorClass 
+                                        : STATUS_OPTIONS.active.colorClass
+                                } h-16 flex items-center justify-center gap-3 text-white`}
+                            >
+                                {user.status === "ATIVO" ? (
+                                    <>
+                                        <XCircle className="h-5 w-5" />
+                                        <span className="font-medium">Desativar Aluno</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle2 className="h-5 w-5" />
+                                        <span className="font-medium">Ativar Aluno</span>
+                                    </>
+                                )}
+                            </Button>
+                        )}
+
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleClose}
+                            disabled={isSubmitting}
+                            className="w-full h-12"
+                        >
+                            Cancelar
+                        </Button>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

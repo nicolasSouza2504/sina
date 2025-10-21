@@ -38,7 +38,6 @@ public class DataInitializer implements CommandLineRunner {
         try {
             createInstitution();
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         try {
@@ -48,10 +47,7 @@ public class DataInitializer implements CommandLineRunner {
         try {
             createUser();
         } catch (Exception e) {
-            e.printStackTrace();
         }
-
-
 
     }
 

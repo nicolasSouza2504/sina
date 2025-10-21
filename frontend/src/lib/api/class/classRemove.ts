@@ -21,6 +21,16 @@ export default async  function ClassRemoveService(classId: number) {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => null);
+            
+            if (response.status === 404) {
+                const msg = "Turma não encontrada. Ela pode já ter sido removida.";
+                if (typeof window !== "undefined") {
+                    const { toast } = await import("sonner");
+                    toast.error(msg);
+                }
+                throw new Error(msg);
+            }
+            
             console.error("API Error:", {
                 status: response.status,
                 statusText: response.statusText,

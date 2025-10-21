@@ -239,36 +239,40 @@ export default function ClassesManagement() {
 
             {/* Header */}
             <header className="border-b bg-card">
-                <div className="flex h-16 items-center justify-between px-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">
+                <div className="flex flex-col sm:flex-row sm:h-16 items-start sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
                             Gerenciamento de Turmas
                         </h1>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                             Gerencie as turmas da universidade de tecnologia
                         </p>
                     </div>
-                    <Button onClick={() => setIsCreateModalOpen(true)}>
+                    <Button 
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="w-full sm:w-auto"
+                        size="sm"
+                    >
                         <Plus className="h-4 w-4 mr-2"/>
-                        Nova Turma
+                        <span className="sm:inline">Nova Turma</span>
                     </Button>
                 </div>
             </header>
 
             {/* Main Content */}
-            <main className="p-6 space-y-6">
+            <main className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
+                            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">
                                 Total de Turmas
                             </CardTitle>
-                            <GraduationCap className="h-4 w-4 text-muted-foreground"/>
+                            <GraduationCap className="h-4 w-4 text-muted-foreground flex-shrink-0"/>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{classes?.length || 0}</div>
-                            <p className="text-xs text-muted-foreground">
+                            <div className="text-xl sm:text-2xl font-bold">{classes?.length || 0}</div>
+                            <p className="text-xs text-muted-foreground hidden sm:block">
                                 Turmas ativas no sistema
                             </p>
                         </CardContent>
@@ -276,16 +280,16 @@ export default function ClassesManagement() {
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
+                            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">
                                 Em Andamento
                             </CardTitle>
-                            <Calendar className="h-4 w-4 text-muted-foreground"/>
+                            <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0"/>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">
+                            <div className="text-xl sm:text-2xl font-bold">
                                 {getInProgressClasses().length}
                             </div>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-muted-foreground hidden sm:block">
                                 Turmas em andamento
                             </p>
                         </CardContent>
@@ -293,45 +297,45 @@ export default function ClassesManagement() {
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
+                            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">
                                 Não Iniciadas
                             </CardTitle>
-                            <Calendar className="h-4 w-4 text-muted-foreground"/>
+                            <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0"/>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">
+                            <div className="text-xl sm:text-2xl font-bold">
                                 {getUpcomingClasses().length}
                             </div>
-                            <p className="text-xs text-muted-foreground">Turmas futuras</p>
+                            <p className="text-xs text-muted-foreground hidden sm:block">Turmas futuras</p>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Finalizadas</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground"/>
+                            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">Finalizadas</CardTitle>
+                            <Users className="h-4 w-4 text-muted-foreground flex-shrink-0"/>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">
+                            <div className="text-xl sm:text-2xl font-bold">
                                 {getFinishedClasses().length}
                             </div>
-                            <p className="text-xs text-muted-foreground">Turmas concluídas</p>
+                            <p className="text-xs text-muted-foreground hidden sm:block">Turmas concluídas</p>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Search and Filters */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Buscar Turmas</CardTitle>
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-base sm:text-lg">Buscar Turmas</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex gap-4">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                             <div className="relative flex-1">
                                 <Search
                                     className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4"/>
                                 <Input
-                                    placeholder="Buscar por nome ou código da turma..."
+                                    placeholder="Buscar por nome ou código..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="pl-10"
@@ -344,22 +348,25 @@ export default function ClassesManagement() {
                 {/* Classes Table */}
                 <Card>
                     <CardHeader>
-                        <div className="flex items-center justify-between w-full">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-3 sm:gap-0">
                             <div>
-                                <CardTitle>Lista de Turmas</CardTitle>
-                                <CardDescription>
+                                <CardTitle className="text-base sm:text-lg">Lista de Turmas</CardTitle>
+                                <CardDescription className="text-sm">
                                     {filteredClasses.length} turma(s) encontrada(s)
                                 </CardDescription>
                             </div>
                             <div>
-                                <Button onClick={reloadClassList} className="flex items-center gap-2 bg-gray-500">
+                                <Button 
+                                    onClick={reloadClassList} 
+                                    className="flex items-center gap-2 bg-gray-500 w-full sm:w-auto"
+                                    size="sm"
+                                >
                                     <RefreshCcw className="h-4 w-4" />
-                                    Recarregar Alunos
+                                    <span className="hidden sm:inline">Recarregar</span>
+                                    <span className="sm:hidden">Atualizar</span>
                                 </Button>
                             </div>
                         </div>
-
-
                     </CardHeader>
                     <CardContent>
                         {loading ? (
@@ -386,7 +393,10 @@ export default function ClassesManagement() {
                                         </p>
                                         {!searchTerm && (
                                             <div className="mt-6">
-                                                <Button onClick={() => setIsCreateModalOpen(true)}>
+                                                <Button 
+                                                    onClick={() => setIsCreateModalOpen(true)}
+                                                    className="w-full sm:w-auto"
+                                                >
                                                     <Plus className="h-4 w-4 mr-2"/>
                                                     Nova Turma
                                                 </Button>
@@ -394,86 +404,99 @@ export default function ClassesManagement() {
                                         )}
                                     </div>
                                 ) : (
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Imagem</TableHead>
-                                                <TableHead>Código</TableHead>
-                                                <TableHead>Nome da Turma</TableHead>
-                                                <TableHead>QTD Semestres</TableHead>
-                                                <TableHead>Data de Início</TableHead>
-                                                <TableHead>Data de Término</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead>Ações</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
+                                    <>
+                                        {/* Mobile Cards View */}
+                                        <div className="block lg:hidden space-y-3">
                                             {filteredClasses.map((cls) => {
                                                 const {status, variant} = getClassStatus(
                                                     cls.startDate,
                                                     cls.endDate
                                                 );
                                                 return (
-                                                    <TableRow key={cls.id}>
-                                                        <TableCell>
-                                                            <Avatar className="h-12 w-12">
-                                                                <AvatarImage
-                                                                    src={getImagePath(cls.imgClass)}
-                                                                    alt={cls.name || "Turma"}
-                                                                />
-                                                                <AvatarFallback>
-                                                                    {(cls.name || cls.code || "T").substring(0, 2).toUpperCase()}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                        </TableCell>
-                                                        <TableCell className="font-mono text-sm">
-                                                            {cls.code || "N/A"}
-                                                        </TableCell>
-                                                        <TableCell className="font-medium">
-                                                            {cls.name || "Nome não disponível"}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {formatSemester(cls.semester)}
-                                                        </TableCell>
-                                                        <TableCell>{formatDate(cls.startDate)}</TableCell>
-                                                        <TableCell>{formatDate(cls.endDate)}</TableCell>
-                                                        <TableCell>
-                                                            <Badge variant={variant}>{status}</Badge>
-                                                        </TableCell>
-                                                        <TableCell>
+                                                    <Card key={cls.id} className="w-full">
+                                                        <CardContent className="p-4">
+                                                            {/* Header com Avatar, Nome e Status */}
+                                                            <div className="flex items-start gap-3 mb-3">
+                                                                <Avatar className="h-10 w-10 flex-shrink-0">
+                                                                    <AvatarImage
+                                                                        src={getImagePath(cls.imgClass)}
+                                                                        alt={cls.name || "Turma"}
+                                                                    />
+                                                                    <AvatarFallback className="text-xs">
+                                                                        {(cls.name || cls.code || "T").substring(0, 2).toUpperCase()}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="space-y-2">
+                                                                        <h3 className="font-medium text-sm leading-tight">
+                                                                            {cls.name || "Nome não disponível"}
+                                                                        </h3>
+                                                                        <div className="flex items-center gap-2">
+                                                                            {cls.code && (
+                                                                                <p className="text-xs text-muted-foreground font-mono">
+                                                                                    {cls.code}
+                                                                                </p>
+                                                                            )}
+                                                                            <Badge variant={variant} className="text-xs px-2 py-1">
+                                                                                {status}
+                                                                            </Badge>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Informações em Grid */}
+                                                            <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
+                                                                <div className="space-y-1">
+                                                                    <div className="text-muted-foreground">Semestres</div>
+                                                                    <div className="font-medium">{formatSemester(cls.semester)}</div>
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <div className="text-muted-foreground">Início</div>
+                                                                    <div className="font-medium">{formatDate(cls.startDate)}</div>
+                                                                </div>
+                                                                <div className="space-y-1 col-span-2">
+                                                                    <div className="text-muted-foreground">Término</div>
+                                                                    <div className="font-medium">{formatDate(cls.endDate)}</div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Botões de Ação */}
                                                             <div className="flex gap-2">
                                                                 <Button
                                                                     variant="outline"
                                                                     size="sm"
                                                                     onClick={() => openEditModal(cls)}
+                                                                    className="flex-1 h-8"
                                                                 >
-                                                                    <Edit className="h-4 w-4"/>
+                                                                    <Edit className="h-3 w-3 mr-1"/>
+                                                                    <span className="text-xs">Editar</span>
                                                                 </Button>
                                                                 <AlertDialog>
                                                                     <AlertDialogTrigger asChild>
-                                                                        <Button variant="outline" size="sm">
-                                                                            <Trash2 className="h-4 w-4"/>
+                                                                        <Button variant="outline" size="sm" className="flex-1 h-8">
+                                                                            <Trash2 className="h-3 w-3 mr-1"/>
+                                                                            <span className="text-xs">Excluir</span>
                                                                         </Button>
                                                                     </AlertDialogTrigger>
-                                                                    <AlertDialogContent>
+                                                                    <AlertDialogContent className="w-[90vw] max-w-md">
                                                                         <AlertDialogHeader>
-                                                                            <AlertDialogTitle>
+                                                                            <AlertDialogTitle className="text-base">
                                                                                 Confirmar Exclusão
                                                                             </AlertDialogTitle>
-                                                                            <AlertDialogDescription>
+                                                                            <AlertDialogDescription className="text-sm">
                                                                                 Tem certeza que deseja excluir a turma "
-                                                                                {cls.name || cls.code || "esta turma"}"? Esta
-                                                                                ação não
-                                                                                pode ser desfeita.
+                                                                                <span className="font-medium">{cls.name || cls.code || "esta turma"}</span>"? 
+                                                                                Esta ação não pode ser desfeita.
                                                                             </AlertDialogDescription>
                                                                         </AlertDialogHeader>
-                                                                        <AlertDialogFooter>
-                                                                            <AlertDialogCancel>
+                                                                        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                                                                            <AlertDialogCancel className="w-full sm:w-auto">
                                                                                 Cancelar
                                                                             </AlertDialogCancel>
                                                                             <AlertDialogAction
                                                                                 onClick={() => handleDeleteClass(cls.id)}
-                                                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                                className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                                                             >
                                                                                 Excluir
                                                                             </AlertDialogAction>
@@ -481,12 +504,108 @@ export default function ClassesManagement() {
                                                                     </AlertDialogContent>
                                                                 </AlertDialog>
                                                             </div>
-                                                        </TableCell>
-                                                    </TableRow>
+                                                        </CardContent>
+                                                    </Card>
                                                 );
                                             })}
-                                        </TableBody>
-                                    </Table>
+                                        </div>
+
+                                        {/* Desktop Table View */}
+                                        <div className="hidden lg:block overflow-x-auto">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Imagem</TableHead>
+                                                        <TableHead>Código</TableHead>
+                                                        <TableHead>Nome da Turma</TableHead>
+                                                        <TableHead>QTD Semestres</TableHead>
+                                                        <TableHead>Data de Início</TableHead>
+                                                        <TableHead>Data de Término</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead>Ações</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {filteredClasses.map((cls) => {
+                                                        const {status, variant} = getClassStatus(
+                                                            cls.startDate,
+                                                            cls.endDate
+                                                        );
+                                                        return (
+                                                            <TableRow key={cls.id}>
+                                                                <TableCell>
+                                                                    <Avatar className="h-12 w-12">
+                                                                        <AvatarImage
+                                                                            src={getImagePath(cls.imgClass)}
+                                                                            alt={cls.name || "Turma"}
+                                                                        />
+                                                                        <AvatarFallback>
+                                                                            {(cls.name || cls.code || "T").substring(0, 2).toUpperCase()}
+                                                                        </AvatarFallback>
+                                                                    </Avatar>
+                                                                </TableCell>
+                                                                <TableCell className="font-mono text-sm">
+                                                                    {cls.code || "N/A"}
+                                                                </TableCell>
+                                                                <TableCell className="font-medium">
+                                                                    {cls.name || "Nome não disponível"}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {formatSemester(cls.semester)}
+                                                                </TableCell>
+                                                                <TableCell>{formatDate(cls.startDate)}</TableCell>
+                                                                <TableCell>{formatDate(cls.endDate)}</TableCell>
+                                                                <TableCell>
+                                                                    <Badge variant={variant}>{status}</Badge>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex gap-2">
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() => openEditModal(cls)}
+                                                                        >
+                                                                            <Edit className="h-4 w-4"/>
+                                                                        </Button>
+                                                                        <AlertDialog>
+                                                                            <AlertDialogTrigger asChild>
+                                                                                <Button variant="outline" size="sm">
+                                                                                    <Trash2 className="h-4 w-4"/>
+                                                                                </Button>
+                                                                            </AlertDialogTrigger>
+                                                                            <AlertDialogContent>
+                                                                                <AlertDialogHeader>
+                                                                                    <AlertDialogTitle>
+                                                                                        Confirmar Exclusão
+                                                                                    </AlertDialogTitle>
+                                                                                    <AlertDialogDescription>
+                                                                                        Tem certeza que deseja excluir a turma "
+                                                                                        {cls.name || cls.code || "esta turma"}"? Esta
+                                                                                        ação não pode ser desfeita.
+                                                                                    </AlertDialogDescription>
+                                                                                </AlertDialogHeader>
+                                                                                <AlertDialogFooter>
+                                                                                    <AlertDialogCancel>
+                                                                                        Cancelar
+                                                                                    </AlertDialogCancel>
+                                                                                    <AlertDialogAction
+                                                                                        onClick={() => handleDeleteClass(cls.id)}
+                                                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                                    >
+                                                                                        Excluir
+                                                                                    </AlertDialogAction>
+                                                                                </AlertDialogFooter>
+                                                                            </AlertDialogContent>
+                                                                        </AlertDialog>
+                                                                    </div>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    })}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </>
                                 )}
                             </>
                         )}

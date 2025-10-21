@@ -18,6 +18,12 @@ export default async function CourseListService(){
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => null);
+        
+        if (response.status === 404) {
+            // Retorna array vazio para lista vazia - a UI já trata isso
+            return [];
+        }
+        
         const message = errorData?.message || `Request failed: ${response.status}`;
         throw new Error(message);
     }
