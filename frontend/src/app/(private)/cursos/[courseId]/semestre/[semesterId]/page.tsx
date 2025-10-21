@@ -1,4 +1,4 @@
-"use client"
+  "use client"
 
 import React, { useState, use } from 'react'
 import { Button } from '@/components/ui/button'
@@ -42,7 +42,7 @@ const mockCourses: Record<string, Course> = {
     code: 'ADS',
     year: 2024,
     status: 'active',
-    startDate: new Date('2024-01-01'),
+    startDate: new Date('2024-01-01'),  
     endDate: new Date('2026-12-31'),
     color: '#3b82f6',
     semesters: [],
@@ -234,15 +234,6 @@ const mockSemesters: Record<string, Semester> = {
   }
 }
 
-/**
- * Semester Detail Page Component
- * Features:
- * - Semester overview with progress tracking
- * - Learning tracks listing with navigation
- * - Course context and navigation
- * - Statistics and achievements
- * - Responsive design
- */
 export default function SemesterPage({ params }: SemesterPageProps) {
   const resolvedParams = use(params)
   const [activeTab, setActiveTab] = useState("overview")

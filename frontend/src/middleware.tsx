@@ -1,6 +1,7 @@
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { decodeJwt, hasAnyRole, type AuthPayload } from "./lib/auth/jwtAuth";
+import { getTokenFromSession } from "./lib/auth/jwtAuth.server";
 
 const TOKEN_COOKIE = "token";
 
@@ -9,6 +10,7 @@ const AUTH_PROTECTED: RegExp[] = [
   /^\/home(\/.*)?$/,
   /^\/turmas(\/.*)?$/,
   /^\/professores(\/.*)?$/,
+  /^\/professor(\/.*)?$/,
   /^\/cursos(\/.*)?$/,
   /^\/trilhas(\/.*)?$/,
   /^\/ranking(\/.*)?$/,
@@ -16,6 +18,14 @@ const AUTH_PROTECTED: RegExp[] = [
 ];
 
 const ROLE_RULES: Array<{ pattern: RegExp; roles: string[] }> = [
+  // Regras específicas primeiro (mais específicas)
+  { pattern: /^\/admin\/class(\/.*)?$/, roles: ["ADMIN", "TEACHER"] },
+  { pattern: /^\/admin\/students(\/.*)?$/, roles: ["ADMIN", "TEACHER"] },
+  { pattern: /^\/professor(\/.*)?$/, roles: ["TEACHER"] },
+  { pattern: /^\/professores(\/.*)?$/, roles: ["ADMIN", "TEACHER"] },
+  { pattern: /^\/ranking(\/.*)?$/, roles: ["ADMIN", "TEACHER", "USER"] },
+  // Regras gerais depois (menos específicas)
+  { pattern: /^\/admin(\/.*)?$/, roles: ["ADMIN"] },
   { pattern: /^\/dashboard(\/.*)?$/, roles: ["ADMIN"] },
   { pattern: /^\/reports(\/.*)?$/, roles: ["MANAGER", "ADMIN"] },
 ];
@@ -104,6 +114,7 @@ export const config = {
     "/home/:path*",
     "/turmas/:path*",
     "/alunos/:path*",
+    "/professor/:path*",
     "/cursos/:path*",
     "/trilhas/:path*",
     "/admin/:path*",

@@ -1,7 +1,7 @@
 "use server"
 import {ClassFormData} from "@/lib/interfaces/classInterfaces";
 import getApiBaseUrl from '@/lib/api/api';
-import {getTokenFromSession} from "@/lib/auth/jwtAuth";
+import {getTokenFromSession} from "@/lib/auth/jwtAuth.server";
 
 export default async function EditClassService(classForm: ClassFormData, classId: number) {
     const token = await getTokenFromSession();
