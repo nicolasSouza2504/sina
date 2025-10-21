@@ -135,40 +135,40 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="container mx-auto p-6 w-full">
+        <div className="container mx-auto p-4 sm:p-6 w-full">
             {/* Header */}
-            <div className="flex items-center gap-4 mb-6 justify-center">
+            <div className="flex flex-col items-center gap-2 sm:gap-4 mb-4 sm:mb-6 text-center">
                 <div>
-                    <h1 className="text-3xl font-bold">Meu Perfil</h1>
-                    <p className="text-muted-foreground">Atualize suas informações pessoais</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold">Meu Perfil</h1>
+                    <p className="text-sm sm:text-base text-muted-foreground">Atualize suas informações pessoais</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Profile Info Card */}
                 <Card className="lg:col-span-1">
-                    <CardHeader className="text-center">
+                    <CardHeader className="text-center py-4 sm:py-6">
                         <div className="relative mx-auto">
-                            <Avatar className="h-24 w-24 mx-auto">
+                            <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mx-auto">
                                 <AvatarImage src={imagePreview || undefined} alt={user.nome || "User"} />
-                                <AvatarFallback className="text-lg">
+                                <AvatarFallback className="text-base sm:text-lg">
                                     {getInitials(user.nome)}
                                 </AvatarFallback>
                             </Avatar>
                         </div>
-                        <CardTitle className="text-xl">{user.nome || "Nome não disponível"}</CardTitle>
-                        <CardDescription>{user.email}</CardDescription>
-                        <Badge variant="secondary" className="w-fit mx-auto">
+                        <CardTitle className="text-lg sm:text-xl mt-2">{user.nome || "Nome não disponível"}</CardTitle>
+                        <CardDescription className="text-sm">{user.email}</CardDescription>
+                        <Badge variant="secondary" className="w-fit mx-auto text-xs sm:text-sm">
                             {user.role && user.role.name ? user.role.name : "Sem Função" }
                         </Badge>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Building className="h-4 w-4" />
-                            <span>{user.institutionName}</span>
+                    <CardContent className="space-y-3 sm:space-y-4 py-3 sm:py-4">
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <Building className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="truncate">{user.institutionName}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Users className="h-4 w-4" />
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <Users className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                             <span>ID: {user.id}</span>
                         </div>
                     </CardContent>
@@ -176,32 +176,32 @@ export default function ProfilePage() {
 
                 {/* Update Form */}
                 <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <User className="h-5 w-5" />
+                    <CardHeader className="py-4 sm:py-6">
+                        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                            <User className="h-4 w-4 sm:h-5 sm:w-5" />
                             Atualizar Informações
                         </CardTitle>
-                        <CardDescription>Modifique seus dados pessoais e foto de perfil</CardDescription>
+                        <CardDescription className="text-sm">Modifique seus dados pessoais e foto de perfil</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                    <CardContent className="py-3 sm:py-4">
+                        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                             {/* Image Upload */}
                             <div className="space-y-2">
-                                <Label htmlFor="image">Foto de Perfil</Label>
-                                <div className="flex items-center gap-4">
-                                    <Avatar className="h-16 w-16">
+                                <Label htmlFor="image" className="text-sm">Foto de Perfil</Label>
+                                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+                                    <Avatar className="h-14 w-14 sm:h-16 sm:w-16 flex-shrink-0">
                                         <AvatarImage src={imagePreview || undefined} alt="Preview" />
                                         <AvatarFallback>
-                                            <Camera className="h-6 w-6" />
+                                            <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
                                         </AvatarFallback>
                                     </Avatar>
-                                    <div className="flex-1">
+                                    <div className="flex-1 w-full">
                                         <Input
                                             id="image"
                                             type="file"
                                             accept="image/*"
                                             onChange={handleImageChange}
-                                            className="cursor-pointer"
+                                            className="cursor-pointer text-sm"
                                         />
                                         <p className="text-xs text-muted-foreground mt-1">Formatos aceitos: JPG, PNG, GIF (máx. 5MB)</p>
                                     </div>
@@ -211,9 +211,9 @@ export default function ProfilePage() {
                             <Separator />
 
                             {/* Personal Information */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Nome Completo</Label>
+                                    <Label htmlFor="name" className="text-sm">Nome Completo</Label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -221,7 +221,7 @@ export default function ProfilePage() {
                                             name="name"
                                             value={formData.name || ""}
                                             onChange={handleInputChange}
-                                            className="pl-10"
+                                            className="pl-10 text-sm"
                                             placeholder="Seu nome completo"
                                             required
                                         />
@@ -229,7 +229,7 @@ export default function ProfilePage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
+                                    <Label htmlFor="email" className="text-sm">Email</Label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -238,7 +238,7 @@ export default function ProfilePage() {
                                             type="email"
                                             value={formData.email || ""}
                                             onChange={handleInputChange}
-                                            className="pl-10"
+                                            className="pl-10 text-sm"
                                             placeholder="seu.email@exemplo.com"
                                             required
                                         />
@@ -246,7 +246,7 @@ export default function ProfilePage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="cpf">CPF</Label>
+                                    <Label htmlFor="cpf" className="text-sm">CPF</Label>
                                     <div className="relative">
                                         <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -254,14 +254,14 @@ export default function ProfilePage() {
                                             name="cpf"
                                             value={formData.cpf || ""}
                                             onChange={handleInputChange}
-                                            className="pl-10"
+                                            className="pl-10 text-sm"
                                             placeholder="000.000.000-00"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="password">Nova Senha (opcional)</Label>
+                                    <Label htmlFor="password" className="text-sm">Nova Senha (opcional)</Label>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -270,7 +270,7 @@ export default function ProfilePage() {
                                             type="password"
                                             value={formData.password || ""}
                                             onChange={handleInputChange}
-                                            className="pl-10"
+                                            className="pl-10 text-sm"
                                             placeholder="Deixe em branco para manter a atual"
                                         />
                                     </div>
@@ -280,13 +280,13 @@ export default function ProfilePage() {
                             <Separator />
 
                             {/* Submit Button */}
-                            <div className="flex justify-end gap-3">
-                                <Link href="/">
-                                    <Button variant="outline" type="button">
+                            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
+                                <Link href="/" className="w-full sm:w-auto">
+                                    <Button variant="outline" type="button" className="w-full sm:w-auto" size="sm">
                                         Cancelar
                                     </Button>
                                 </Link>
-                                <Button type="submit" disabled={saving}>
+                                <Button type="submit" disabled={saving} className="w-full sm:w-auto" size="sm">
                                     {saving ? (
                                         <>
                                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

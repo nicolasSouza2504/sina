@@ -47,8 +47,6 @@ public class DataInitializer implements CommandLineRunner {
             createUser();
         } catch (Exception e) {}
 
-
-
     }
 
     @Transactional

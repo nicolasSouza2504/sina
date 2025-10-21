@@ -23,6 +23,16 @@ export default async function CreateClassService(classForm: CreateClass) {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => null);
+            
+            if (response.status === 404) {
+                const msg = "Endpoint não encontrado. Verifique a configuração da API.";
+                if (typeof window !== "undefined") {
+                    const { toast } = await import("sonner");
+                    toast.error(msg);
+                }
+                throw new Error(msg);
+            }
+            
             console.error("API Error:", {
                 status: response.status,
                 statusText: response.statusText,

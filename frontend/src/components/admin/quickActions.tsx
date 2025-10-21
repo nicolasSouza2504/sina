@@ -44,7 +44,7 @@ export default function QuickActions() {
             {
                 key: 2,
                 title: "Gerenciar Cursos",
-                link: "/admin/courses",
+                link: "/cursos",
                 icon: <Code className="h-4 w-4"/>,
             },
             {
@@ -74,10 +74,8 @@ export default function QuickActions() {
         ],
     };
 
-    // filter out the action if the current route matches
-    const filteredActions = quickActions.quickActionsList.filter(
-        (action) => action.link !== pathname
-    );
+    // Show all actions without filtering
+    const filteredActions = quickActions.quickActionsList;
 
     return (
         <div>
@@ -91,17 +89,19 @@ export default function QuickActions() {
                             </CardDescription>
                         </CardHeader>
                     )}
-                <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <CardContent className="p-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 w-full">
                         {filteredActions.map((action) => (
                             <Button
                                 onClick={() => handleRedirectRoute(action.link)}
                                 key={action.key}
                                 variant="outline"
-                                className="h-20 flex-col gap-2 bg-transparent hover:cursor-pointer"
+                                className="h-20 sm:h-24 flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-accent hover:cursor-pointer w-full p-2 overflow-hidden"
                             >
-                                {action.icon}
-                                <span className="text-xs">{action.title}</span>
+                                <div className="flex-shrink-0">
+                                    {action.icon}
+                                </div>
+                                <span className="text-[10px] sm:text-xs text-center leading-tight break-words w-full px-1 whitespace-normal">{action.title}</span>
                             </Button>
                         ))}
                     </div>

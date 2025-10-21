@@ -27,13 +27,19 @@ export default async function UpdateUserService(
 
     if (!response.ok) {
         let msg = "Erro ao Atualizar usuário";
-        try {
-            const err = await response.json();
-            msg = err?.message ?? msg;
-        } catch {}
+        
+        if (response.status === 404) {
+            msg = "Usuário não encontrado. Verifique se ele ainda existe.";
+        } else {
+            try {
+                const err = await response.json();
+                msg = err?.message ?? msg;
+            } catch {}
+        }
+        
         if (typeof window !== "undefined") {
             const { toast } = await import("sonner");
-            toast(msg);
+            toast.error(msg);
         }
         throw new Error(msg);
     }
