@@ -9,3 +9,9 @@ export interface Course {
     classes: Class[];
     sections: Section[];
 }
+
+export interface CreateCourse {
+    name: string;
+    quantitySemester: number;
+    classesId: number[];
+}
