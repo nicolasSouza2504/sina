@@ -63,79 +63,10 @@ public class CourseService implements ICourseService {
 
                     course = courseRepository.save(course);
 
-                    updateClasses(course, courseRegisterDTO);
-
                     return new CourseResponseDTO(course);
 
                 })
                 .orElseThrow(() -> new Exception("Oops! Course already exists!"));
-
-    }
-
-    // todo backend - cadastro de session e cadastro de knowledge trail
-    @Transactional
-    public void updateClasses(Course courseDb, CourseRegisterDTO courseRegisterDTO) {
-
-        removeOldClassesRelatedData(courseDb);
-        insertNewClassesRelationship(courseDb, courseRegisterDTO);
-
-    }
-
-    @Transactional
-    public void insertNewClassesRelationship(Course courseDb, CourseRegisterDTO courseRegisterDTO) {
-
-        if (!CollectionUtils.isEmpty(courseRegisterDTO.classesId())) {
-
-            final List<Class> newClasses = new ArrayList<>();
-
-            courseRegisterDTO.classesId().forEach(classID -> {
-                newClasses.add(insertNewClassRelationship(classID, courseDb));
-            });
-
-            courseDb.setClasses(newClasses);
-
-        }
-
-    }
-
-    @Transactional
-    public void removeOldClassesRelatedData(Course courseDb) {
-
-        if (!CollectionUtils.isEmpty(courseDb.getClasses())) {
-
-            courseDb.getClasses().forEach(clazz -> {
-
-                clazz.setCourseId(null);
-                clazz.setCourse(null);
-
-                classRepository.save(clazz);
-
-            });
-
-        }
-
-    }
-
-    public Class insertNewClassRelationship(Long classID, Course courseDb) {
-
-        Class clazz = classRepository.findById(classID).orElseThrow(() -> new NotFoundException("Turma não encontrada pelo id:" + classID + "!"));
-
-        if (clazz.getCourseId() != null) {
-
-            if (!clazz.getCourseId().equals(courseDb.getId())) {
-                throw new RuntimeException("Turma " + clazz.getName() + " ja está em um curso!");
-            }
-
-        } else {
-
-            clazz.setCourseId(courseDb.getId());
-            clazz.setCourse(courseDb);
-
-            clazz = classRepository.save(clazz);
-
-        }
-
-        return clazz;
 
     }
 
@@ -178,8 +109,6 @@ public class CourseService implements ICourseService {
                 .map((courseDB) -> {
 
                     courseRepository.save(updateData(courseDB, courseRegisterDTO));
-
-                    updateClasses(courseDB, courseRegisterDTO);
 
                     return new CourseResponseDTO(courseDB);
 

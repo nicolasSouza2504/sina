@@ -1,7 +1,6 @@
 package senai.com.ava_senai.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -10,7 +9,6 @@ import senai.com.ava_senai.domain.course.CourseRegisterDTO;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
 import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.exception.Validation;
-import senai.com.ava_senai.repository.CourseRepository;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.course.ICourseService;
 
