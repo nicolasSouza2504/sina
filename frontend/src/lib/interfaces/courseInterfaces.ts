@@ -13,5 +13,4 @@ export interface Course {
 export interface CreateCourse {
     name: string;
     quantitySemester: number;
-    classesId: number[];
 }
