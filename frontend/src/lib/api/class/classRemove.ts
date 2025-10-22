@@ -1,6 +1,6 @@
 "use server";
 
-import {getTokenFromSession} from "@/lib/auth/jwtAuth.server";
+import getTokenFromSession from "@/lib/auth/jwtAuth.server";
 import getApiBaseUrl from "@/lib/api/api";
 
 export default async  function ClassRemoveService(classId: number) {

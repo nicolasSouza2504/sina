@@ -1,6 +1,6 @@
 "use server"
 import getApiBaseUrl from '@/lib/api/api';
-import {getTokenFromSession} from "@/lib/auth/jwtAuth.server";
+import getTokenFromSession from "@/lib/auth/jwtAuth.server";
 import {Class} from '@/lib/interfaces/classInterfaces';
 
 export default async function ClassList() {

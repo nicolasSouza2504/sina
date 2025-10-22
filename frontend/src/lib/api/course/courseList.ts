@@ -1,5 +1,5 @@
 "use server";
-import {getTokenFromSession} from "@/lib/auth/jwtAuth";
+import getTokenFromSession from "@/lib/auth/jwtAuth.server";
 import getApiBaseUrl from "@/lib/api/api";
 import {Course} from "@/lib/interfaces/courseInterfaces";
 
