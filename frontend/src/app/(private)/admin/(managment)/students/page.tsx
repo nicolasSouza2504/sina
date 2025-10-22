@@ -113,11 +113,11 @@ export default function StudentsManagement() {
         setIsModalOpen(false)
     }
 
-    const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString("pt-BR")
     }
 
-    const formatCPF = (cpf: string) => {
+  const formatCPF = (cpf: string) => {
         return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
     }
 
@@ -171,7 +171,7 @@ export default function StudentsManagement() {
         setSelectedUser(null) // Limpa o usuário selecionado ao cancelar
     }
 
-    return (
+  return (
         <div className="min-h-screen bg-background w-full">
             {error && (
                 <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 md:w-1/2 lg:w-1/3">
@@ -195,68 +195,68 @@ export default function StudentsManagement() {
 
             <header className="border-b bg-card mb-6">
                 <div className="flex h-16 items-center justify-between px-4 md:px-2 lg:px-8 max-w-[95%] mx-auto w-full">
-                    <div>
+          <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gerenciamento de Alunos</h1>
                         <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Universidade de Tecnologia - Sistema de Gestão</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Badge variant="secondary" className="flex items-center gap-2">
-                            <Users className="h-4 w-4" />
+          </div>
+          <div className="flex items-center gap-4">
+            <Badge variant="secondary" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
                             <span className="hidden sm:inline">{students.length} Alunos Cadastrados</span>
                             <span className="sm:hidden">{students.length}</span>
-                        </Badge>
-                    </div>
-                </div>
-            </header>
+            </Badge>
+          </div>
+        </div>
+      </header>
 
             <main className="md:px-2 lg:px-8 pb-8 space-y-6 max-w-[95%] mx-auto w-full">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total de Alunos</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{students.length}</div>
-                            <p className="text-xs text-muted-foreground">
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{students.length}</div>
+              <p className="text-xs text-muted-foreground">
                                 Cadastrados no sistema
-                            </p>
-                        </CardContent>
-                    </Card>
+              </p>
+            </CardContent>
+          </Card>
 
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Alunos Ativos</CardTitle>
                             <GraduationCap className="h-4 w-4 text-green-600" />
-                        </CardHeader>
-                        <CardContent>
+            </CardHeader>
+            <CardContent>
                             <div className="text-2xl font-bold text-green-600">{students.filter((s) => s.status === "ATIVO").length}</div>
-                            <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                                 Status ativo no sistema
-                            </p>
-                        </CardContent>
-                    </Card>
+              </p>
+            </CardContent>
+          </Card>
 
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Alunos Inativos</CardTitle>
                             <Users className="h-4 w-4 text-red-600" />
-                        </CardHeader>
-                        <CardContent>
+            </CardHeader>
+            <CardContent>
                             <div className="text-2xl font-bold text-red-600">{students.filter((s) => s.status === "INATIVO").length}</div>
                             <p className="text-xs text-muted-foreground">
                                 Status inativo no sistema
                             </p>
-                        </CardContent>
-                    </Card>
-                </div>
+            </CardContent>
+          </Card>
+        </div>
 
-                <Card>
-                    <CardHeader>
+        <Card>
+          <CardHeader>
                         <div className="flex flex-col gap-4">
                             <div className="flex flex-col gap-4">
-                                <div>
-                                    <CardTitle>Lista de Alunos</CardTitle>
+              <div>
+                <CardTitle>Lista de Alunos</CardTitle>
                                     <CardDescription>Gerencie os alunos cadastrados no sistema</CardDescription>
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-2 w-full">
@@ -297,19 +297,19 @@ export default function StudentsManagement() {
                                             </button>
                                         </Badge>
                                     )}
-                                </div>
+              </div>
                             )}
 
                             <div className="flex flex-col sm:flex-row gap-2">
                                 <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Buscar por nome, email ou CPF..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="pl-10"
-                                    />
-                                </div>
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nome, email ou CPF..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
                                 <div className="flex gap-2">
                                     <Button
                                         variant={statusFilter === "ATIVO" ? "default" : "outline"}
@@ -330,10 +330,10 @@ export default function StudentsManagement() {
                                         Inativos
                                     </Button>
                                 </div>
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
                         {loading ? (
                             <div className="flex items-center justify-center py-12">
                                 <div className="text-center">
@@ -347,40 +347,40 @@ export default function StudentsManagement() {
                             <>
                                 {/* Desktop Table View - Hidden on Mobile */}
                                 <div className="hidden md:block overflow-x-auto">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Aluno</TableHead>
-                                                <TableHead>Email</TableHead>
-                                                <TableHead>CPF</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Aluno</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>CPF</TableHead>
                                             {/*<TableHead>Turma</TableHead>*/}
-                                                <TableHead>Tipo</TableHead>
+                  <TableHead>Tipo</TableHead>
                                                 <TableHead>Status</TableHead>
-                                                <TableHead className="text-right">Ações</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                                             {filteredStudents.map((student) => {
                                             // const studentClass = getClassById(student.classId)
                                                 return (
                                                     <TableRow key={student?.id}>
-                                                        <TableCell>
-                                                            <div className="flex items-center gap-3">
-                                                                <Avatar className="h-10 w-10">
-                                                                    <AvatarFallback>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback>
                                                                         {student.nome
                                                                             ?.split(" ")
-                                                                            .map((n) => n[0])
-                                                                            .join("")
-                                                                            .substring(0, 2)}
-                                                                    </AvatarFallback>
-                                                                </Avatar>
-                                                                <div>
+                              .map((n) => n[0])
+                              .join("")
+                              .substring(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
                                                                     <p className="font-medium">{student?.nome}</p>
                                                                     <p className="text-sm text-muted-foreground">ID: {student?.id}</p>
-                                                                </div>
-                                                            </div>
-                                                        </TableCell>
+                        </div>
+                      </div>
+                    </TableCell>
                                                         <TableCell>{student?.email}</TableCell>
                                                         <TableCell>{formatCPF(student?.cpf)}</TableCell>
                                                     {/*<TableCell>*/}
@@ -397,13 +397,13 @@ export default function StudentsManagement() {
                                                                 {student?.role.name === "STUDENT" ? "Aluno" : student?.role.name}
                                                             </Badge>
                                                         </TableCell>
-                                                        <TableCell>
+                    <TableCell>
                                                             <Badge variant={student?.status === "ATIVO" ? "default" : "destructive"}>
                                                                 {student?.status === "ATIVO" ? "Ativo" : "Inativo"}
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            <div className="flex items-center gap-2 justify-end">
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center gap-2 justify-end">
                                                                 <TooltipProvider>
                                                                     <Tooltip>
                                                                         <TooltipTrigger asChild>
@@ -412,7 +412,7 @@ export default function StudentsManagement() {
                                                                                 size="sm"
                                                                                 onClick={() => handleViewDetails(student)}>
                                                                                 <Eye className="size-6" />
-                                                                            </Button>
+                        </Button>
                                                                         </TooltipTrigger>
                                                                         <TooltipContent>Ver Detalhes</TooltipContent>
                                                                     </Tooltip>
@@ -420,9 +420,9 @@ export default function StudentsManagement() {
                                                                 <TooltipProvider>
                                                                     <Tooltip>
                                                                         <TooltipTrigger asChild>
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="sm"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                                                                                 onClick={() => handleEdit(student)}>
                                                                                 <Edit className="size-6" />
                                                                             </Button>
@@ -436,18 +436,18 @@ export default function StudentsManagement() {
                                                                             <Button variant="ghost" size="sm" className="text-blue-600"
                                                                             onClick={() => handleStudentSituationEdit(student)}>
                                                                                 <Rotate3d className="size-6" />
-                                                                            </Button>
+                        </Button>
                                                                         </TooltipTrigger>
                                                                         <TooltipContent>Alterar Situação</TooltipContent>
                                                                     </Tooltip>
                                                                 </TooltipProvider>
-                                                            </div>
-                                                        </TableCell>
-                                                    </TableRow>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                                                 )
                                             })}
-                                        </TableBody>
-                                    </Table>
+              </TableBody>
+            </Table>
                                 </div>
 
                                 {/* Mobile Card View - Hidden on Desktop */}
@@ -538,9 +538,9 @@ export default function StudentsManagement() {
                                     ))}
                                 </div>
 
-                                {filteredStudents.length === 0 && (
-                                    <div className="text-center py-8">
-                                        <p className="text-muted-foreground">
+            {filteredStudents.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
                                             {statusFilter || selectedClassFilter || searchTerm
                                                 ? "Nenhum aluno encontrado com os filtros aplicados."
                                                 : "Nenhum aluno cadastrado no sistema."}
@@ -550,15 +550,15 @@ export default function StudentsManagement() {
                                                 Tente remover alguns filtros ou alterar os critérios de busca.
                                             </p>
                                         )}
-                                    </div>
+              </div>
                                 )}
                             </>
-                        )}
-                    </CardContent>
-                </Card>
+            )}
+          </CardContent>
+        </Card>
 
                 {<QuickActions></QuickActions>}
-            </main>
+      </main>
 
             <StudentFormModal
                 isOpen={isModalOpen}
@@ -718,6 +718,6 @@ export default function StudentsManagement() {
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+    </div>
     )
 }

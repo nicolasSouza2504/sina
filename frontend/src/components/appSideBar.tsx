@@ -21,7 +21,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useEffect } from "react";
 import { UserFromToken } from "@/lib/interfaces/userInterfaces";
+import { NotificationsBell } from '@/components/ui/notifications-bell';
 
 // Sidebar personalizada para professores (inclui funcionalidades originais + criação de conteúdo)
 const teacherItems = [
@@ -98,7 +98,6 @@ const items = [
 
 export function AppSidebar() {
   const [user, setUser] = useState<UserFromToken | undefined | null>(null);
-  const { setOpenMobile, isMobile } = useSidebar();
 
   const router = useRouter();
   async function handleSignout() {
@@ -129,23 +128,17 @@ export function AppSidebar() {
     userDecoded();
   }, []);
 
-  const handleLinkClick = () => {
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-  };
-
   // Get navigation items based on user role
   const getNavigationItems = () => {
-    if (user?.role.name == "USER") return items;
+    if (!user?.roles || user.roles.length === 0) return items;
     
     // Professores têm sidebar personalizada
-    if (user?.role.name == "TEACHER") {
+    if (user.roles.includes("TEACHER")) {
       return teacherItems;
     }
     
     // Admin tem dashboard específico
-    if (user?.role.name == "ADMIN") {
+    if (user.roles.includes("ADMIN")) {
       const adminItems = [...items];
       adminItems[0].url = "/admin"; // Dashboard aponta para /admin
       return adminItems;
@@ -175,7 +168,6 @@ export function AppSidebar() {
                     >
                       <Link
                         href={item.url}
-                        onClick={handleLinkClick}
                         className="flex items-center gap-2 p-2 hover:bg-sky-500 hover:text-white rounded-md text-xl text-center"
                       >
                         <item.icon className="size-2" />
@@ -198,17 +190,18 @@ export function AppSidebar() {
             <div>
               <h2>{user?.nome}</h2>
               <p className="text-xs text-gray-300">
-                {user?.role.name === 'TEACHER' ? 'PROFESSOR' : user?.role.name || 'USER'}
+                {user?.roles?.[0] === 'TEACHER' ? 'PROFESSOR' : user?.roles?.[0] || 'USER'}
               </p>
             </div>
-            <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
-            onClick={() => {
-              router.push("/user/profile");
-              handleLinkClick();
-            }}
-            >
-              <UserPen className=" size-6" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {/* Sininho de notificações - apenas para professores */}
+              {user?.roles?.includes("TEACHER") && <NotificationsBell />}
+              <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
+              onClick={() => router.push("/user/profile")}
+              >
+                <UserPen className=" size-6" />
+              </Button>
+            </div>
           </div>
           <div className="flex items-center justify-center px-2">
             <Button
