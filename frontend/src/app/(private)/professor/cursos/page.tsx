@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DeleteConfirmation, useDeleteConfirmation } from '@/components/ui/delete-confirmation';
 import { SuccessToast } from '@/components/ui/success-message';
+import QuickActions from '@/components/admin/quickActions';
 import { 
   Lock, 
   Unlock, 
@@ -816,6 +817,9 @@ export default function GerenciarCursos() {
         autoClose={true}
         autoCloseDelay={3000}
       />
+
+      {/* Quick Actions */}
+      <QuickActions />
     </div>
   );
 }

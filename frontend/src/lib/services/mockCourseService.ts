@@ -317,6 +317,11 @@ class MockCourseService {
     return this.materials.find(material => material.id === id);
   }
 
+  // Buscar todas as tarefas
+  getAllTasks(): Task[] {
+    return this.tasks;
+  }
+
   // Métodos para controle de semestres
   updateSemesterStatus(courseId: string, semesterNumber: number, status: 'locked' | 'unlocked' | 'active'): boolean {
     const course = this.courses.find(c => c.id === courseId);

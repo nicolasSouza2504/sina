@@ -59,6 +59,7 @@ export default function NovaTrilha() {
   useEffect(() => {
     if (formData.courseId) {
       const courseSemesters = mockCourseService.getSemestersByCourseId(formData.courseId);
+      console.log('Semestres carregados:', courseSemesters);
       setSemesters(courseSemesters.map(s => ({ number: s.number, title: s.title })));
     } else {
       setSemesters([]);

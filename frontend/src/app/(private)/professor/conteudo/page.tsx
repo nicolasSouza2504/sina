@@ -27,8 +27,12 @@ import {
   CheckCircle,
   ExternalLink,
   Download,
+  Users
 } from 'lucide-react';
 import { mockCourseService, Course, Trail, Task, Material } from '@/lib/services/mockCourseService';
+import { mockSubmissionService } from '@/lib/services/mockSubmissionService';
+import { StudentSubmissionsModal } from '@/components/professor/StudentSubmissionsModal';
+import QuickActions from '@/components/admin/quickActions';
 import { toast } from 'sonner';
 
 interface ContentItem {
@@ -66,6 +70,8 @@ export default function GerenciarConteudo() {
   const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
   const [isEditTrailModalOpen, setIsEditTrailModalOpen] = useState(false);
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
+  const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
+  const [selectedTaskForSubmissions, setSelectedTaskForSubmissions] = useState<{ id: string; title: string } | null>(null);
   
   const [newTrail, setNewTrail] = useState({
     courseId: '',
@@ -405,6 +411,9 @@ export default function GerenciarConteudo() {
         mockCourseService.addMaterial(materialData);
         resetMaterialForm();
         loadContent();
+        if (selectedTask) {
+          loadTaskMaterials(selectedTask.id);
+        }
         setIsMaterialModalOpen(false);
         toast.success('Material adicionado com sucesso', {
           description: 'O material foi vinculado à tarefa e está disponível para os alunos.'
@@ -466,15 +475,61 @@ export default function GerenciarConteudo() {
   const saveEditedMaterial = () => {
     if (!editingMaterial) return;
 
-    const success = mockCourseService.updateMaterial(editingMaterial.id, {
+    let updateData: any = {
       type: newMaterial.type,
-      title: newMaterial.title,
-      content: newMaterial.content,
-      url: newMaterial.url
-    });
+      title: newMaterial.title
+    };
+    if (newMaterial.type === 'text') {
+      updateData.content = newMaterial.content;
+      updateData.url = undefined;
+      updateData.fileData = undefined;
+      updateData.fileName = undefined;
+    } else if (newMaterial.type === 'video' || newMaterial.type === 'link') {
+      updateData.url = newMaterial.url;
+      updateData.content = undefined;
+      updateData.fileData = undefined;
+      updateData.fileName = undefined;
+    } else if (newMaterial.type === 'file') {
+      if (newMaterial.file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          updateData.fileData = reader.result;
+          updateData.fileName = newMaterial.file?.name;
+          updateData.content = undefined;
+          updateData.url = undefined;
+          
+          const success = mockCourseService.updateMaterial(editingMaterial.id, updateData);
+          if (success) {
+            loadContent();
+            if (selectedTask) {
+              loadTaskMaterials(selectedTask.id);
+            }
+            setIsMaterialModalOpen(false);
+            resetMaterialForm();
+            toast.success('Material atualizado com sucesso', {
+              description: 'As alterações foram salvas e aplicadas ao material.'
+            });
+          } else {
+            toast.error('Erro ao atualizar material', {
+              description: 'Não foi possível salvar as alterações. Tente novamente.'
+            });
+          }
+        };
+        reader.readAsDataURL(newMaterial.file);
+        return;
+      } else {
+        updateData.content = undefined;
+        updateData.url = undefined;
+      }
+    }
+
+    const success = mockCourseService.updateMaterial(editingMaterial.id, updateData);
 
     if (success) {
       loadContent();
+      if (selectedTask) {
+        loadTaskMaterials(selectedTask.id);
+      }
       setIsMaterialModalOpen(false);
       resetMaterialForm();
       toast.success('Material atualizado com sucesso', {
@@ -546,9 +601,9 @@ export default function GerenciarConteudo() {
           <p className="text-gray-600 mt-2">Organize trilhas de conhecimento, tarefas e materiais</p>
           </div>
         <Button onClick={() => setIsTrailModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Trilha
-          </Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Trilha
+        </Button>
       </div>
 
       <div className="flex gap-4">
@@ -663,6 +718,21 @@ export default function GerenciarConteudo() {
                                     >
                                       <Plus className="h-4 w-4 mr-1" />
                                       Material
+                                    </Button>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                      onClick={() => {
+                                        setSelectedTaskForSubmissions({
+                                          id: task.id,
+                                          title: task.title
+                                        });
+                                        setIsSubmissionsModalOpen(true);
+                                      }}
+                                    >
+                                      <Users className="h-4 w-4 mr-1" />
+                                      Entregas
                                     </Button>
                                     <Button 
                                       variant="outline" 
@@ -1668,6 +1738,22 @@ export default function GerenciarConteudo() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Entregas dos Alunos */}
+      {selectedTaskForSubmissions && (
+        <StudentSubmissionsModal
+          isOpen={isSubmissionsModalOpen}
+          onClose={() => {
+            setIsSubmissionsModalOpen(false);
+            setSelectedTaskForSubmissions(null);
+          }}
+          taskId={selectedTaskForSubmissions.id}
+          taskTitle={selectedTaskForSubmissions.title}
+        />
+      )}
+
+      {/* Quick Actions */}
+      <QuickActions />
     </div>
   );
 }
