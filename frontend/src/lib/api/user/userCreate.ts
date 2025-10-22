@@ -1,7 +1,7 @@
 "use server"
 import { UserRegister } from "@/lib/interfaces/userInterfaces"
 import getApiBaseUrl from "@/lib/api/api";
-import { getTokenFromSession } from "@/lib/auth/jwtAuth";
+import getTokenFromSession from "@/lib/auth/jwtAuth.server";
 
 export default async function createUser(userData: UserRegister, role: string, image: File | null) {
     const base = getApiBaseUrl();

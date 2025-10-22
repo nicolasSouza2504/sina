@@ -17,6 +17,7 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/compon
 import {EditStudentSituationModal} from "@/components/admin/students/EditStudentSituationModal";
 import QuickActions from "@/components/admin/quickActions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { toast } from "sonner"
 
 export default function StudentsManagement() {
     const [students, setStudents] = useState<UserData[]>([])
@@ -171,7 +172,7 @@ export default function StudentsManagement() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background w-full">
             {error && (
                 <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 md:w-1/2 lg:w-1/3">
                     <Alert
@@ -193,7 +194,7 @@ export default function StudentsManagement() {
             )}
 
             <header className="border-b bg-card mb-6">
-                <div className="flex h-16 items-center justify-between px-4 md:px-6 lg:px-8 max-w-[95%] mx-auto w-full">
+                <div className="flex h-16 items-center justify-between px-4 md:px-2 lg:px-8 max-w-[95%] mx-auto w-full">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gerenciamento de Alunos</h1>
                         <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Universidade de Tecnologia - Sistema de Gestão</p>
@@ -208,7 +209,7 @@ export default function StudentsManagement() {
                 </div>
             </header>
 
-            <main className="md:px-6 lg:px-8 pb-8 space-y-6 max-w-[95%] mx-auto w-full">
+            <main className="md:px-2 lg:px-8 pb-8 space-y-6 max-w-[95%] mx-auto w-full">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -453,7 +454,7 @@ export default function StudentsManagement() {
                                 <div className="md:hidden space-y-4">
                                     {filteredStudents.map((student) => (
                                         <Card key={student?.id} className="overflow-hidden">
-                                            <CardContent className="p-4">
+                                            <CardContent>
                                                 <div className="flex items-start gap-3 mb-3">
                                                     <Avatar className="h-12 w-12">
                                                         <AvatarFallback>
@@ -476,8 +477,19 @@ export default function StudentsManagement() {
                                                 <div className="space-y-2 mb-3">
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-sm font-medium text-muted-foreground min-w-[60px] flex-shrink-0">Email:</span>
-                                                        <div className="flex-1 overflow-x-auto">
+                                                        <div className="flex-1 flex items-center gap-2 overflow-x-auto">
                                                             <span className="text-sm whitespace-nowrap">{student?.email}</span>
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="sm" 
+                                                                className="h-6 w-6 p-0 flex-shrink-0"
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(student?.email || '');
+                                                                    toast.success('Email copiado para a área de transferência');
+                                                                }}
+                                                            >
+                                                                <Mail className="h-4 w-4" />
+                                                            </Button>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2">
@@ -670,7 +682,15 @@ export default function StudentsManagement() {
                             </Card>
 
                             {/* Ações */}
-                            <div className="flex gap-3 pt-4 border-t">
+                            <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
+                                <Button 
+                                    className="flex-1" 
+                                    variant="outline"
+                                    onClick={() => setIsDetailModalOpen(false)}
+                                >
+                                    <X className="h-4 w-4 mr-2" />
+                                    Fechar
+                                </Button>
                                 <Button 
                                     className="flex-1" 
                                     variant="outline"
@@ -680,11 +700,11 @@ export default function StudentsManagement() {
                                     }}
                                 >
                                     <Edit className="h-4 w-4 mr-2" />
-                                    Editar Aluno
+                                    Editar
                                 </Button>
                                 <Button 
                                     className="flex-1" 
-                                    variant="outline"
+                                    variant="default"
                                     onClick={() => {
                                         setIsDetailModalOpen(false);
                                         handleStudentSituationEdit(selectedUser);

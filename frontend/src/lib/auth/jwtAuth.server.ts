@@ -1,7 +1,7 @@
 import {cookies} from "next/headers"
 import {AuthPayload} from "./jwtAuth"
 
-export async function getTokenFromSession() {
+export default async function getTokenFromSession() {
     const cookiesStore = await cookies();
     let token = normalizeToken(cookiesStore.get('token')?.value);
     return token?.startsWith("Bearer ") ? token : `Bearer ${token}`;

@@ -198,7 +198,7 @@ export function AppSidebar() {
             <div>
               <h2>{user?.nome}</h2>
               <p className="text-xs text-gray-300">
-                {user?.roles?.[0] === 'TEACHER' ? 'PROFESSOR' : user?.roles?.[0] || 'USER'}
+                {user?.role.name === 'TEACHER' ? 'PROFESSOR' : user?.role.name || 'USER'}
               </p>
             </div>
             <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
