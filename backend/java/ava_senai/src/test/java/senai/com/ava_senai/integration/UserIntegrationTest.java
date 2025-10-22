@@ -11,7 +11,7 @@ import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import senai.com.ava_senai.config.TestConfig;
-import senai.com.ava_senai.domain.Role.Role;
+import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.UserLogin;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseDTO;
@@ -63,7 +63,7 @@ class UserIntegrationTest {
 
 	private void loginAndRetrieveToken() {
 
-		UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin@65468*/62.98+/*52989856*//*/");
+		UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin");
 
 		token = given()
 				.contentType(ContentType.JSON)
@@ -87,7 +87,7 @@ class UserIntegrationTest {
 				.header("Authorization", "Bearer " + token)
 				.contentType(ContentType.MULTIPART)
 				.multiPart("user", mapper.writeValueAsString(userRegisterDTO))
-				.multiPart("image", new File("src/test/resources/img/7.jpg"))
+				.multiPart("image", new File("src/test/resources/img/10.png"))
 				.when()
 				.post("/add/USER")
 				.then()
@@ -104,7 +104,7 @@ class UserIntegrationTest {
 		assertNotNull(userResponseData.id());
 		assertEquals(userRegisterDTO.getName(), userResponseData.nome());
 		assertEquals(userRegisterDTO.getEmail(), userResponseData.email());
-		assertTrue(userResponseData.roles().contains("USER"));
+		assertTrue(userResponseData.role().getName().contains("USER"));
 
 	}
 
@@ -134,7 +134,7 @@ class UserIntegrationTest {
 		assertNotNull(userResponseData.id());
 		assertEquals(userRegisterDTO.getName(), userResponseData.nome());
 		assertEquals(userRegisterDTO.getEmail(), userResponseData.email());
-		assertTrue(userResponseData.roles().contains("USER"));
+		assertTrue(userResponseData.role().getName().contains("USER"));
 
 	}
 
@@ -152,7 +152,7 @@ class UserIntegrationTest {
 				.header("Authorization", "Bearer " + token)
 				.contentType(ContentType.MULTIPART)
 				.multiPart("user", mapper.writeValueAsString(userRegisterDTO))
-				.multiPart("image", new File("src/test/resources/img/7.jpg"))
+				.multiPart("image", new File("src/test/resources/img/10.png"))
 				.when()
 				.put("/update/{userId}", userResponseData.id())
 				.then()
@@ -169,7 +169,7 @@ class UserIntegrationTest {
 		assertNotNull(userResponseData.id());
 		assertEquals(userRegisterDTO.getName(), userResponseData.nome());
 		assertEquals(userRegisterDTO.getEmail(), userResponseData.email());
-		assertTrue(userResponseData.roles().contains("USER"));
+		assertTrue(userResponseData.role().getName().contains("USER"));
 
 	}
 

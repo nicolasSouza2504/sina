@@ -3,13 +3,15 @@ package senai.com.ava_senai.services.clazz;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import senai.com.ava_senai.domain.turma.Class;
-import senai.com.ava_senai.domain.turma.ClassRegisterDTO;
-import senai.com.ava_senai.domain.turma.ClassResponseDTO;
+import org.springframework.util.CollectionUtils;
+import senai.com.ava_senai.domain.course.clazz.Class;
+import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
+import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 import senai.com.ava_senai.exception.AlreadyExistsException;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
-import senai.com.ava_senai.repository.TurmaRepository;
+import senai.com.ava_senai.repository.ClassRepository;
+import senai.com.ava_senai.repository.UserClassRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,23 +20,28 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ClassService implements IClassService {
 
-    private final TurmaRepository turmaRepository;
+    private final ClassRepository classRepository;
+
+    private final UserClassRepository userClassRepository;
 
     @Override
     public ClassResponseDTO createClass(ClassRegisterDTO classRegisterDTO) {
 
         return Optional.of(classRegisterDTO)
-                .filter(turma -> !turmaRepository.existsByName(classRegisterDTO.name()))
+                .filter(turma -> !classRepository.existsByName(classRegisterDTO.name()))
                 .map(registro -> {
 
                     Class clazz = new Class();
 
                     clazz.setName(classRegisterDTO.name());
                     clazz.setStartDate(classRegisterDTO.startDate());
-                    clazz.setFinalDate(classRegisterDTO.finalDate());
+                    clazz.setEndDate(classRegisterDTO.endDate());
                     clazz.setImgClass(classRegisterDTO.imgClass());
+                    clazz.setCourseId(classRegisterDTO.courseId());
+                    clazz.setSemester(classRegisterDTO.semester());
+                    clazz.setCode(classRegisterDTO.code());
 
-                    clazz = turmaRepository.save(clazz);
+                    clazz = classRepository.save(clazz);
 
                     return new ClassResponseDTO(clazz);
 
@@ -45,7 +52,7 @@ public class ClassService implements IClassService {
     @Override
     public List<ClassResponseDTO> getTurmas() {
 
-        return Optional.of(turmaRepository.findAll()
+        return Optional.of(classRepository.findAll()
                         .stream()
                         .map(ClassResponseDTO::new).toList())
                 .filter(list -> !list.isEmpty())
@@ -57,8 +64,8 @@ public class ClassService implements IClassService {
     public ClassResponseDTO getTurmaById(Long turmaId) {
 
         return Optional.of(turmaId)
-                .filter(turma -> turmaRepository.existsById(turmaId))
-                .map(turma -> new ClassResponseDTO(turmaRepository.getReferenceById(turmaId)))
+                .filter(turma -> classRepository.existsById(turmaId))
+                .map(turma -> new ClassResponseDTO(classRepository.getReferenceById(turmaId)))
                 .orElseThrow(() -> new NotFoundException("Turma não econtrada pelo id:" + turmaId + "!"));
 
     }
@@ -67,10 +74,10 @@ public class ClassService implements IClassService {
     @Transactional
     public ClassResponseDTO updateClass(ClassRegisterDTO clazzEdit, Long turmaId) {
 
-        Class clazz = turmaRepository.findById(turmaId)
+        Class clazz = classRepository.findById(turmaId)
                 .orElseThrow(() -> new NotFoundException("Turma para edição não encontrada!"));
 
-        boolean existsWithSameNome = turmaRepository.existsByNameLikeAndIdNot(clazzEdit.name(), turmaId);
+        boolean existsWithSameNome = classRepository.existsByNameLikeAndIdNot(clazzEdit.name(), turmaId);
 
         if (existsWithSameNome) {
             throw new AlreadyExistsException("Turma com esse Nome já existe");
@@ -78,10 +85,12 @@ public class ClassService implements IClassService {
 
         clazz.setName(clazzEdit.name());
         clazz.setStartDate(clazzEdit.startDate());
-        clazz.setFinalDate(clazzEdit.finalDate());
+        clazz.setEndDate(clazzEdit.endDate());
         clazz.setImgClass(clazzEdit.imgClass());
+        clazz.setSemester(clazzEdit.semester());
+        clazz.setCode(clazzEdit.code());
 
-        turmaRepository.save(clazz);
+        classRepository.save(clazz);
 
         return new ClassResponseDTO(clazz);
 
@@ -90,12 +99,23 @@ public class ClassService implements IClassService {
     @Override
     public void deleteTurma(Long turmaId) {
 
-        turmaRepository.findById(turmaId)
-                .ifPresentOrElse(turmaRepository::delete,
+        classRepository.findById(turmaId)
+                .ifPresentOrElse(this::delete,
                         () -> {
                             throw new NotFoundException("Turma para deletar não encontrada");
                         });
 
     }
+
+    public void delete(Class clazz) {
+
+        if (!CollectionUtils.isEmpty(clazz.getUserClasses())) {
+            clazz.getUserClasses().stream().forEach(classUser -> userClassRepository.delete(classUser));
+        }
+
+        classRepository.delete(clazz);
+
+    }
+
 
 }

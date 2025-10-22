@@ -1,20 +1,21 @@
 package senai.com.ava_senai.controller;
 
 import com.google.gson.Gson;
+import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import senai.com.ava_senai.domain.Role.Role;
-import senai.com.ava_senai.domain.Role.Roles;
-import senai.com.ava_senai.domain.user.UserRegisterDTO;
-import senai.com.ava_senai.domain.user.UserResponseDTO;
+import senai.com.ava_senai.domain.user.*;
+import senai.com.ava_senai.domain.user.role.Role;
+import senai.com.ava_senai.domain.user.role.Roles;
+import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.UserAlreadyExistsException;
 import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.repository.RolesRepository;
-import senai.com.ava_senai.repository.UserRepository;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.user.IUserService;
 
@@ -25,7 +26,6 @@ public class UserController {
 
     private final IUserService iUserService;
     private final RolesRepository rolesRepository;
-    private final UserRepository userRepository;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getUserById(@PathVariable @Valid Long id) {
@@ -46,7 +46,7 @@ public class UserController {
     @PostMapping("add/{role}")
     public ResponseEntity<ApiResponse> addUser(@PathVariable("role") Roles role,
                                                @Valid @RequestParam String user,
-                                               @RequestParam("image") MultipartFile image) {
+                                               @RequestParam("image")@Nullable MultipartFile image) {
 
         try {
 
@@ -69,7 +69,7 @@ public class UserController {
     @PutMapping("update/{userId}")
     public ResponseEntity<ApiResponse> addUser(@PathVariable("userId") Long userId,
                                                @Valid @RequestParam String user,
-                                               @RequestParam("image") MultipartFile image) {
+                                               @RequestParam(value = "image", required = false) MultipartFile image) {
 
         try {
 
@@ -91,8 +91,25 @@ public class UserController {
     }
 
     @GetMapping("/list-all")
-    public ResponseEntity<ApiResponse> listAll() {
-        return ResponseEntity.ok().body(new ApiResponse("Usuários", userRepository.findAll()));
+    public ResponseEntity<ApiResponse> listAll(@ModelAttribute UserFinderDTO finder) {
+        try {
+            return ResponseEntity.ok().body(new ApiResponse("Usuários", iUserService.getAllUsers(finder)));
+        } catch (NullListException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        }
+    }
+
+    @PatchMapping("/status/{userId}")
+    public ResponseEntity<ApiResponse> status(@PathVariable("userId") Long userId, @RequestBody UserStatusDTO userStatusDTO) {
+
+        try {
+            return ResponseEntity.ok().body(new ApiResponse("Sucesso!", iUserService.changeUserStatus(userId, UserStatus.valueOf(userStatusDTO.getStatus()))));
+        } catch (NullListException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(new ApiResponse("Status não existe: \"" + userStatusDTO.getStatus() + "\"", null));
+        }
+
     }
 
 }

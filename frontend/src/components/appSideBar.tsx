@@ -1,12 +1,13 @@
 "use client";
 import {
-  BookOpen,
   ChartBarDecreasing,
   GraduationCap,
   School,
   SettingsIcon,
   UserPen,
   Users,
+  FolderOpen,
+  BookOpen,
 } from "lucide-react";
 
 import {
@@ -20,6 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,41 +33,72 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { UserFromToken } from "@/lib/interfaces/userInterfaces";
 
-const items = [
+// Sidebar personalizada para professores (inclui funcionalidades originais + criação de conteúdo)
+const teacherItems = [
+  {
+    title: "Dashboard",
+    url: "/professor/dashboard",
+    icon: GraduationCap,
+  },
   {
     title: "Turmas",
-    url: "/turmas",
+    url: "/admin/class",
     icon: School,
   },
   {
     title: "Cursos",
-    url: "/cursos",
+    url: "/professor/cursos",
+    icon: FolderOpen,
+  },
+  {
+    title: "Conteúdo",
+    url: "/professor/conteudo",
     icon: BookOpen,
   },
   {
     title: "Alunos",
-    url: "/alunos",
+    url: "/admin/students",
     icon: Users,
-  },
-  {
-    title: "Professores",
-    url: "/professores",
-    icon: GraduationCap,
   },
   {
     title: "Ranking",
     url: "/ranking",
     icon: ChartBarDecreasing,
   },
+];
+
+// Sidebar original (para ADMIN e USER)
+const items = [
   {
-    title: "Admin",
-    url: "/admin",
+    title: "Dashboard",
+    url: "/home",
     icon: SettingsIcon,
+  },
+  {
+    title: "Turmas",
+    url: "/admin/class",
+    icon: School,
+  },
+  {
+    title: "Cursos",
+    url: "/cursos",
+    icon: FolderOpen,
+  },
+  {
+    title: "Alunos",
+    url: "/admin/students",
+    icon: Users,
+  },
+  {
+    title: "Ranking",
+    url: "/ranking",
+    icon: ChartBarDecreasing,
   },
 ];
 
 export function AppSidebar() {
   const [user, setUser] = useState<UserFromToken | undefined | null>(null);
+  const { setOpenMobile, isMobile } = useSidebar();
 
   const router = useRouter();
   async function handleSignout() {
@@ -96,9 +129,37 @@ export function AppSidebar() {
     userDecoded();
   }, []);
 
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
+  // Get navigation items based on user role
+  const getNavigationItems = () => {
+    if (user?.role.name == "USER") return items;
+    
+    // Professores têm sidebar personalizada
+    if (user?.role.name == "TEACHER") {
+      return teacherItems;
+    }
+    
+    // Admin tem dashboard específico
+    if (user?.role.name == "ADMIN") {
+      const adminItems = [...items];
+      adminItems[0].url = "/admin"; // Dashboard aponta para /admin
+      return adminItems;
+    }
+    
+    // Usuários comuns mantêm sidebar original
+    return items;
+  };
+
+  const navigationItems = getNavigationItems();
+
   return (
     <Sidebar>
-      <SidebarContent className="h-screen bg-sky-800 text-white">
+      <SidebarContent className="h-screen bg-sky-600 text-white">
         <div className="flex h-full justify-between pt-4">
           <SidebarGroup>
             <SidebarGroupLabel className="flex font-bold justify-center text-1xl my-5">
@@ -106,7 +167,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent className="flex flex-col justify-center gap-5 pt-5">
               <SidebarMenu className="flex flex-col gap-3">
-                {items.map((item) => (
+                {navigationItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
@@ -114,6 +175,7 @@ export function AppSidebar() {
                     >
                       <Link
                         href={item.url}
+                        onClick={handleLinkClick}
                         className="flex items-center gap-2 p-2 hover:bg-sky-500 hover:text-white rounded-md text-xl text-center"
                       >
                         <item.icon className="size-2" />
@@ -128,15 +190,23 @@ export function AppSidebar() {
           <SidebarTrigger className="hover:bg-transparent hover:text-white"></SidebarTrigger>
         </div>
         <div className="mt-auto">
-          <div className="flex justify-between items-center py-3 mb-2 gap-6 px-3 border-2 rounded-2xl mx-1">
+          <div className="flex justify-between items-center py-3 mb-2 gap-6 px-3  rounded-2xl mx-1">
             <Avatar>
               <AvatarImage src="https://github.com/shadcn.png" />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
             <div>
               <h2>{user?.nome}</h2>
+              <p className="text-xs text-gray-300">
+                {user?.role.name === 'TEACHER' ? 'PROFESSOR' : user?.role.name || 'USER'}
+              </p>
             </div>
-            <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer">
+            <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
+            onClick={() => {
+              router.push("/user/profile");
+              handleLinkClick();
+            }}
+            >
               <UserPen className=" size-6" />
             </Button>
           </div>

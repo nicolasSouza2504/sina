@@ -13,8 +13,8 @@ import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import senai.com.ava_senai.config.TestConfig;
-import senai.com.ava_senai.domain.turma.ClassRegisterDTO;
-import senai.com.ava_senai.domain.turma.ClassResponseDTO;
+import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
+import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 import senai.com.ava_senai.domain.user.UserLogin;
 import senai.com.ava_senai.response.ApiResponse;
 
@@ -53,11 +53,11 @@ class ClassIntegrationTest {
         // Perform login and retrieve token
         loginAndRetrieveToken();
 
-        classRegisterDTO = new ClassRegisterDTO("Test Class", LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "class_image.jpg");
+        classRegisterDTO = new ClassRegisterDTO("Test Class", 1L,  LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "class_image.jpg", "cide", 1);
     }
 
     private void loginAndRetrieveToken() {
-        UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin@65468*/62.98+/*52989856*//*/");
+        UserLogin loginRequest = new UserLogin("admin@gmail.com", "admin");
 
         token = given()
                 .contentType(ContentType.JSON)
@@ -123,7 +123,7 @@ class ClassIntegrationTest {
     @Order(3)
     @DisplayName("Integration test given a ClassRegister when update should return a class response data with right properties")
     void integrationTestGivenClassRegisterWhenUpdateShouldReturnClassResponseData() throws Throwable {
-        classRegisterDTO = new ClassRegisterDTO("Updated Class", LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "updated_image.jpg");
+        classRegisterDTO = new ClassRegisterDTO("Updated Class",1L, LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "updated_image.jpg", "codeup", 2);
 
         String response = given()
                 .spec(specification)

@@ -4,6 +4,8 @@ export interface UserRegister {
     name: string;
     email: string;
     password: string;
+    cpf: number|string
+    idInstitution: number
 }
 
 export interface UserRegisterForm {
@@ -15,10 +17,22 @@ export interface UserRegisterForm {
 }
 
 export interface User {
-    id: Number;
+    id: number;
     name: string;
     email: string;
     role: Role;
+    institutionName: string
+    cpf: string
+}
+
+export interface UserData {
+    id: number;
+    nome: string;
+    email: string;
+    role: Role;
+    institutionName: string;
+    cpf: string
+    status?: string
 }
 
 export interface UserLoginData {
@@ -31,5 +45,15 @@ export interface UserFromToken {
     id: number,
     email: string,
     nome: string,
-    roles: Array<string>
+    role: Role
+    institutionName: string
+    cpf: string
+}
+
+export interface UserUpdate {
+    name?: string;
+    email?: string;
+    password?: string;
+    role?: string;
+    cpf?: string
 }

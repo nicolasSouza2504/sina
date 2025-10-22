@@ -7,7 +7,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import senai.com.ava_senai.domain.DefaultEntity;
-import senai.com.ava_senai.domain.Role.Role;
+import senai.com.ava_senai.domain.course.institution.Institution;
+import senai.com.ava_senai.domain.user.address.Address;
+import senai.com.ava_senai.domain.user.role.Role;
+import senai.com.ava_senai.domain.user.userclass.UserClass;
+import senai.com.ava_senai.taskuser.TaskUser;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -30,6 +36,19 @@ public class User extends DefaultEntity {
     @JoinColumn(name = "role_id", referencedColumnName = "id", updatable = false, insertable = false, foreignKey = @ForeignKey(name = "fk_user_role"))
     private Role role;
 
+    @Column(name = "user_status")
+    private UserStatus userStatus;
+
+    @ManyToOne
+    @JoinColumn(name = "address_id")
+    private Address address;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserClass> userClasses;
+
+    @OneToMany(mappedBy = "user")
+    private List<TaskUser> taskUsers;
+
     @Column(name = "role_id")
     private Long roleId;
 
@@ -38,6 +57,10 @@ public class User extends DefaultEntity {
 
     @Column(name = "name_image")
     private String nameImage;
+
+    @ManyToOne
+    @JoinColumn(name = "id_institution", referencedColumnName = "id",updatable = false, insertable = false, foreignKey = @ForeignKey(name = "fk_user_institution") )
+    private Institution institution;
 
     @PrePersist
     @PreUpdate

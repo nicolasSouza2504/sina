@@ -8,7 +8,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import senai.com.ava_senai.domain.Role.Role;
+import senai.com.ava_senai.domain.user.UserFinderDTO;
+import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseDTO;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.when;
 class UserServiceTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserRepository UserRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -58,7 +59,7 @@ class UserServiceTest {
     @Test
     @DisplayName("Given userId when getUserById should return response data")
     void givenUserIdWhenGetUserByIdShouldReturnUserResponseDTO() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(UserRepository.findById(1L)).thenReturn(Optional.of(user));
 
         UserResponseDTO response = userService.getUserByid(1L);
 
@@ -71,7 +72,7 @@ class UserServiceTest {
     @Test
     @DisplayName("Given invalid userId when getUserById should throw UserNotFoundException")
     void givenInvalidUserIdWhenGetUserByIdShouldThrowUserNotFoundException() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(UserRepository.findById(1L)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(UserNotFoundException.class, () -> userService.getUserByid(1L));
 
@@ -81,9 +82,9 @@ class UserServiceTest {
     @Test
     @DisplayName("Given users when getAllUsers should return list of UserResponseDTO")
     void givenUsersWhenGetAllUsersShouldReturnUserResponseDTOList() {
-        when(userRepository.findAll()).thenReturn(List.of(user));
+        when(UserRepository.findAll()).thenReturn(List.of(user));
 
-        List<UserResponseDTO> users = userService.getAllUsers();
+        List<UserResponseDTO> users = userService.getAllUsers(new UserFinderDTO(1l, null, null, null));
 
         assertNotNull(users);
         assertEquals(1, users.size());
@@ -93,9 +94,9 @@ class UserServiceTest {
     @Test
     @DisplayName("Given no users when getAllUsers should throw NullListException")
     void givenNoUsersWhenGetAllUsersThenThrowNullListException() {
-        when(userRepository.findAll()).thenReturn(List.of());
+        when(UserRepository.findAll()).thenReturn(List.of());
 
-        Exception exception = assertThrows(NullListException.class, () -> userService.getAllUsers());
+        Exception exception = assertThrows(NullListException.class, () -> userService.getAllUsers(new UserFinderDTO(1l, null, null, null)));
 
         assertEquals("Lista de Usuarios Vazia", exception.getMessage());
     }
@@ -103,9 +104,9 @@ class UserServiceTest {
     @Test
     @DisplayName("Given user register when createUser should return UserResponseDTO")
     void givenUserRegisterWhenCreateUserShouldReturnUserResponseDTO() {
-        when(userRepository.existsByEmail(userRegisterDTO.getEmail())).thenReturn(false);
+        when(UserRepository.existsByEmail(userRegisterDTO.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(userRegisterDTO.getPassword())).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(UserRepository.save(any(User.class))).thenReturn(user);
 
         UserResponseDTO response = userService.createUser(userRegisterDTO);
 
@@ -118,7 +119,7 @@ class UserServiceTest {
     @Test
     @DisplayName("Given existing email when createUser should throw UserAlreadyExistsException")
     void givenExistingEmailWhenCreateUserShouldThrowUserAlreadyExistsException() {
-        when(userRepository.existsByEmail(userRegisterDTO.getEmail())).thenReturn(true);
+        when(UserRepository.existsByEmail(userRegisterDTO.getEmail())).thenReturn(true);
 
         Exception exception = assertThrows(UserAlreadyExistsException.class, () -> userService.createUser(userRegisterDTO));
 
@@ -128,9 +129,9 @@ class UserServiceTest {
     @Test
     @DisplayName("Given user register and userId when updateUser should return UserResponseDTO")
     void givenUserRegisterAndUserIdWhenUpdateUserShouldReturnUserResponseDTO() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(UserRepository.findById(1L)).thenReturn(Optional.of(user));
         when(passwordEncoder.encode(userRegisterDTO.getPassword())).thenReturn("newEncodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(UserRepository.save(any(User.class))).thenReturn(user);
 
         UserResponseDTO response = userService.updateUser(userRegisterDTO, 1L);
 
@@ -143,7 +144,7 @@ class UserServiceTest {
     @Test
     @DisplayName("Given invalid userId when updateUser should throw UserNotFoundException")
     void givenInvalidUserIdWhenUpdateUserThenThrowUserNotFoundException() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(UserRepository.findById(1L)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(UserNotFoundException.class, () -> userService.updateUser(userRegisterDTO, 1L));
 
@@ -156,8 +157,8 @@ class UserServiceTest {
 
         userRegisterDTO.setEmail("newEmail@gmail.com");
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepository.existsByEmail(userRegisterDTO.getEmail())).thenReturn(true);
+        when(UserRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(UserRepository.existsByEmail(userRegisterDTO.getEmail())).thenReturn(true);
 
         Exception exception = assertThrows(UserAlreadyExistsException.class, () -> userService.updateUser(userRegisterDTO, 1L));
 

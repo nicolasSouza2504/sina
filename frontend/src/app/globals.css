@@ -116,7 +116,23 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Custom sidebar styles */
+@layer components {
+  [data-sidebar="sidebar"] {
+    height: 100vh !important;
+  }
+
+  [data-sidebar="sidebar"][data-state="collapsed"] {
+    height: 100vh !important;
+  }
+
+  [data-sidebar="sidebar"][data-state="expanded"] {
+    height: 100vh !important;
   }
 }

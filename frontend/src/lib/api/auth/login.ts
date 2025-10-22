@@ -13,12 +13,15 @@ export default async function login(userLoginData: UserLoginData): Promise<AuthL
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userLoginData),
         })
-        console.log(response);
+        
         if (!response.ok) {
             const errorResponse:string = await response.text();
-            const errorData: loginError = JSON.parse(errorResponse);
-            console.log(errorData.message)
-            throw new Error(errorData.message);
+            try {
+                const errorData: loginError = JSON.parse(errorResponse);
+                throw new Error(errorData.message || 'Erro de autenticação');
+            } catch (parseError) {
+                throw new Error('Erro de comunicação com o servidor');
+            }
         }
         const authLoginResponse: AuthLoginResponse = await response.json()
 

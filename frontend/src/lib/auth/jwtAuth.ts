@@ -1,4 +1,4 @@
-import { UserFromToken } from "../interfaces/userInterfaces"
+import {UserFromToken} from "../interfaces/userInterfaces"
 
 export type AuthPayload = {
     sub: string
@@ -34,7 +34,35 @@ export function decodeJwt(token: string | undefined | null): AuthPayload | null 
 }
 
 export function hasAnyRole(payload: AuthPayload | null, required: string | string[]): boolean {
-    if (!payload?.role?.length) return false
+    if (!payload?.role) return false
+    
+    const userRoles = Array.isArray(payload.role) ? payload.role : [payload.role]
     const req = Array.isArray(required) ? required : [required]
-    return req.some(r => payload.role!.includes(r))
+    
+    return req.some(r => userRoles.includes(r))
 }
+
+// Função para obter token do localStorage (Client Component)
+export function getTokenFromLocalStorage(): string | null {
+    if (typeof window === 'undefined') return null;
+    const token = localStorage.getItem('token');
+    return token ? `Bearer ${token}` : null;
+}
+
+function normalizeToken(raw?: string | null): string | null {
+    if (!raw) return null;
+    let t = raw.trim();
+
+    // remove aspas acidentais no cookie (ex: token salvo como string JSON)
+    if (t.startsWith('"') && t.endsWith('"')) {
+        t = t.slice(1, -1);
+    }
+
+    // remove prefixo Bearer duplicado se houver
+    if (t.toLowerCase().startsWith('bearer ')) {
+        t = t.slice(7).trim();
+    }
+
+    return t;
+}
+
