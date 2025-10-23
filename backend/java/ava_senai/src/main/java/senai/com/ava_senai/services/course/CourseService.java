@@ -10,11 +10,13 @@ import senai.com.ava_senai.domain.course.Course;
 import senai.com.ava_senai.domain.course.CourseRegisterDTO;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
 import senai.com.ava_senai.domain.course.clazz.Class;
+import senai.com.ava_senai.domain.course.section.Section;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.ClassRepository;
 import senai.com.ava_senai.repository.CourseRepository;
+import senai.com.ava_senai.repository.SectionRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,7 @@ public class CourseService implements ICourseService {
 
     private final CourseRepository courseRepository;
     private final ClassRepository classRepository;
+    private final SectionRepository sectionRepository;
 
     @Override
     public CourseResponseDTO getCourseById(Long id) {
@@ -63,10 +66,33 @@ public class CourseService implements ICourseService {
 
                     course = courseRepository.save(course);
 
-                    return new CourseResponseDTO(course);
+                    List<Section> sectionsDefault = saveDefaultSections(course);
+
+                    return new CourseResponseDTO(course, sectionsDefault);
 
                 })
                 .orElseThrow(() -> new Exception("Oops! Course already exists!"));
+
+    }
+
+    @Transactional
+    public List<Section> saveDefaultSections(Course course) {
+
+        List<Section> defaultSections = new ArrayList<>();
+
+        for (Integer i = 1; i <= course.getQuantitySemester(); i++) {
+
+            Section section = new Section();
+
+            section.setSemester(i);
+            section.setCourseId(course.getId());
+            section.setName(i + "º Semestre");
+
+            defaultSections.add(sectionRepository.save(section));
+
+        }
+
+        return defaultSections;
 
     }
 
