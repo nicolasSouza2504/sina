@@ -1,3 +1,8 @@
+export interface ClassCourse {
+    id: number
+    name: string
+}
+
 export interface Class {
     id: number
     code: string | null
@@ -5,8 +10,9 @@ export interface Class {
     startDate: string | null
     endDate: string | null
     semester: number | null
-    courseId: number |null
+    courseId: number | null
     imgClass: string | null
+    course: ClassCourse | null
 }
 
 export interface CreateClass {

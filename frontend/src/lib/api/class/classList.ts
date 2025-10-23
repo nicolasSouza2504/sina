@@ -39,8 +39,12 @@ export default async function ClassList() {
         startDate: cls.startDate,
         endDate: cls.finalDate || cls.endDate,
         semester: cls.semester || null,
-        courseId: cls.courseId || null,
-        imgClass: cls.imgClass
+        courseId: cls.course?.id || cls.courseId || null,
+        imgClass: cls.imgClass,
+        course: cls.course ? {
+            id: cls.course.id,
+            name: cls.course.name
+        } : null
     })) || [];
     
     return mappedClasses;
