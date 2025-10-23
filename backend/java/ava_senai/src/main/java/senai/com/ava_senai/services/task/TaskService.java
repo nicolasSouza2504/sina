@@ -1,6 +1,7 @@
 package senai.com.ava_senai.services.task;
 
 import com.google.gson.Gson;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import senai.com.ava_senai.domain.task.*;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
 import senai.com.ava_senai.domain.user.User;
+import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.repository.TaskContentRepository;
 import senai.com.ava_senai.repository.TaskRepository;
 import senai.com.ava_senai.repository.TaskUserRepository;
@@ -32,7 +34,6 @@ public class TaskService implements ITaskService {
 
     @Override
     public TaskResponseDTO createTasks(TaskRegisterDTO taskRegister) {
-
 
         Task task = createTask(taskRegister);
 
@@ -67,6 +68,15 @@ public class TaskService implements ITaskService {
             }
 
         });
+
+    }
+
+    @Override
+    public TaskResponseDTO getTaskById(@Valid Long id) {
+
+        Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+
+        return new TaskResponseDTO(task);
 
     }
 
