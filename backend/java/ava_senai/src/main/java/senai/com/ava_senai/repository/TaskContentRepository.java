@@ -8,5 +8,4 @@ import java.util.Optional;
 
 @Repository
 public interface TaskContentRepository extends JpaRepository<TaskContent, Long> {
-    Optional<TaskContent> findByIdentifier(String identifier);
 }
