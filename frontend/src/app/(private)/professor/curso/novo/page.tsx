@@ -105,45 +105,48 @@ export default function NovoCurso() {
 
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => router.back()}>
+      <div className="space-y-4">
+        {/* Título e Descrição */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Adicionar Novo Curso</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Configure um novo curso com suas informações básicas</p>
+        </div>
+        
+        {/* Botões */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <Button variant="ghost" onClick={() => router.back()} className="w-full sm:w-auto">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Adicionar Novo Curso</h1>
-            <p className="text-gray-600 mt-2">Configure um novo curso com suas informações básicas</p>
-          </div>
+          <Button onClick={handleSave} disabled={isSubmitting} className="w-full sm:w-auto sm:ml-auto">
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Criando...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Criar Curso
+              </>
+            )}
+          </Button>
         </div>
-        <Button onClick={handleSave} disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Criando...
-            </>
-          ) : (
-            <>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Criar Curso
-            </>
-          )}
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Formulário Principal */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
           <Card>
-            <CardHeader>
+            <CardHeader className='ps-4'>
               <CardTitle>Informações do Curso</CardTitle>
               <CardDescription>
                 Configure os detalhes principais do curso
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 ps-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome do Curso *</Label>
                 <Input
@@ -213,27 +216,27 @@ export default function NovoCurso() {
         </div>
 
         {/* Sidebar com preview */}
-        <div className="space-y-6">
+        <div className="space-y-6 order-1 lg:order-2">
           <Card>
             <CardHeader>
               <CardTitle>Resumo do Curso</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className='ps-6'>
               <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-lg">
+                <div className="pb-3 border-b">
+                  <h3 className="font-semibold text-lg text-gray-900">
                     {formData.name || 'Nome do curso'}
                   </h3>
                 </div>
                 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Semestres:</span>
-                    <span className="font-medium">{formData.quantitySemester}</span>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600 font-medium">Semestres:</span>
+                    <span className="text-sm font-semibold text-gray-900">{formData.quantitySemester}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Duração:</span>
-                    <span className="font-medium">{Math.ceil(formData.quantitySemester / 2)} ano(s)</span>
+                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600 font-medium">Duração:</span>
+                    <span className="text-sm font-semibold text-gray-900">{Math.ceil(formData.quantitySemester / 2)} ano(s)</span>
                   </div>
                 </div>
               </div>

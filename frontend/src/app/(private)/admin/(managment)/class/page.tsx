@@ -550,7 +550,7 @@ export default function ClassesManagement() {
                                                         <TableHead>Imagem</TableHead>
                                                         <TableHead>Código</TableHead>
                                                         <TableHead>Nome da Turma</TableHead>
-                                                        <TableHead>Curso</TableHead>
+                                                        <TableHead className="text-center">Curso</TableHead>
                                                         <TableHead>QTD Semestres</TableHead>
                                                         <TableHead>Data de Início</TableHead>
                                                         <TableHead>Data de Término</TableHead>
@@ -583,7 +583,7 @@ export default function ClassesManagement() {
                                                                 <TableCell className="font-medium">
                                                                     {cls.nome || "Nome não disponível"}
                                                                 </TableCell>
-                                                                <TableCell>
+                                                                <TableCell className="text-center">
                                                                     {cls.course ? (
                                                                         <Button
                                                                             variant="ghost"
