@@ -244,10 +244,7 @@ export default function ProfessorDashboard() {
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCursos}</div>
-            <p className="text-xs text-muted-foreground">
-              +2 desde o mês passado
-            </p>
+            <div className="text-2xl font-bold text-left pl-4">{stats.totalCursos}</div>
           </CardContent>
         </Card>
 
@@ -257,10 +254,7 @@ export default function ProfessorDashboard() {
             <School className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalSemestres}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.turmasAtivas} turmas ativas
-            </p>
+            <div className="text-2xl font-bold text-left pl-4">{stats.totalSemestres}</div>
           </CardContent>
         </Card>
 
@@ -270,10 +264,7 @@ export default function ProfessorDashboard() {
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTrilhas}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.conteudoPendente} pendentes
-            </p>
+            <div className="text-2xl font-bold text-left pl-4">{stats.totalTrilhas}</div>
           </CardContent>
         </Card>
 
@@ -283,10 +274,7 @@ export default function ProfessorDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAlunos}</div>
-            <p className="text-xs text-muted-foreground">
-              +12 novos esta semana
-            </p>
+            <div className="text-2xl font-bold text-left pl-4">{stats.totalAlunos}</div>
           </CardContent>
         </Card>
       </div>
