@@ -111,6 +111,8 @@ export function AppSidebar() {
 
   const userDecoded = async () => {
     const user = await getUserFromToken();
+    console.log("User data from token:", user);
+    console.log("User role:", user?.role);
     if (user?.nome) {
       if (user.nome.length > 15) {
         const nameParts = user.nome.split(" ");
@@ -130,15 +132,15 @@ export function AppSidebar() {
 
   // Get navigation items based on user role
   const getNavigationItems = () => {
-    if (!user?.roles || user.roles.length === 0) return items;
+    if (!user?.role) return items;
     
     // Professores têm sidebar personalizada
-    if (user.roles.includes("TEACHER")) {
+    if (user.role.name === "TEACHER") {
       return teacherItems;
     }
     
     // Admin tem dashboard específico
-    if (user.roles.includes("ADMIN")) {
+    if (user.role.name === "ADMIN") {
       const adminItems = [...items];
       adminItems[0].url = "/admin"; // Dashboard aponta para /admin
       return adminItems;
@@ -190,12 +192,15 @@ export function AppSidebar() {
             <div>
               <h2>{user?.nome}</h2>
               <p className="text-xs text-gray-300">
-                {user?.roles?.[0] === 'TEACHER' ? 'PROFESSOR' : user?.roles?.[0] || 'USER'}
+                {user?.role?.name === 'TEACHER' ? 'PROFESSOR' : 
+                 user?.role?.name === 'ADMIN' ? 'ADMIN' :
+                 user?.role?.name === 'STUDENT' ? 'ESTUDANTE' :
+                 user?.role?.name || 'USER'}
               </p>
             </div>
             <div className="flex items-center gap-2">
               {/* Sininho de notificações - apenas para professores */}
-              {user?.roles?.includes("TEACHER") && <NotificationsBell />}
+              {user?.role?.name === "TEACHER" && <NotificationsBell />}
               <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
               onClick={() => router.push("/user/profile")}
               >
