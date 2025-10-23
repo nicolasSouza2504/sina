@@ -14,9 +14,6 @@ public class TaskContent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String identifier;
-
     @Column(name = "content_url")
     private String contentUrl;
 

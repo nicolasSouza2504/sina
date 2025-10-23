@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
+import senai.com.ava_senai.domain.course.CourseContentSummaryDTO;
 import senai.com.ava_senai.domain.course.CourseRegisterDTO;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
 import senai.com.ava_senai.exception.UserNotFoundException;
@@ -72,6 +73,21 @@ public class CourseController {
     @GetMapping
     public ResponseEntity<ApiResponse> listAll() {
         return ResponseEntity.ok().body(new ApiResponse("Cursos", courseService.getAllCourses()));
+    }
+
+    @GetMapping("/{id}/content-summary")
+    public ResponseEntity<ApiResponse> getCourseContentSummary(@PathVariable @Valid Long id) {
+
+        try {
+
+            CourseContentSummaryDTO courseContentSummary = courseService.getCourseContentSummaryById(id);
+
+            return ResponseEntity.ok().body(new ApiResponse("Resumo do conteúdo do curso", courseContentSummary));
+
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        }
+
     }
 
 }

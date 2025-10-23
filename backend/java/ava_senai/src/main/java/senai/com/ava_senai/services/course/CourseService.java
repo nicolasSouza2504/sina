@@ -7,6 +7,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.domain.course.Course;
+import senai.com.ava_senai.domain.course.CourseContentSummaryDTO;
 import senai.com.ava_senai.domain.course.CourseRegisterDTO;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
 import senai.com.ava_senai.domain.course.clazz.Class;
@@ -140,6 +141,16 @@ public class CourseService implements ICourseService {
 
                 })
                 .orElseThrow(() -> new NotFoundException("Curso não existe!"));
+
+    }
+
+    @Override
+    public CourseContentSummaryDTO getCourseContentSummaryById(Long id) {
+
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Curso não encontrado!"));
+
+        return new CourseContentSummaryDTO(course);
 
     }
 
