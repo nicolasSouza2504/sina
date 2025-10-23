@@ -14,3 +14,8 @@ export interface CreateCourse {
     name: string;
     quantitySemester: number;
 }
+
+export interface UpdateCourse {
+    name: string;
+    quantitySemester: number;
+}
