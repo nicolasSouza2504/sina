@@ -12,4 +12,5 @@ public interface ITaskService {
 
     void saveTaskUsersForCourse(TaskUserCourseMessage taskUserCourseMessage) throws Exception;
 
+    TaskResponseDTO getTaskById(Long id) throws Exception;
 }

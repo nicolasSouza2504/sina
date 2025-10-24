@@ -15,7 +15,7 @@ public class TaskContent {
     private Long id;
 
     @Column(nullable = false)
-    private String identifier;
+    private String name;
 
     @Column(name = "content_url")
     private String contentUrl;

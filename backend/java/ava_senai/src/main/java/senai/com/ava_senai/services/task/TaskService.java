@@ -1,6 +1,7 @@
 package senai.com.ava_senai.services.task;
 
 import com.google.gson.Gson;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import senai.com.ava_senai.domain.task.*;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
 import senai.com.ava_senai.domain.user.User;
+import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.repository.TaskContentRepository;
 import senai.com.ava_senai.repository.TaskRepository;
 import senai.com.ava_senai.repository.TaskUserRepository;
@@ -26,7 +28,6 @@ import java.util.List;
 public class TaskService implements ITaskService {
 
     private final UserRepository userRepository;
-    private final TaskContentRepository taskContentRepository;
     private final TaskRepository taskRepository;
     private final RabbitMQSender rabbitMQSender;
     private final TaskUserRepository taskUserRepository;
@@ -34,14 +35,11 @@ public class TaskService implements ITaskService {
     @Override
     public TaskResponseDTO createTasks(TaskRegisterDTO taskRegister) {
 
-
         Task task = createTask(taskRegister);
 
         sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
 
-        List<TaskContentResponseDTO> taskContents = createTaskContents(task, taskRegister.contents());
-
-        return new TaskResponseDTO(task.getId(), taskContents);
+        return new TaskResponseDTO(task);
 
     }
 
@@ -73,6 +71,15 @@ public class TaskService implements ITaskService {
 
     }
 
+    @Override
+    public TaskResponseDTO getTaskById(@Valid Long id) {
+
+        Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+
+        return new TaskResponseDTO(task);
+
+    }
+
     private Task createTask(TaskRegisterDTO taskRegister) {
 
         Task task = new Task();
@@ -94,30 +101,6 @@ public class TaskService implements ITaskService {
             RabbitMQConfig.ROUTING_CREATE_USER_TASK,
             jsonMessage
         );
-
-    }
-
-    private List<TaskContentResponseDTO> createTaskContents(Task task, List<TaskContentRegisterDTO> contents) {
-
-        List<TaskContentResponseDTO> taskContents = new ArrayList<>();
-
-        if (!CollectionUtils.isEmpty(contents)) {
-
-            contents.forEach(contentRegister -> {
-
-                TaskContent taskContent = new TaskContent();
-
-                taskContent.setTask(task);
-                taskContent.setContentType(contentRegister.taskContentType());
-                taskContent.setIdentifier(contentRegister.identifier());
-
-                taskContents.add(new TaskContentResponseDTO(taskContentRepository.save(taskContent)));
-
-            });
-
-        }
-
-        return taskContents;
 
     }
 

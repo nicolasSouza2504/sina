@@ -4,11 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import senai.com.ava_senai.domain.task.TaskRegisterDTO;
+import senai.com.ava_senai.domain.task.TaskResponseDTO;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.task.TaskService;
 
@@ -25,6 +23,13 @@ public class TaskController {
     @Secured({"ADMIN", "TEACHER"})
     public ResponseEntity<ApiResponse> addTask(@RequestBody @Valid TaskRegisterDTO taskRegisterDTO) {
         return ResponseEntity.ok().body(new ApiResponse("Tarefas registradas com sucesso!", taskService.createTasks(taskRegisterDTO)));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> getTasksByKnowledgeTrailId(@PathVariable @Valid Long id) {
+
+        return ResponseEntity.ok().body(new ApiResponse("Sucesso!", taskService.getTaskById(id)));
+
     }
 
 }

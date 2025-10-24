@@ -4,35 +4,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { 
   ArrowLeft, 
-  Save, 
-  Plus, 
   BookOpen,
-  Calendar,
-  Users,
   Loader2,
   CheckCircle
 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { mockCourseService } from '@/lib/services/mockCourseService';
+import CreateCourseService from '@/lib/api/course/createCourse';
 
 export default function NovoCurso() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
-    title: 'Análise e Desenvolvimento de Sistemas',
-    description: '',
-    totalSemesters: 6,
-    status: 'active' as const,
-    maxStudents: 50,
-    requirements: [] as string[]
+    name: '',
+    quantitySemester: 6
   });
 
   const [semesters, setSemesters] = useState([
@@ -44,10 +33,10 @@ export default function NovoCurso() {
     { id: 6, title: '6º Semestre', status: 'locked', subjects: [] },
   ]);
 
-  // Atualiza semestres quando totalSemesters muda
+  // Atualiza semestres quando quantitySemester muda
   useEffect(() => {
     const newSemesters = [];
-    for (let i = 1; i <= formData.totalSemesters; i++) {
+    for (let i = 1; i <= formData.quantitySemester; i++) {
       newSemesters.push({
         id: i,
         title: `${i}º Semestre`,
@@ -56,120 +45,10 @@ export default function NovoCurso() {
       });
     }
     setSemesters(newSemesters);
-  }, [formData.totalSemesters]);
+  }, [formData.quantitySemester]);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = async () => {
-    // Validações obrigatórias
-    if (!formData.title.trim()) {
-      toast.error('📝 Título obrigatório', {
-        description: 'Por favor, preencha o título do curso para continuar.'
-      });
-      return;
-    }
-    
-    if (!formData.description.trim()) {
-      toast.error('📋 Descrição obrigatória', {
-        description: 'Por favor, adicione uma descrição detalhada do curso.'
-      });
-      return;
-    }
-    
-    if (!formData.totalSemesters || formData.totalSemesters < 1) {
-      toast.error('📚 Número de semestres inválido', {
-        description: 'Por favor, informe um número válido de semestres (mínimo 1).'
-      });
-      return;
-    }
-    
-    if (!formData.maxStudents || formData.maxStudents < 1) {
-      toast.error('👥 Capacidade inválida', {
-        description: 'Por favor, informe um número válido de alunos (mínimo 1).'
-      });
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      
-      // Cria o curso usando o serviço mockado
-      const newCourse = mockCourseService.createCourse({
-        title: formData.title,
-        description: formData.description,
-        year: new Date().getFullYear().toString(), // Ano atual
-        duration: `${Math.ceil(formData.totalSemesters / 2)} anos`, // Calcula anos baseado em semestres
-        totalSemesters: formData.totalSemesters,
-        status: formData.status,
-        maxStudents: formData.maxStudents,
-        requirements: formData.requirements
-      });
-
-      console.log('Curso criado:', newCourse);
-      
-      // Redireciona para página de sucesso com o ID do curso
-      router.push(`/professor/curso/${newCourse.id}/sucesso`);
-      
-    } catch (error) {
-      console.error('Erro ao criar curso:', error);
-      toast.error('❌ Erro ao criar curso', {
-        description: 'Não foi possível criar o curso. Tente novamente.'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSaveAsDraft = async () => {
-    // Validações obrigatórias para rascunho
-    if (!formData.title.trim()) {
-      toast.error('📝 Título obrigatório', {
-        description: 'Por favor, preencha o título do curso para salvar como rascunho.'
-      });
-      return;
-    }
-    
-    if (!formData.totalSemesters || formData.totalSemesters < 1) {
-      toast.error('📚 Número de semestres inválido', {
-        description: 'Por favor, informe um número válido de semestres (mínimo 1).'
-      });
-      return;
-    }
-    
-    if (!formData.maxStudents || formData.maxStudents < 1) {
-      toast.error('👥 Capacidade inválida', {
-        description: 'Por favor, informe um número válido de alunos (mínimo 1).'
-      });
-      return;
-    }
-    
-    try {
-      setIsSubmitting(true);
-      
-      const newCourse = mockCourseService.createCourse({
-        title: formData.title,
-        description: formData.description,
-        year: new Date().getFullYear().toString(),
-        duration: `${Math.ceil(formData.totalSemesters / 2)} anos`,
-        totalSemesters: formData.totalSemesters,
-        status: 'draft',
-        maxStudents: formData.maxStudents,
-        requirements: formData.requirements
-      });
-
-      console.log('Curso salvo como rascunho:', newCourse);
-      router.push('/professor/dashboard');
-      
-    } catch (error) {
-      console.error('Erro ao salvar rascunho:', error);
-      toast.error('❌ Erro ao salvar rascunho', {
-        description: 'Não foi possível salvar o rascunho. Tente novamente.'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const getStatusColor = (status: string) => {
@@ -180,34 +59,68 @@ export default function NovoCurso() {
     }
   };
 
+  const handleSave = async () => {
+    // Validações obrigatórias
+    if (!formData.name.trim()) {
+      toast.error('📝 Nome obrigatório', {
+        description: 'Por favor, preencha o nome do curso para continuar.'
+      });
+      return;
+    }
+    
+    if (!formData.quantitySemester || formData.quantitySemester < 1) {
+      toast.error('📚 Número de semestres inválido', {
+        description: 'Por favor, informe um número válido de semestres (mínimo 1).'
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      // Cria o curso usando o serviço da API
+      const newCourse = await CreateCourseService({
+        name: formData.name,
+        quantitySemester: formData.quantitySemester
+      });
+
+      console.log('Curso criado:', newCourse);
+      
+      toast.success('✅ Curso criado com sucesso!', {
+        description: `O curso "${formData.name}" foi criado.`
+      });
+      
+      // Redireciona para dashboard ou lista de cursos
+      router.push('/professor/dashboard');
+      
+    } catch (error) {
+      console.error('Erro ao criar curso:', error);
+      toast.error('❌ Erro ao criar curso', {
+        description: error instanceof Error ? error.message : 'Não foi possível criar o curso. Tente novamente.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => router.back()}>
+      <div className="space-y-4">
+        {/* Título e Descrição */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Adicionar Novo Curso</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Configure um novo curso com suas informações básicas</p>
+        </div>
+        
+        {/* Botões */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <Button variant="ghost" onClick={() => router.back()} className="w-full sm:w-auto">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Adicionar Novo Curso</h1>
-            <p className="text-gray-600 mt-2">Configure um novo curso personalizado</p>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            onClick={handleSaveAsDraft}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            Salvar como Rascunho
-          </Button>
-          <Button onClick={handleSave} disabled={isSubmitting}>
+          <Button onClick={handleSave} disabled={isSubmitting} className="w-full sm:w-auto sm:ml-auto">
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -225,82 +138,47 @@ export default function NovoCurso() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Formulário Principal */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
           <Card>
-            <CardHeader>
+            <CardHeader className='ps-4'>
               <CardTitle>Informações do Curso</CardTitle>
               <CardDescription>
-                Configure os detalhes principais do curso de ADS
+                Configure os detalhes principais do curso
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 ps-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Nome do Curso</Label>
+                <Label htmlFor="name">Nome do Curso *</Label>
                 <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="Análise e Desenvolvimento de Sistemas"
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Ex: Análise e Desenvolvimento de Sistemas"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição do Curso</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Descreva os objetivos e competências do curso..."
-                  rows={3}
+                <Label htmlFor="quantitySemester">Quantidade de Semestres *</Label>
+                <Input
+                  id="quantitySemester"
+                  value={formData.quantitySemester}
+                  onChange={(e) => handleInputChange('quantitySemester', parseInt(e.target.value) || 1)}
+                  placeholder="6"
+                  type="number"
+                  min="1"
+                  max="12"
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="totalSemesters">Total de Semestres</Label>
-                  <Input
-                    id="totalSemesters"
-                    value={formData.totalSemesters}
-                    onChange={(e) => handleInputChange('totalSemesters', parseInt(e.target.value))}
-                    placeholder="6"
-                    type="number"
-                    min="1"
-                    max="12"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Duração: {Math.ceil(formData.totalSemesters / 2)} ano(s)
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="maxStudents">Máximo de Alunos</Label>
-                  <Input
-                    id="maxStudents"
-                    value={formData.maxStudents}
-                    onChange={(e) => handleInputChange('maxStudents', parseInt(e.target.value))}
-                    placeholder="50"
-                    type="number"
-                    min="1"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="requirements">Pré-requisitos</Label>
-                <Textarea
-                  id="requirements"
-                  value={formData.requirements}
-                  onChange={(e) => handleInputChange('requirements', e.target.value)}
-                  placeholder="Descreva os pré-requisitos para ingressar no curso..."
-                  rows={2}
-                />
+                <p className="text-xs text-gray-500">
+                  Duração estimada: {Math.ceil(formData.quantitySemester / 2)} ano(s)
+                </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Semestres */}
+          {/* Estrutura do Curso - Semestres */}
           <Card>
             <CardHeader>
-              <CardTitle>Estrutura do Curso - {formData.totalSemesters} Semestres</CardTitle>
+              <CardTitle>Estrutura do Curso - {formData.quantitySemester} Semestres</CardTitle>
               <CardDescription>
                 Organize os semestres do curso
               </CardDescription>
@@ -338,46 +216,32 @@ export default function NovoCurso() {
         </div>
 
         {/* Sidebar com preview */}
-        <div className="space-y-6">
+        <div className="space-y-6 order-1 lg:order-2">
           <Card>
             <CardHeader>
-              <CardTitle>Preview do Curso</CardTitle>
+              <CardTitle>Resumo do Curso</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className='ps-6'>
               <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-lg">
-                    {formData.title}
+                <div className="pb-3 border-b">
+                  <h3 className="font-semibold text-lg text-gray-900">
+                    {formData.name || 'Nome do curso'}
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    {formData.description || 'Descrição do curso...'}
-                  </p>
                 </div>
                 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Duração:</span>
-                    <span>{Math.ceil(formData.totalSemesters / 2)} anos</span>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600 font-medium">Semestres:</span>
+                    <span className="text-sm font-semibold text-gray-900">{formData.quantitySemester}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Semestres:</span>
-                    <span>{formData.totalSemesters}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Máx. Alunos:</span>
-                    <span>{formData.maxStudents}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Status:</span>
-                    <Badge variant="outline" className="bg-green-100 text-green-800">
-                      Ativo
-                    </Badge>
+                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600 font-medium">Duração:</span>
+                    <span className="text-sm font-semibold text-gray-900">{Math.ceil(formData.quantitySemester / 2)} ano(s)</span>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-
         </div>
       </div>
     </div>

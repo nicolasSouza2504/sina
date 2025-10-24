@@ -1,18 +1,23 @@
 package senai.com.ava_senai.services.clazz;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
 import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 import senai.com.ava_senai.exception.AlreadyExistsException;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
+import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.ClassRepository;
+import senai.com.ava_senai.repository.CourseRepository;
 import senai.com.ava_senai.repository.UserClassRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +28,7 @@ public class ClassService implements IClassService {
     private final ClassRepository classRepository;
 
     private final UserClassRepository userClassRepository;
+    private final CourseRepository courseRepository;
 
     @Override
     public ClassResponseDTO createClass(ClassRegisterDTO classRegisterDTO) {
@@ -31,21 +37,31 @@ public class ClassService implements IClassService {
                 .filter(turma -> !classRepository.existsByName(classRegisterDTO.name()))
                 .map(registro -> {
 
-                    Class clazz = new Class();
+                    validateMandatoryFields(classRegisterDTO);
 
-                    clazz.setName(classRegisterDTO.name());
-                    clazz.setStartDate(classRegisterDTO.startDate());
-                    clazz.setEndDate(classRegisterDTO.endDate());
-                    clazz.setImgClass(classRegisterDTO.imgClass());
-                    clazz.setCourseId(classRegisterDTO.courseId());
-                    clazz.setSemester(classRegisterDTO.semester());
-                    clazz.setCode(classRegisterDTO.code());
+                    Class clazz = buildClass(classRegisterDTO);
 
                     clazz = classRepository.save(clazz);
 
                     return new ClassResponseDTO(clazz);
 
                 }).orElseThrow(() -> new AlreadyExistsException("Turma ja Existente"));
+
+    }
+
+    private Class buildClass(ClassRegisterDTO classRegisterDTO) {
+
+        Class clazz = new Class();
+
+        clazz.setName(classRegisterDTO.name());
+        clazz.setStartDate(classRegisterDTO.startDate());
+        clazz.setEndDate(classRegisterDTO.endDate());
+        clazz.setImgClass(classRegisterDTO.imgClass());
+        clazz.setCourseId(classRegisterDTO.courseId());
+        clazz.setSemester(classRegisterDTO.semester());
+        clazz.setCode(classRegisterDTO.code());
+
+        return clazz;
 
     }
 
@@ -74,6 +90,8 @@ public class ClassService implements IClassService {
     @Transactional
     public ClassResponseDTO updateClass(ClassRegisterDTO clazzEdit, Long turmaId) {
 
+        validateMandatoryFields(clazzEdit);
+
         Class clazz = classRepository.findById(turmaId)
                 .orElseThrow(() -> new NotFoundException("Turma para edição não encontrada!"));
 
@@ -83,16 +101,26 @@ public class ClassService implements IClassService {
             throw new AlreadyExistsException("Turma com esse Nome já existe");
         }
 
-        clazz.setName(clazzEdit.name());
-        clazz.setStartDate(clazzEdit.startDate());
-        clazz.setEndDate(clazzEdit.endDate());
-        clazz.setImgClass(clazzEdit.imgClass());
-        clazz.setSemester(clazzEdit.semester());
-        clazz.setCode(clazzEdit.code());
+        clazz = updateData(clazz, clazzEdit);
 
         classRepository.save(clazz);
 
         return new ClassResponseDTO(clazz);
+
+    }
+
+    private Class updateData(Class clazz, ClassRegisterDTO clazzEdit) {
+
+        clazz.setName(clazzEdit.name());
+        clazz.setStartDate(clazzEdit.startDate());
+        clazz.setEndDate(clazzEdit.endDate());
+        clazz.setImgClass(clazzEdit.imgClass());
+        clazz.setImgClass(clazzEdit.imgClass());
+        clazz.setSemester(clazzEdit.semester());
+        clazz.setCode(clazzEdit.code());
+        clazz.setCourse(courseRepository.findById(clazzEdit.courseId()).get());
+
+        return clazz;
 
     }
 
@@ -117,5 +145,34 @@ public class ClassService implements IClassService {
 
     }
 
+    private void validateMandatoryFields(ClassRegisterDTO classRegisterDTO) {
+
+        Validation validation = new Validation();
+
+        if (StringUtils.isEmpty(classRegisterDTO.name())) {
+            validation.add("name", "Nome é obrigatório");
+        }
+
+        if (classRegisterDTO.courseId() == null) {
+            validation.add("courseId", "Curso é obrigatório");
+        } else if (!courseRepository.existsById(classRegisterDTO.courseId())) {
+            validation.add("courseId", "Curso não existe");
+        }
+
+        if (classRegisterDTO.startDate() == null) {
+            validation.add("startDate", "Data de início é obrigatória");
+        }
+
+        if (classRegisterDTO.endDate() == null) {
+            validation.add("endDate", "Data de término é obrigatória");
+        }
+
+        if (StringUtils.isEmpty(classRegisterDTO.code())) {
+            validation.add("code", "Código é obrigatório");
+        }
+
+        validation.throwIfHasErrors();
+
+    }
 
 }

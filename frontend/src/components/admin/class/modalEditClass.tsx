@@ -99,11 +99,11 @@ export default function ModalEditClass({
         if (isOpen && classData) {
             form.reset({
                 code: classData.code || "",
-                name: classData.name,
+                name: classData.nome,
                 startDate: classData.startDate || "",
                 endDate: classData.endDate || "",
                 semester: classData.semester || 1,
-                courseId: classData.courseId || 1,
+                courseId: classData.course?.id || classData.courseId || 1,
                 imgClass: classData.imgClass || null,
             });
         }
@@ -173,11 +173,11 @@ export default function ModalEditClass({
 
             form.reset({
                 code: classData.code || "",
-                name: classData.name,
+                name: classData.nome,
                 startDate: classData.startDate || "",
                 endDate: classData.endDate || "",
                 semester: classData.semester || 1,
-                courseId: classData.courseId || 1,
+                courseId: classData.course?.id || classData.courseId || 1,
                 imgClass: classData.imgClass || null,
             });
 
@@ -269,17 +269,22 @@ export default function ModalEditClass({
                                     )}
                                 />
 
-                                {/* Name Field */}
-                                <FormField
+                               <FormField
                                     control={form.control}
-                                    name="name"
+                                    name="semester"
                                     render={({field}) => (
                                         <FormItem>
-                                            <FormLabel>Nome da Turma</FormLabel>
+                                            <FormLabel>Qtd Semestres</FormLabel>
                                             <FormControl>
                                                 <Input
-                                                    placeholder="Ex: Desenvolvimento Web Full-Stack 2024.1"
+                                                    type="number"
+                                                    placeholder="Ex: 1"
                                                     {...field}
+                                                    value={field.value || ""}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        field.onChange(value ? parseInt(value) : 1);
+                                                    }}
                                                     className="text-sm"
                                                 />
                                             </FormControl>
@@ -326,7 +331,24 @@ export default function ModalEditClass({
 
                             {/* Semester and Course Fields */}
                             <div className="grid grid-cols-1 gap-3">
-
+                                {/* Name Field */}
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Nome da Turma</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Ex: Desenvolvimento Web Full-Stack 2024.1"
+                                                    {...field}
+                                                    className="text-sm"
+                                                />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
                                 <FormField
                                     control={form.control}
                                     name="courseId"
@@ -368,30 +390,7 @@ export default function ModalEditClass({
                                             <FormMessage/>
                                         </FormItem>
                                     )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="semester"
-                                    render={({field}) => (
-                                        <FormItem>
-                                            <FormLabel>Qtd Semestres</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    placeholder="Ex: 1"
-                                                    {...field}
-                                                    value={field.value || ""}
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        field.onChange(value ? parseInt(value) : 1);
-                                                    }}
-                                                    className="text-sm"
-                                                />
-                                            </FormControl>
-                                            <FormMessage/>
-                                        </FormItem>
-                                    )}
-                                />
+                                /> 
                             </div>
 
                             {/* Image Field */}

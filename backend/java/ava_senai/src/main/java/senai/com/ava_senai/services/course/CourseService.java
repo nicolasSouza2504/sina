@@ -7,14 +7,17 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.domain.course.Course;
+import senai.com.ava_senai.domain.course.CourseContentSummaryDTO;
 import senai.com.ava_senai.domain.course.CourseRegisterDTO;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
 import senai.com.ava_senai.domain.course.clazz.Class;
+import senai.com.ava_senai.domain.course.section.Section;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.ClassRepository;
 import senai.com.ava_senai.repository.CourseRepository;
+import senai.com.ava_senai.repository.SectionRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +29,7 @@ public class CourseService implements ICourseService {
 
     private final CourseRepository courseRepository;
     private final ClassRepository classRepository;
+    private final SectionRepository sectionRepository;
 
     @Override
     public CourseResponseDTO getCourseById(Long id) {
@@ -63,79 +67,33 @@ public class CourseService implements ICourseService {
 
                     course = courseRepository.save(course);
 
-                    updateClasses(course, courseRegisterDTO);
+                    List<Section> sectionsDefault = saveDefaultSections(course);
 
-                    return new CourseResponseDTO(course);
+                    return new CourseResponseDTO(course, sectionsDefault);
 
                 })
                 .orElseThrow(() -> new Exception("Oops! Course already exists!"));
 
     }
 
-    // todo backend - cadastro de session e cadastro de knowledge trail
     @Transactional
-    public void updateClasses(Course courseDb, CourseRegisterDTO courseRegisterDTO) {
+    public List<Section> saveDefaultSections(Course course) {
 
-        removeOldClassesRelatedData(courseDb);
-        insertNewClassesRelationship(courseDb, courseRegisterDTO);
+        List<Section> defaultSections = new ArrayList<>();
 
-    }
+        for (Integer i = 1; i <= course.getQuantitySemester(); i++) {
 
-    @Transactional
-    public void insertNewClassesRelationship(Course courseDb, CourseRegisterDTO courseRegisterDTO) {
+            Section section = new Section();
 
-        if (!CollectionUtils.isEmpty(courseRegisterDTO.classesId())) {
+            section.setSemester(i);
+            section.setCourseId(course.getId());
+            section.setName(i + "º Semestre");
 
-            final List<Class> newClasses = new ArrayList<>();
-
-            courseRegisterDTO.classesId().forEach(classID -> {
-                newClasses.add(insertNewClassRelationship(classID, courseDb));
-            });
-
-            courseDb.setClasses(newClasses);
+            defaultSections.add(sectionRepository.save(section));
 
         }
 
-    }
-
-    @Transactional
-    public void removeOldClassesRelatedData(Course courseDb) {
-
-        if (!CollectionUtils.isEmpty(courseDb.getClasses())) {
-
-            courseDb.getClasses().forEach(clazz -> {
-
-                clazz.setCourseId(null);
-                clazz.setCourse(null);
-
-                classRepository.save(clazz);
-
-            });
-
-        }
-
-    }
-
-    public Class insertNewClassRelationship(Long classID, Course courseDb) {
-
-        Class clazz = classRepository.findById(classID).orElseThrow(() -> new NotFoundException("Turma não encontrada pelo id:" + classID + "!"));
-
-        if (clazz.getCourseId() != null) {
-
-            if (!clazz.getCourseId().equals(courseDb.getId())) {
-                throw new RuntimeException("Turma " + clazz.getName() + " ja está em um curso!");
-            }
-
-        } else {
-
-            clazz.setCourseId(courseDb.getId());
-            clazz.setCourse(courseDb);
-
-            clazz = classRepository.save(clazz);
-
-        }
-
-        return clazz;
+        return defaultSections;
 
     }
 
@@ -179,12 +137,20 @@ public class CourseService implements ICourseService {
 
                     courseRepository.save(updateData(courseDB, courseRegisterDTO));
 
-                    updateClasses(courseDB, courseRegisterDTO);
-
                     return new CourseResponseDTO(courseDB);
 
                 })
                 .orElseThrow(() -> new NotFoundException("Curso não existe!"));
+
+    }
+
+    @Override
+    public CourseContentSummaryDTO getCourseContentSummaryById(Long id) {
+
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Curso não encontrado!"));
+
+        return new CourseContentSummaryDTO(course);
 
     }
 

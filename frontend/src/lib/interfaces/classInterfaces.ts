@@ -1,17 +1,23 @@
+export interface ClassCourse {
+    id: number
+    name: string
+}
+
 export interface Class {
     id: number
     code: string | null
-    name: string
+    nome: string
     startDate: string | null
     endDate: string | null
     semester: number | null
-    courseId: number |null
+    courseId: number | null
     imgClass: string | null
+    course: ClassCourse | null
 }
 
 export interface CreateClass {
     code: string | null
-    name: string
+    nome: string
     startDate: string | null
     endDate: string | null
     semester: number | null | string
@@ -21,7 +27,7 @@ export interface CreateClass {
 
 export interface ClassFormData {
     code: string | null ;
-    name: string;
+    nome: string;
     startDate: string | null;
     endDate: string | null;
     semester: number | null | string;

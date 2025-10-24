@@ -46,7 +46,8 @@ import {
 } from "lucide-react";
 import ModalAddClass from "@/components/admin/class/modalAddClass";
 import ModalEditClass from "@/components/admin/class/modalEditClass";
-import {Class} from "@/lib/interfaces/classInterfaces";
+import ModalViewCourse from "@/components/admin/class/modalViewCourse";
+import {Class, ClassCourse} from "@/lib/interfaces/classInterfaces";
 import ClassList from "@/lib/api/class/classList";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import ClassRemoveService from "@/lib/api/class/classRemove";
@@ -62,6 +63,8 @@ export default function ClassesManagement() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+    const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
+    const [selectedCourse, setSelectedCourse] = useState<ClassCourse | null>(null);
 
     useEffect(() => {
         getClasses();
@@ -76,12 +79,16 @@ export default function ClassesManagement() {
             const mappedClasses = classData?.map((cls: any) => ({
                 id: cls.Id || cls.id,
                 code: cls.code || null,
-                name: cls.nome || cls.name,
+                nome: cls.nome || cls.name,
                 startDate: cls.startDate,
                 endDate: cls.finalDate || cls.endDate,
                 semester: cls.semester || null,
-                courseId: cls.courseId || null,
-                imgClass: cls.imgClass
+                courseId: cls.course?.id || cls.courseId || null,
+                imgClass: cls.imgClass,
+                course: cls.course ? {
+                    id: cls.course.id,
+                    name: cls.course.name
+                } : null
             })) || [];
 
 
@@ -102,7 +109,7 @@ export default function ClassesManagement() {
 
     const filteredClasses =
         classes?.filter((cls) =>
-            cls.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            cls.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             cls.code?.toLowerCase().includes(searchTerm.toLowerCase())
         ) || [];
 
@@ -123,6 +130,13 @@ export default function ClassesManagement() {
     const openEditModal = (cls: Class) => {
         setSelectedClass(cls);
         setIsEditModalOpen(true);
+    };
+
+    const openCourseModal = (course: ClassCourse | null) => {
+        if (course) {
+            setSelectedCourse(course);
+            setIsCourseModalOpen(true);
+        }
     };
 
     const reloadClassList = async () => {
@@ -420,16 +434,16 @@ export default function ClassesManagement() {
                                                                 <Avatar className="h-10 w-10 flex-shrink-0">
                                                                     <AvatarImage
                                                                         src={getImagePath(cls.imgClass)}
-                                                                        alt={cls.name || "Turma"}
+                                                                        alt={cls.nome || "Turma"}
                                                                     />
                                                                     <AvatarFallback className="text-xs">
-                                                                        {(cls.name || cls.code || "T").substring(0, 2).toUpperCase()}
+                                                                        {(cls.nome || cls.code || "T").substring(0, 2).toUpperCase()}
                                                                     </AvatarFallback>
                                                                 </Avatar>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="space-y-2">
                                                                         <h3 className="font-medium text-sm leading-tight">
-                                                                            {cls.name || "Nome não disponível"}
+                                                                            {cls.nome || "Nome não disponível"}
                                                                         </h3>
                                                                         <div className="flex items-center gap-2">
                                                                             {cls.code && (
@@ -448,6 +462,24 @@ export default function ClassesManagement() {
                                                             {/* Informações em Grid */}
                                                             <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
                                                                 <div className="space-y-1">
+                                                                    <div className="text-muted-foreground">Curso</div>
+                                                                    <div className="font-medium">
+                                                                        {cls.course ? (
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                onClick={() => openCourseModal(cls.course)}
+                                                                                className="h-6 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                                            >
+                                                                                <GraduationCap className="h-3 w-3 mr-1" />
+                                                                                ID: {cls.course.id}
+                                                                            </Button>
+                                                                        ) : (
+                                                                            <span className="text-gray-400">Sem curso</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-1">
                                                                     <div className="text-muted-foreground">Semestres</div>
                                                                     <div className="font-medium">{formatSemester(cls.semester)}</div>
                                                                 </div>
@@ -455,7 +487,7 @@ export default function ClassesManagement() {
                                                                     <div className="text-muted-foreground">Início</div>
                                                                     <div className="font-medium">{formatDate(cls.startDate)}</div>
                                                                 </div>
-                                                                <div className="space-y-1 col-span-2">
+                                                                <div className="space-y-1">
                                                                     <div className="text-muted-foreground">Término</div>
                                                                     <div className="font-medium">{formatDate(cls.endDate)}</div>
                                                                 </div>
@@ -486,7 +518,7 @@ export default function ClassesManagement() {
                                                                             </AlertDialogTitle>
                                                                             <AlertDialogDescription className="text-sm">
                                                                                 Tem certeza que deseja excluir a turma "
-                                                                                <span className="font-medium">{cls.name || cls.code || "esta turma"}</span>"? 
+                                                                                <span className="font-medium">{cls.nome || cls.code || "esta turma"}</span>"? 
                                                                                 Esta ação não pode ser desfeita.
                                                                             </AlertDialogDescription>
                                                                         </AlertDialogHeader>
@@ -518,6 +550,7 @@ export default function ClassesManagement() {
                                                         <TableHead>Imagem</TableHead>
                                                         <TableHead>Código</TableHead>
                                                         <TableHead>Nome da Turma</TableHead>
+                                                        <TableHead className="text-center">Curso</TableHead>
                                                         <TableHead>QTD Semestres</TableHead>
                                                         <TableHead>Data de Início</TableHead>
                                                         <TableHead>Data de Término</TableHead>
@@ -537,10 +570,10 @@ export default function ClassesManagement() {
                                                                     <Avatar className="h-12 w-12">
                                                                         <AvatarImage
                                                                             src={getImagePath(cls.imgClass)}
-                                                                            alt={cls.name || "Turma"}
+                                                                            alt={cls.nome || "Turma"}
                                                                         />
                                                                         <AvatarFallback>
-                                                                            {(cls.name || cls.code || "T").substring(0, 2).toUpperCase()}
+                                                                            {(cls.nome || cls.code || "T").substring(0, 2).toUpperCase()}
                                                                         </AvatarFallback>
                                                                     </Avatar>
                                                                 </TableCell>
@@ -548,7 +581,22 @@ export default function ClassesManagement() {
                                                                     {cls.code || "N/A"}
                                                                 </TableCell>
                                                                 <TableCell className="font-medium">
-                                                                    {cls.name || "Nome não disponível"}
+                                                                    {cls.nome || "Nome não disponível"}
+                                                                </TableCell>
+                                                                <TableCell className="text-center">
+                                                                    {cls.course ? (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => openCourseModal(cls.course)}
+                                                                            className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                                        >
+                                                                            <GraduationCap className="h-4 w-4 mr-1" />
+                                                                            ID: {cls.course.id}
+                                                                        </Button>
+                                                                    ) : (
+                                                                        <span className="text-gray-400 text-sm">Sem curso</span>
+                                                                    )}
                                                                 </TableCell>
                                                                 <TableCell>
                                                                     {formatSemester(cls.semester)}
@@ -580,7 +628,7 @@ export default function ClassesManagement() {
                                                                                     </AlertDialogTitle>
                                                                                     <AlertDialogDescription>
                                                                                         Tem certeza que deseja excluir a turma "
-                                                                                        {cls.name || cls.code || "esta turma"}"? Esta
+                                                                                        {cls.nome || cls.code || "esta turma"}"? Esta
                                                                                         ação não pode ser desfeita.
                                                                                     </AlertDialogDescription>
                                                                                 </AlertDialogHeader>
@@ -639,6 +687,16 @@ export default function ClassesManagement() {
                     await reloadClassList();
                 }}
                 imageNames={imgs}
+            />
+
+            {/* View Course Modal */}
+            <ModalViewCourse
+                isOpen={isCourseModalOpen}
+                onClose={() => {
+                    setIsCourseModalOpen(false);
+                    setSelectedCourse(null);
+                }}
+                course={selectedCourse}
             />
         </div>
     );
