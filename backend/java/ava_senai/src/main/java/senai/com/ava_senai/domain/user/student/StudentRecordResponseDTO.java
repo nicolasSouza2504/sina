@@ -3,7 +3,7 @@ package senai.com.ava_senai.domain.user.student;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import senai.com.ava_senai.domain.user.User;
+import senai.com.ava_senai.domain.user.UserSummaryDTO;
 
 import java.util.Date;
 
@@ -12,17 +12,17 @@ import java.util.Date;
 @Setter
 public class StudentRecordResponseDTO {
 
-    private User student;
+    private UserSummaryDTO student;
 
-    private User teacher;
+    private UserSummaryDTO teacher;
 
     private String description;
 
     private Date recordDate;
 
     public StudentRecordResponseDTO(StudentRecord studentRecord) {
-        this.student = studentRecord.getStudent();
-        this.teacher = studentRecord.getTeacher();
+        this.student = new UserSummaryDTO(studentRecord.getStudent());
+        this.teacher = new UserSummaryDTO(studentRecord.getTeacher());
         this.description = studentRecord.getDescription();
         this.recordDate = studentRecord.getCreatedAt();
     }
