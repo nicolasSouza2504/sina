@@ -1,14 +1,16 @@
 package senai.com.ava_senai.services.user.student;
 
-import senai.com.ava_senai.domain.user.student.StudentRecordRegisterDTO;
-import senai.com.ava_senai.domain.user.student.StudentRecordResponseDTO;
+import senai.com.ava_senai.domain.user.student.dto.StudentRecordEditDTO;
+import senai.com.ava_senai.domain.user.student.dto.StudentRecordRegisterDTO;
+import senai.com.ava_senai.domain.user.student.dto.StudentRecordResponseDTO;
 
 import java.util.List;
 
 public interface IStudentRecordService {
 
-    List<StudentRecordResponseDTO> getStudentRecords(Long  studentId);
+    List<StudentRecordResponseDTO> getStudentRecords(Long studentId);
 
     StudentRecordResponseDTO createStudentRecord(StudentRecordRegisterDTO studentRecordDTO);
 
+    StudentRecordResponseDTO editStudentRecord(Long studentId, StudentRecordEditDTO studentRecordDTO);
 }

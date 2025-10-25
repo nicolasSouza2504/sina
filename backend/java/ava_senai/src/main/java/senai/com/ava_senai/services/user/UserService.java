@@ -251,4 +251,9 @@ public class UserService implements IUserService {
         return userRegisterDTO.getRole() != null && userRegisterDTO.getRole().getName().equalsIgnoreCase("ADMIN");
     }
 
+    public User getUserEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuario não encontrado!"));
+    }
+
 }

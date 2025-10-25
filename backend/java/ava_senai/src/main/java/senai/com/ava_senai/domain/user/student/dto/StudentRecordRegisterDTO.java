@@ -1,4 +1,4 @@
-package senai.com.ava_senai.domain.user.student;
+package senai.com.ava_senai.domain.user.student.dto;
 
 import lombok.Data;
 

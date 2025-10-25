@@ -5,11 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
-import senai.com.ava_senai.domain.user.student.StudentRecordRegisterDTO;
-import senai.com.ava_senai.domain.user.student.StudentRecordResponseDTO;
+import senai.com.ava_senai.domain.user.student.dto.StudentRecordEditDTO;
+import senai.com.ava_senai.domain.user.student.dto.StudentRecordRegisterDTO;
+import senai.com.ava_senai.domain.user.student.dto.StudentRecordResponseDTO;
 import senai.com.ava_senai.exception.IncorrectRoleException;
 import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.response.ApiResponse;
+import senai.com.ava_senai.services.user.UserService;
 import senai.com.ava_senai.services.user.student.IStudentRecordService;
 
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.List;
 public class UserRecordController {
 
     private final IStudentRecordService studentRecordService;
+    private final UserService userService;
 
     @GetMapping("/{studentId}")
     public ResponseEntity<ApiResponse> getRecordsByStudentId(@PathVariable @Valid Long studentId) {
@@ -54,4 +57,23 @@ public class UserRecordController {
 
     }
 
+    @Secured({"ADMIN", "TEACHER"})
+    @PatchMapping("edit/{recordId}")
+    public ResponseEntity<ApiResponse> editRecord(@PathVariable @Valid Long recordId,
+                                                  @RequestBody @Valid StudentRecordEditDTO studentRecord) {
+        try {
+            StudentRecordResponseDTO studentRecordUpdated = studentRecordService.editStudentRecord(recordId, studentRecord);
+
+
+            return ResponseEntity.ok()
+                    .body(new ApiResponse("Observação adicionada com sucesso!", studentRecordUpdated));
+
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        } catch (IncorrectRoleException e){
+            return ResponseEntity.status(422).body(new ApiResponse(e.getMessage(), null));
+
+        }
+
+    }
 }
