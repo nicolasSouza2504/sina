@@ -7,6 +7,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import senai.com.ava_senai.domain.user.student.StudentRecordRegisterDTO;
 import senai.com.ava_senai.domain.user.student.StudentRecordResponseDTO;
+import senai.com.ava_senai.exception.IncorrectRoleException;
 import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.user.student.IStudentRecordService;
@@ -46,6 +47,9 @@ public class UserRecordController {
 
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        } catch (IncorrectRoleException e){
+            return ResponseEntity.status(422).body(new ApiResponse(e.getMessage(), null));
+
         }
 
     }

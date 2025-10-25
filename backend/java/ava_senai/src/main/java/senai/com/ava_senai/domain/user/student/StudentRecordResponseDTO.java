@@ -1,5 +1,6 @@
 package senai.com.ava_senai.domain.user.student;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.util.Date;
 @Setter
 public class StudentRecordResponseDTO {
 
+    @JsonIgnore
     private UserSummaryDTO student;
 
     private UserSummaryDTO teacher;
