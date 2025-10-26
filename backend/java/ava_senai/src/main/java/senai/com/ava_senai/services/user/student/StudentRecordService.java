@@ -64,7 +64,7 @@ public class StudentRecordService implements IStudentRecordService {
                                     .findById(recordId)
                                     .orElseThrow(() -> new NotFoundException("Registro de observação de aluno não encontrado"));
 
-        User teacher = userService.getUserEntityById(newStudentRecord.getTeacherId());
+        User teacher = userRepository.findById(newStudentRecord.getTeacherId()).orElseThrow(() -> new UserNotFoundException("Professor não encontrado"));
         if (!(teacher.getRole().getId() == Roles.TEACHER.getValue())) {
             throw new IncorrectRoleException("Usuário informado para o campo professor não possui o perfil correto");
         }
@@ -85,8 +85,6 @@ public class StudentRecordService implements IStudentRecordService {
         StudentRecord studentRecord = studentRecordRepository
                 .findById(recordId)
                 .orElseThrow(() -> new NotFoundException("Registro de observação de aluno não encontrado"));
-
-        studentRecordHistoryRepository.save(new StudentRecordHistory(studentRecord));
 
         studentRecord.setIsVisible(false);
         studentRecordRepository.save(studentRecord);
