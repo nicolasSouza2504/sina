@@ -25,11 +25,14 @@ public class UserRecordController {
     private final UserService userService;
 
     @GetMapping("/{studentId}")
-    public ResponseEntity<ApiResponse> getRecordsByStudentId(@PathVariable @Valid Long studentId) {
+    public ResponseEntity<ApiResponse> getRecordsByStudentId(@PathVariable @Valid Long studentId, @RequestParam(required = false) Boolean isVisible) {
 
         try {
-
             List<StudentRecordResponseDTO> studentRecordDTOList = studentRecordService.getStudentRecords(studentId);
+
+            if (isVisible != null) {
+                studentRecordDTOList = studentRecordDTOList.stream().filter(x -> x.getIsVisible().equals(isVisible)).toList();
+            }
 
             return ResponseEntity.ok().body(new ApiResponse("Sucesso!", studentRecordDTOList));
 
@@ -76,4 +79,24 @@ public class UserRecordController {
         }
 
     }
+
+    @Secured({"ADMIN", "TEACHER"})
+    @DeleteMapping("delete/{recordId}")
+    public ResponseEntity<ApiResponse> deleteRecord(@PathVariable @Valid Long recordId) {
+        try {
+            studentRecordService.deleteStudentRecord(recordId);
+
+
+            return ResponseEntity.ok()
+                    .body(new ApiResponse("Observação deletada com sucesso!", null));
+
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        } catch (IncorrectRoleException e){
+            return ResponseEntity.status(422).body(new ApiResponse(e.getMessage(), null));
+
+        }
+
+    }
+
 }

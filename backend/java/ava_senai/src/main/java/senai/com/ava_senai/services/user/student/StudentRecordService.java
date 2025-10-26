@@ -78,4 +78,17 @@ public class StudentRecordService implements IStudentRecordService {
 
         return new StudentRecordResponseDTO(studentRecord);
     }
+
+    @Override
+    public void deleteStudentRecord(Long recordId) {
+        StudentRecord studentRecord = studentRecordRepository
+                .findById(recordId)
+                .orElseThrow(() -> new NotFoundException("Registro de observação de aluno não encontrado"));
+
+
+        studentRecordHistoryRepository.save(new StudentRecordHistory(studentRecord));
+
+        studentRecord.setIsVisible(false);
+        studentRecordRepository.save(studentRecord);
+    }
 }

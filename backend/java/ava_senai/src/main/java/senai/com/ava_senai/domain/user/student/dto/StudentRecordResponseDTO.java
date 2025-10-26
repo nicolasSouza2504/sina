@@ -7,6 +7,8 @@ import lombok.Setter;
 import senai.com.ava_senai.domain.user.UserSummaryDTO;
 import senai.com.ava_senai.domain.user.student.StudentRecord;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -26,6 +28,8 @@ public class StudentRecordResponseDTO {
 
     private Date recordDate;
 
+    private Boolean isVisible;
+
     private List<StudentRecordHistoryDTO> studentRecordHistory;
 
     public StudentRecordResponseDTO(StudentRecord studentRecord) {
@@ -34,7 +38,12 @@ public class StudentRecordResponseDTO {
         this.teacher = new UserSummaryDTO(studentRecord.getTeacher());
         this.description = studentRecord.getDescription();
         this.recordDate = studentRecord.getRecordDate();
-        this.studentRecordHistory = studentRecord.getHistory().stream().map(StudentRecordHistoryDTO::new).toList().reversed();
+        this.isVisible = studentRecord.getIsVisible();
+
+        this.studentRecordHistory = new ArrayList<>(studentRecord.getHistory().stream()
+                                                                                .map(StudentRecordHistoryDTO::new)
+                                                                                .toList());
+        Collections.reverse(this.studentRecordHistory);
     }
 
 }

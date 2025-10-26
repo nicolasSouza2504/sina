@@ -33,6 +33,9 @@ public class StudentRecord extends DefaultEntity {
     @Column(name = "record_date")
     private Date recordDate;
 
+    @Column(name = "is_visible")
+    private Boolean isVisible;
+
     @OneToMany
     @JoinColumn(name = "record_id")
     private List<StudentRecordHistory> history = new ArrayList<>();
@@ -42,6 +45,7 @@ public class StudentRecord extends DefaultEntity {
         this.teacher = teacher;
         this.description = description;
         this.history = new ArrayList<>();
+        this.isVisible = true;
         this.recordDate = new Date();
     }
 }
