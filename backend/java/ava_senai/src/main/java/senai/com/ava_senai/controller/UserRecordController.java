@@ -9,6 +9,7 @@ import senai.com.ava_senai.domain.user.student.dto.StudentRecordEditDTO;
 import senai.com.ava_senai.domain.user.student.dto.StudentRecordRegisterDTO;
 import senai.com.ava_senai.domain.user.student.dto.StudentRecordResponseDTO;
 import senai.com.ava_senai.exception.IncorrectRoleException;
+import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.user.UserService;
@@ -26,7 +27,6 @@ public class UserRecordController {
 
     @GetMapping("/{studentId}")
     public ResponseEntity<ApiResponse> getRecordsByStudentId(@PathVariable @Valid Long studentId, @RequestParam(required = false) Boolean isVisible) {
-
         try {
             List<StudentRecordResponseDTO> studentRecordDTOList = studentRecordService.getStudentRecords(studentId);
 
@@ -39,15 +39,14 @@ public class UserRecordController {
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }
-
     }
 
     @Secured({"ADMIN", "TEACHER"})
     @PostMapping("add")
     public ResponseEntity<ApiResponse> addRecordToUser(@RequestBody @Valid StudentRecordRegisterDTO studentRecord) {
         try {
-
             StudentRecordResponseDTO newStudentRecord = studentRecordService.createStudentRecord(studentRecord);
+
             return ResponseEntity.ok()
                     .body(new ApiResponse("Observação adicionada com sucesso!", newStudentRecord));
 
@@ -55,9 +54,7 @@ public class UserRecordController {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         } catch (IncorrectRoleException e){
             return ResponseEntity.status(422).body(new ApiResponse(e.getMessage(), null));
-
         }
-
     }
 
     @Secured({"ADMIN", "TEACHER"})
@@ -67,17 +64,14 @@ public class UserRecordController {
         try {
             StudentRecordResponseDTO studentRecordUpdated = studentRecordService.editStudentRecord(recordId, studentRecord);
 
-
             return ResponseEntity.ok()
                     .body(new ApiResponse("Observação adicionada com sucesso!", studentRecordUpdated));
 
-        } catch (UserNotFoundException e) {
+        } catch (NotFoundException | UserNotFoundException e) {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         } catch (IncorrectRoleException e){
             return ResponseEntity.status(422).body(new ApiResponse(e.getMessage(), null));
-
         }
-
     }
 
     @Secured({"ADMIN", "TEACHER"})
@@ -86,17 +80,11 @@ public class UserRecordController {
         try {
             studentRecordService.deleteStudentRecord(recordId);
 
-
             return ResponseEntity.ok()
                     .body(new ApiResponse("Observação deletada com sucesso!", null));
 
-        } catch (UserNotFoundException e) {
+        } catch (NotFoundException e) {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
-        } catch (IncorrectRoleException e){
-            return ResponseEntity.status(422).body(new ApiResponse(e.getMessage(), null));
-
         }
-
     }
-
 }

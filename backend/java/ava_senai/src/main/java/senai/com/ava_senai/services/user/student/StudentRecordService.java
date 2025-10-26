@@ -31,7 +31,6 @@ public class StudentRecordService implements IStudentRecordService {
 
     @Override
     public List<StudentRecordResponseDTO> getStudentRecords(Long studentId) {
-
         User student = userRepository.findById(studentId).orElseThrow(() -> new UserNotFoundException("Aluno não encontrado"));
 
         List<StudentRecord> studentRecordDTOList = studentRecordRepository.findAllByStudent(student);
@@ -65,10 +64,12 @@ public class StudentRecordService implements IStudentRecordService {
                                     .findById(recordId)
                                     .orElseThrow(() -> new NotFoundException("Registro de observação de aluno não encontrado"));
 
+        User teacher = userService.getUserEntityById(newStudentRecord.getTeacherId());
+        if (!(teacher.getRole().getId() == Roles.TEACHER.getValue())) {
+            throw new IncorrectRoleException("Usuário informado para o campo professor não possui o perfil correto");
+        }
 
         studentRecordHistoryRepository.save(new StudentRecordHistory(studentRecord));
-
-        User teacher = userService.getUserEntityById(newStudentRecord.getTeacherId());
 
         studentRecord.setTeacher(teacher);
         studentRecord.setDescription(newStudentRecord.getDescription());
@@ -84,7 +85,6 @@ public class StudentRecordService implements IStudentRecordService {
         StudentRecord studentRecord = studentRecordRepository
                 .findById(recordId)
                 .orElseThrow(() -> new NotFoundException("Registro de observação de aluno não encontrado"));
-
 
         studentRecordHistoryRepository.save(new StudentRecordHistory(studentRecord));
 
