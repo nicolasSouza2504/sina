@@ -2,15 +2,17 @@ package senai.com.ava_senai.domain.task.knowledgetrail;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.course.section.Section;
 import senai.com.ava_senai.domain.task.Task;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "knowledge_trail")
+@EqualsAndHashCode(callSuper = true, of = "id")
 public class KnowledgeTrail extends DefaultEntity {
 
     @Column(length = 120, nullable = false)
@@ -24,7 +26,7 @@ public class KnowledgeTrail extends DefaultEntity {
     private Long sectionId;
 
     @OneToMany(mappedBy = "knowledgeTrail")
-    private List<Task> tasks;
+    private Set<Task> tasks;
 
     public KnowledgeTrail() {}
 

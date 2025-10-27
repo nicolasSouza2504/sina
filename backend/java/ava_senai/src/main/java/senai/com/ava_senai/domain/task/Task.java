@@ -2,16 +2,18 @@ package senai.com.ava_senai.domain.task;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 import senai.com.ava_senai.taskuser.TaskUser;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "task")
+@EqualsAndHashCode(callSuper = true, of = "id")
 public class Task extends DefaultEntity {
 
     @Column(length = 200, nullable = false)
@@ -30,9 +32,9 @@ public class Task extends DefaultEntity {
     private Long knowledgeTrailId;
 
     @OneToMany(mappedBy = "task")
-    private List<TaskContent> contents;
+    private Set<TaskContent> contents;
 
     @OneToMany(mappedBy = "task")
-    private List<TaskUser> taskUsers;
+    private Set<TaskUser> taskUsers;
 
 }

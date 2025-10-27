@@ -3,6 +3,7 @@ package senai.com.ava_senai.domain;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import senai.com.ava_senai.handler.requesthandler.security.user.AuthyUserDetails;
@@ -11,6 +12,7 @@ import java.util.Date;
 
 @Data
 @MappedSuperclass
+@EqualsAndHashCode(of = "id")
 public class DefaultEntity {
 
     @Id
