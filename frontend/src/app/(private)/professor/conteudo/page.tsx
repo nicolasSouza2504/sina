@@ -32,8 +32,12 @@ import {
 import { mockCourseService, Course, Trail, Task, Material } from '@/lib/services/mockCourseService';
 import { mockSubmissionService } from '@/lib/services/mockSubmissionService';
 import { StudentSubmissionsModal } from '@/components/professor/StudentSubmissionsModal';
+import CreateKnowledgeTrailModal from '@/components/professor/CreateKnowledgeTrailModal';
 import QuickActions from '@/components/admin/quickActions';
 import { toast } from 'sonner';
+import CourseList from '@/lib/api/course/courseList';
+import CreateKnowledgeTrailService from '@/lib/api/knowledgetrail/createKnowledgeTrail';
+import type { Course as ApiCourse } from '@/lib/interfaces/courseInterfaces';
 
 interface ContentItem {
   id: string;
@@ -62,6 +66,10 @@ export default function GerenciarConteudo() {
   const [content, setContent] = useState<ContentItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Estados para API real
+  const [apiCourses, setApiCourses] = useState<ApiCourse[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
+  
   const [selectedTrail, setSelectedTrail] = useState<ContentItem | null>(null);
   const [selectedTask, setSelectedTask] = useState<ContentItem | null>(null);
   const [taskMaterials, setTaskMaterials] = useState<Material[]>([]);
@@ -72,13 +80,6 @@ export default function GerenciarConteudo() {
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
   const [selectedTaskForSubmissions, setSelectedTaskForSubmissions] = useState<{ id: string; title: string } | null>(null);
-  
-  const [newTrail, setNewTrail] = useState({
-    courseId: '',
-    title: '',
-    description: '',
-    semesterNumber: ''
-  });
   
   const [editTrail, setEditTrail] = useState({
     id: '',
@@ -115,6 +116,26 @@ export default function GerenciarConteudo() {
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
   const [viewingMaterial, setViewingMaterial] = useState<Material | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  // Carrega cursos da API real
+  useEffect(() => {
+    const loadApiCourses = async () => {
+      setIsLoadingCourses(true);
+      try {
+        const courses = await CourseList();
+        if (courses) {
+          setApiCourses(courses);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar cursos:', error);
+        toast.error('Erro ao carregar cursos da API');
+      } finally {
+        setIsLoadingCourses(false);
+      }
+    };
+    
+    loadApiCourses();
+  }, []);
 
   useEffect(() => {
     const allTrails = mockCourseService.getAllTrails();
@@ -201,44 +222,25 @@ export default function GerenciarConteudo() {
     return parseInt(a[0]) - parseInt(b[0]);
   });
 
-  const handleCreateTrail = () => {
-    if (!newTrail.courseId) {
-      toast.error('❌ Selecione um curso');
-      return;
-    }
-
-    if (!newTrail.title.trim()) {
-      toast.error('❌ Título da trilha é obrigatório');
-      return;
-    }
-
-    if (!newTrail.description.trim()) {
-      toast.error('❌ Descrição da trilha é obrigatória');
-      return;
-    }
-
-    if (!newTrail.semesterNumber) {
-      toast.error('❌ Selecione um semestre');
-      return;
-    }
-
-    mockCourseService.createTrail({
-      courseId: newTrail.courseId,
-      semesterNumber: parseInt(newTrail.semesterNumber),
-      title: newTrail.title,
-      description: newTrail.description
-    });
-
-    setNewTrail({ courseId: '', title: '', description: '', semesterNumber: '' });
-    setIsTrailModalOpen(false);
-    
-    if (newTrail.courseId === selectedCourseId) {
+  const handleCreateTrail = async (data: { name: string; sectionId: number }) => {
+    try {
+      const response = await CreateKnowledgeTrailService(data);
+      
+      toast.success('✅ Trilha de conhecimento criada com sucesso', {
+        description: 'A trilha foi adicionada e está disponível para uso.'
+      });
+      
+      // Recarrega o conteúdo se necessário
       loadContent();
+      
+      return response;
+    } catch (error) {
+      console.error('Erro ao criar trilha:', error);
+      toast.error('❌ Erro ao criar trilha de conhecimento', {
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+      });
+      throw error;
     }
-    
-    toast.success('Trilha de conhecimento criada com sucesso', {
-      description: 'A trilha foi adicionada ao curso e está disponível para uso.'
-    });
   };
 
   const handleEditTrail = () => {
@@ -891,110 +893,13 @@ export default function GerenciarConteudo() {
         </div>
       )}
 
-      <Dialog open={isTrailModalOpen} onOpenChange={setIsTrailModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="relative">
-            <DialogHeader className="pb-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-blue-600 rounded-xl">
-                  <BookOpen className="h-6 w-6 text-white" />
-                  </div>
-                <div>
-                  <DialogTitle className="text-2xl font-bold text-gray-900">
-                    Nova Trilha de Conhecimento
-                  </DialogTitle>
-                  <p className="text-sm text-gray-600 mt-1">Crie uma nova trilha de aprendizado para seus alunos</p>
-                </div>
-              </div>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="trail-course" className="text-sm font-semibold text-gray-700">
-                  Curso
-                </Label>
-                <Select value={newTrail.courseId} onValueChange={(value) => setNewTrail(prev => ({ ...prev, courseId: value }))}>
-                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-                    <SelectValue placeholder="Selecione um curso" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courses.map(course => (
-                      <SelectItem key={course.id} value={course.id} className="py-3">
-                        {course.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="trail-title" className="text-sm font-semibold text-gray-700">
-                  Título da Trilha
-                </Label>
-                <Input
-                  id="trail-title"
-                  value={newTrail.title}
-                  onChange={(e) => setNewTrail(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Ex: Fundamentos de Programação"
-                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="trail-description" className="text-sm font-semibold text-gray-700">
-                  Descrição
-                </Label>
-                <Textarea
-                  id="trail-description"
-                  value={newTrail.description}
-                  onChange={(e) => setNewTrail(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Descreva os objetivos desta trilha..."
-                  rows={4}
-                  className="border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl resize-none"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="trail-semester" className="text-sm font-semibold text-gray-700">
-                  Semestre
-                </Label>
-                <Select value={newTrail.semesterNumber} onValueChange={(value) => setNewTrail(prev => ({ ...prev, semesterNumber: value }))}>
-                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-                    <SelectValue placeholder="Selecione um semestre" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {newTrail.courseId && mockCourseService.getCourseById(newTrail.courseId)?.semesters.map(semester => (
-                      <SelectItem key={semester.number} value={semester.number.toString()} className="py-3">
-                        {semester.number}º - {semester.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-3 pt-8 border-t border-gray-100">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setIsTrailModalOpen(false);
-                  setNewTrail({ courseId: '', title: '', description: '', semesterNumber: '' });
-                }}
-                className="h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleCreateTrail}
-                className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Criar Trilha
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CreateKnowledgeTrailModal
+        open={isTrailModalOpen}
+        onOpenChange={setIsTrailModalOpen}
+        courses={apiCourses}
+        isLoadingCourses={isLoadingCourses}
+        onSubmit={handleCreateTrail}
+      />
 
       <Dialog open={isEditTrailModalOpen} onOpenChange={setIsEditTrailModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
