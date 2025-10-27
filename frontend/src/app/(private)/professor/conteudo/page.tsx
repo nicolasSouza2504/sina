@@ -37,7 +37,9 @@ import QuickActions from '@/components/admin/quickActions';
 import { toast } from 'sonner';
 import CourseList from '@/lib/api/course/courseList';
 import CreateKnowledgeTrailService from '@/lib/api/knowledgetrail/createKnowledgeTrail';
+import CourseContentSummaryService from '@/lib/api/course/courseContentSummary';
 import type { Course as ApiCourse } from '@/lib/interfaces/courseInterfaces';
+import type { CourseContentSummary } from '@/lib/interfaces/courseContentInterfaces';
 
 interface ContentItem {
   id: string;
@@ -69,6 +71,8 @@ export default function GerenciarConteudo() {
   // Estados para API real
   const [apiCourses, setApiCourses] = useState<ApiCourse[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
+  const [courseContent, setCourseContent] = useState<CourseContentSummary | null>(null);
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
   
   const [selectedTrail, setSelectedTrail] = useState<ContentItem | null>(null);
   const [selectedTask, setSelectedTask] = useState<ContentItem | null>(null);
@@ -137,6 +141,30 @@ export default function GerenciarConteudo() {
     loadApiCourses();
   }, []);
 
+  // Carrega conteúdo do curso quando selecionado
+  useEffect(() => {
+    const loadCourseContent = async () => {
+      if (!selectedCourseId) {
+        setCourseContent(null);
+        return;
+      }
+
+      setIsLoadingContent(true);
+      try {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      } catch (error) {
+        console.error('Erro ao carregar conteúdo do curso:', error);
+        toast.error('Erro ao carregar conteúdo do curso');
+        setCourseContent(null);
+      } finally {
+        setIsLoadingContent(false);
+      }
+    };
+
+    loadCourseContent();
+  }, [selectedCourseId]);
+
   useEffect(() => {
     const allTrails = mockCourseService.getAllTrails();
     const needsReset = allTrails.some(trail => !trail.tasks);
@@ -149,10 +177,6 @@ export default function GerenciarConteudo() {
     
     const allCourses = mockCourseService.getAllCourses();
     setCourses(allCourses.map(c => ({ id: c.id, name: c.title })));
-    
-    if (allCourses.length === 1) {
-      setSelectedCourseId(allCourses[0].id);
-    }
   }, []);
 
   useEffect(() => {
@@ -230,8 +254,11 @@ export default function GerenciarConteudo() {
         description: 'A trilha foi adicionada e está disponível para uso.'
       });
       
-      // Recarrega o conteúdo se necessário
-      loadContent();
+      // Recarrega o conteúdo do curso
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
       
       return response;
     } catch (error) {
@@ -609,13 +636,13 @@ export default function GerenciarConteudo() {
       </div>
 
       <div className="flex gap-4">
-        <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+        <Select value={selectedCourseId} onValueChange={setSelectedCourseId} disabled={isLoadingCourses}>
           <SelectTrigger className="w-64">
-            <SelectValue placeholder="Selecione um curso" />
+            <SelectValue placeholder={isLoadingCourses ? "Carregando cursos..." : "Selecione um curso"} />
           </SelectTrigger>
           <SelectContent>
-            {courses.map(course => (
-              <SelectItem key={course.id} value={course.id}>
+            {apiCourses.map(course => (
+              <SelectItem key={course.id} value={course.id.toString()}>
                 {course.name}
               </SelectItem>
             ))}
@@ -633,265 +660,239 @@ export default function GerenciarConteudo() {
               </div>
       </div>
 
-      {selectedCourseId ? (
+      {!selectedCourseId ? (
+        <div className="relative overflow-hidden rounded-3xl border border-dashed border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-16 px-6 sm:px-10">
+          <span className="absolute -top-16 -left-16 h-48 w-48 rounded-full bg-blue-100/60 blur-3xl" />
+          <span className="absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-indigo-200/50 blur-3xl" />
+
+          <div className="relative z-10 mx-auto max-w-3xl text-center">
+            <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/20 animate-pulse">
+              <BookOpen className="h-12 w-12 text-white" />
+            </div>
+
+            <h3 className="text-2xl font-semibold text-gray-900 sm:text-3xl">Selecione um curso para começar</h3>
+            <p className="mt-3 text-base text-gray-600 sm:text-lg">
+              Escolha um curso no seletor acima para visualizar e organizar trilhas, tarefas e materiais. Tudo fica em um só lugar para facilitar o planejamento das aulas.
+            </p>
+
+            <div className="mt-10 grid gap-4 px-2 sm:grid-cols-3">
+              {[{
+                title: 'Trilhas de conhecimento',
+                description: 'Acompanhe o progresso das trilhas alvo de cada semestre.',
+                icon: <BookOpen className="h-5 w-5" />,
+                accent: 'from-blue-500/10 to-blue-600/10'
+              }, {
+                title: 'Tarefas e atividades',
+                description: 'Planeje desafios e mantenha o histórico de atividades.',
+                icon: <CheckCircle className="h-5 w-5" />,
+                accent: 'from-green-500/10 to-green-600/10'
+              }, {
+                title: 'Materiais centralizados',
+                description: 'Vídeos, links e arquivos acessíveis a um clique.',
+                icon: <FileText className="h-5 w-5" />,
+                accent: 'from-purple-500/10 to-purple-600/10'
+              }].map((feature) => (
+                <div
+                  key={feature.title}
+                  className="group relative overflow-hidden rounded-xl border border-white/40 bg-white/70 p-5 shadow-sm transition transform hover:-translate-y-1 hover:shadow-lg"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.accent} opacity-0 transition-opacity group-hover:opacity-100`} />
+                  <div className="relative flex items-start gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-inner shadow-black/5 text-blue-600">
+                      {feature.icon}
+                    </div>
+                    <div className="text-left">
+                      <h4 className="text-sm font-semibold text-gray-900 sm:text-base">{feature.title}</h4>
+                      <p className="mt-1 text-xs text-gray-600 sm:text-sm">{feature.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-12 inline-flex items-center gap-3 rounded-full bg-white/70 px-5 py-2 text-sm font-medium text-blue-600 shadow-sm shadow-blue-500/10">
+              <div className="flex h-3 w-3 animate-ping rounded-full bg-blue-500" />
+              Aguarde — selecione um curso para desbloquear o painel de conteúdo
+            </div>
+          </div>
+        </div>
+      ) : isLoadingContent ? (
+        <div className="text-center py-16">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Carregando conteúdo...</h3>
+          <p className="text-gray-600">Aguarde enquanto buscamos as trilhas e tarefas</p>
+        </div>
+      ) : courseContent ? (
         <div className="space-y-6">
-          {sortedSemesters.length > 0 ? (
-            sortedSemesters.map(([semesterKey, { semesterName, trails }]) => (
-              <div key={semesterKey}>
+          {courseContent.sections.length > 0 ? (
+            courseContent.sections.map((section) => (
+              <div key={section.id}>
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                   <BookOpen className="h-5 w-5" />
-                  {semesterName}
+                  {section.name}
                 </h2>
                 
                 <div className="grid gap-4">
-                  {trails.map(trail => (
-                    <Card key={trail.id} className="border-l-4 border-l-blue-500">
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg">{trail.title}</CardTitle>
-                            <p className="text-sm text-gray-600 mt-1">{trail.description}</p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedTrail(trail);
-                                setIsTaskModalOpen(true);
-                              }}
-                            >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Nova Tarefa
-              </Button>
-              <Button
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                setEditTrail({
-                                  id: trail.id,
-                                  title: trail.title,
-                                  description: trail.description,
-                                  semesterNumber: trail.semesterId || ''
-                                });
-                                setIsEditTrailModalOpen(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleDeleteTrail(trail.id)}
-              >
-                              <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-                      </CardHeader>
-                      
-                      <CardContent>
-                        <div className="space-y-3">
-                          {trail.tasks && trail.tasks.length > 0 ? (
-                            trail.tasks.map(task => (
-                              <div key={task.id} className="border rounded-lg p-4 bg-gray-50">
-                                <div className="flex justify-between items-start mb-3">
-                                  <div className="flex items-center gap-2 flex-1">
-                                    {getStatusIcon(task.status)}
-                                    <h3 className="font-medium">{task.title}</h3>
-                                    <Badge variant="outline">{task.type}</Badge>
-                                    <Badge variant="secondary">{task.difficulty}</Badge>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                                      variant="outline"
-                                      size="sm"
-                                        onClick={() => {
-                                          setSelectedTask({
-                                            id: task.id,
-                                            type: 'tarefa',
-                                            title: task.title,
-                                            description: task.description,
-                                            taskId: task.id // Adicionar taskId para referência
-                                          });
-                                          loadTaskMaterials(task.id); // Carregar materiais da tarefa
-                                          setIsMaterialModalOpen(true);
-                                        }}
-                                    >
-                                      <Plus className="h-4 w-4 mr-1" />
-                                      Material
-                                    </Button>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm"
-                                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                      onClick={() => {
-                                        setSelectedTaskForSubmissions({
-                                          id: task.id,
-                                          title: task.title
-                                        });
-                                        setIsSubmissionsModalOpen(true);
-                                      }}
-                                    >
-                                      <Users className="h-4 w-4 mr-1" />
-                                      Entregas
-                                    </Button>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm"
-                                      onClick={() => {
-                                        setEditTask({
-                                          id: task.id,
-                                          title: task.title,
-                                          description: task.description,
-                                          type: task.type,
-                                          difficulty: task.difficulty,
-                                          estimatedTime: task.estimatedTime
-                                        });
-                                        setIsEditTaskModalOpen(true);
-                                      }}
-                                    >
-                                      <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                                      variant="outline" 
-                                      size="sm"
-                                      onClick={() => handleDeleteTask(task.id)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                                
-                                <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-                                
-                                <div className="flex items-center gap-4 text-sm text-gray-500">
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    {task.estimatedTime}
-                                  </span>
-                                </div>
-
-                                {task.materials && task.materials.length > 0 && (
-                                  <div className="mt-4">
-                                    <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                      <FileText className="h-4 w-4" />
-                                      Materiais ({task.materials.length})
-                                    </h4>
-                                    <div className="grid gap-2">
-                                      {task.materials.map(material => (
-                                        <Card key={material.id} className="p-3 hover:shadow-sm transition-shadow">
-                                          <div className="flex items-center gap-3">
-                                            <div className="text-blue-600">
-                                              {getTypeIcon(material.type)}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                              <h5 className="font-medium text-sm truncate">{material.title}</h5>
-                                              <div className="flex items-center gap-2 mt-1">
-                                                {material.type === 'text' && material.content && (
-                                                  <span className="text-xs text-gray-500 truncate">
-                                                    {material.content.substring(0, 50)}...
-                                                  </span>
-                                                )}
-                                                {material.type === 'video' && (
-                                                  <Badge variant="outline" className="text-xs">🎥 Vídeo</Badge>
-                                                )}
-                                                {material.type === 'link' && (
-                                                  <Badge variant="outline" className="text-xs">🔗 Link</Badge>
-                                                )}
-                                                {material.type === 'file' && material.fileName && (
-                                                  <Badge variant="outline" className="text-xs">📄 {material.fileName}</Badge>
-                                                )}
-                                              </div>
-                                            </div>
-                                            <div className="flex gap-1">
-                                              <Button 
-                                                variant="ghost" 
-                                                size="sm"
-                                                onClick={() => viewMaterial(material)}
-                                                className="h-8 w-8 p-0"
-                                              >
-                                                <Eye className="h-4 w-4" />
-                                              </Button>
-                                              <Button 
-                                                variant="ghost" 
-                                                size="sm"
-                                                onClick={() => {
-                                                  setSelectedTask({
-                                                    id: task.id,
-                                                    type: 'tarefa',
-                                                    title: task.title,
-                                                    description: task.description,
-                                                    taskId: task.id
-                                                  });
-                                                  loadTaskMaterials(task.id); // Carregar materiais da tarefa
-                                                  startEditingMaterial(material);
-                                                  setIsMaterialModalOpen(true);
-                                                }}
-                                                className="h-8 w-8 p-0"
-                                              >
-                                                <Edit className="h-4 w-4" />
-                                              </Button>
-                                              <Button 
-                                                variant="ghost" 
-                                                size="sm"
-                                                onClick={() => handleDeleteMaterial(material.id)}
-                                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                                              >
-                                                <Trash2 className="h-4 w-4" />
-                                              </Button>
-                                            </div>
-                                          </div>
-                                        </Card>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            ))
-                          ) : (
-                            <div className="text-center py-8 text-gray-500">
-                              <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                              <p>Nenhuma tarefa criada nesta trilha</p>
+                  {section.knowledgeTrails && section.knowledgeTrails.length > 0 ? (
+                    section.knowledgeTrails.map(trail => (
+                      <Card key={trail.id} className="border-l-4 border-l-blue-500">
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg">{trail.name}</CardTitle>
+                              <Badge variant="outline" className="mt-2">
+                                {trail.tasks.length} {trail.tasks.length === 1 ? 'tarefa' : 'tarefas'}
+                              </Badge>
+                            </div>
+                            <div className="flex gap-2">
                               <Button
                                 variant="outline"
-                                className="mt-4"
+                                size="sm"
                                 onClick={() => {
-                                  setSelectedTrail(trail);
-                                  setIsTaskModalOpen(true);
+                                  // TODO: Implementar criação de tarefa
+                                  toast.info('Funcionalidade em desenvolvimento');
                                 }}
                               >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Criar Primeira Tarefa
+                                <Plus className="h-4 w-4 mr-1" />
+                                Nova Tarefa
+                              </Button>
+                              <Button
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  // TODO: Implementar edição de trilha
+                                  toast.info('Funcionalidade em desenvolvimento');
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  // TODO: Implementar exclusão de trilha
+                                  toast.info('Funcionalidade em desenvolvimento');
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                          )}
-          </div>
-        </CardContent>
-      </Card>
-                  ))}
+                          </div>
+                        </CardHeader>
+                        
+                        <CardContent>
+                          <div className="space-y-3">
+                            {trail.tasks && trail.tasks.length > 0 ? (
+                              trail.tasks.map(task => (
+                                <div key={task.id} className="border rounded-lg p-4 bg-gray-50">
+                                  <div className="flex justify-between items-start mb-3">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <h3 className="font-medium">{task.name}</h3>
+                                        <Badge variant="outline" className="text-xs">
+                                          Ordem: {task.taskOrder}
+                                        </Badge>
+                                      </div>
+                                      <p className="text-sm text-gray-600">{task.description}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          toast.info('Funcionalidade em desenvolvimento');
+                                        }}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          toast.info('Funcionalidade em desenvolvimento');
+                                        }}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+
+                                  {task.contents && task.contents.length > 0 && (
+                                    <div className="mt-4">
+                                      <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                        <FileText className="h-4 w-4" />
+                                        Conteúdos ({task.contents.length})
+                                      </h4>
+                                      <div className="grid gap-2">
+                                        {task.contents.map(content => (
+                                          <div key={content.id} className="flex items-center gap-3 p-2 bg-white rounded border">
+                                            <Badge variant="secondary" className="text-xs">
+                                              {content.contentType}
+                                            </Badge>
+                                            <span className="text-sm text-gray-600 truncate flex-1">
+                                              {content.contentUrl}
+                                            </span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => window.open(content.contentUrl, '_blank')}
+                                              className="h-8 w-8 p-0"
+                                            >
+                                              <ExternalLink className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-center py-8 text-gray-500">
+                                <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                                <p>Nenhuma tarefa criada nesta trilha</p>
+                                <Button
+                                  variant="outline"
+                                  className="mt-4"
+                                  onClick={() => {
+                                    toast.info('Funcionalidade em desenvolvimento');
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Criar Primeira Tarefa
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                      <p className="text-gray-600 mb-3">Nenhuma trilha neste semestre</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsTrailModalOpen(true)}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Criar Trilha
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))
           ) : (
             <div className="text-center py-12">
               <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma trilha encontrada</h3>
-              <p className="text-gray-600 mb-4">Comece criando uma nova trilha de conhecimento</p>
-              <Button onClick={() => setIsTrailModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Primeira Trilha
-              </Button>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma seção encontrada</h3>
+              <p className="text-gray-600 mb-4">Este curso ainda não possui seções configuradas</p>
             </div>
           )}
         </div>
-      ) : (
-        <div className="text-center py-12">
-          <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Selecione um curso</h3>
-          <p className="text-gray-600">Escolha um curso para visualizar e gerenciar seu conteúdo</p>
-        </div>
-      )}
+      ) : null}
 
       <CreateKnowledgeTrailModal
         open={isTrailModalOpen}
