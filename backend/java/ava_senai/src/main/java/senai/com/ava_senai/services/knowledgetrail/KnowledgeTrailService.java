@@ -65,6 +65,26 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
 
     }
 
+    @Override
+    public KnowledgeTrailResponseDTO updateKnowledgeTrail(KnowledgeTrailRegisterDTO knowledgeTrailRegister, Long id) {
+
+        validateMandatoryFields(knowledgeTrailRegister);
+
+        return Optional.ofNullable(knowledgeTrailRepository.findById(id))
+                .get()
+                .map((knowledgeTrailDB) -> {
+
+                    validateKnowledgeTrailSameName(knowledgeTrailRegister, knowledgeTrailDB);
+
+                    knowledgeTrailDB = knowledgeTrailRepository.save(updateData(knowledgeTrailDB, knowledgeTrailRegister));
+
+                    return new KnowledgeTrailResponseDTO(knowledgeTrailDB);
+
+                })
+                .orElseThrow(() -> new NotFoundException("Sessão não existe!"));
+
+    }
+
     private KnowledgeTrail buildKnowledgeTrail(KnowledgeTrailRegisterDTO knowledgeTrailRequest) {
         return new KnowledgeTrail(knowledgeTrailRequest.name(), knowledgeTrailRequest.sectionId(), knowledgeTrailRequest.ranked());
 
@@ -85,26 +105,6 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
         }
 
         validation.throwIfHasErrors();
-
-    }
-
-    @Override
-    public KnowledgeTrailResponseDTO updateKnowledgeTrail(KnowledgeTrailRegisterDTO knowledgeTrailRegister, Long id) {
-
-        validateMandatoryFields(knowledgeTrailRegister);
-
-        return Optional.ofNullable(knowledgeTrailRepository.findById(id))
-                .get()
-                .map((knowledgeTrailDB) -> {
-
-                    validateKnowledgeTrailSameName(knowledgeTrailRegister, knowledgeTrailDB);
-
-                    knowledgeTrailDB = knowledgeTrailRepository.save(updateData(knowledgeTrailDB, knowledgeTrailRegister));
-
-                    return new KnowledgeTrailResponseDTO(knowledgeTrailDB);
-
-                })
-                .orElseThrow(() -> new NotFoundException("Sessão não existe!"));
 
     }
 
