@@ -25,11 +25,11 @@ public class Task extends DefaultEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "difficulty_level", nullable = false)
+    @Column(name = "difficulty_level")
     @Enumerated(EnumType.STRING)
     private Dificuldade difficultyLevel;
 
-    @Column(name = "due_date", nullable = false)
+    @Column(name = "due_date")
     private Date dueDate;
 
     @ManyToOne
