@@ -3,6 +3,7 @@ package senai.com.ava_senai.domain.task.knowledgetrail;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.BooleanUtils;
 import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.course.section.Section;
 import senai.com.ava_senai.domain.task.Task;
@@ -36,7 +37,7 @@ public class KnowledgeTrail extends DefaultEntity {
     public  KnowledgeTrail(String name, Long sectionId, Boolean ranked) {
         this.name = name;
         this.sectionId = sectionId;
-        this.ranked = ranked;
+        this.ranked = BooleanUtils.isTrue(ranked);
     }
 
 }
