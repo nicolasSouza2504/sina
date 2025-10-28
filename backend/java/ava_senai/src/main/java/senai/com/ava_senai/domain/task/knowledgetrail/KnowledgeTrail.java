@@ -36,6 +36,7 @@ public class KnowledgeTrail extends DefaultEntity {
     public  KnowledgeTrail(String name, Long sectionId, Boolean ranked) {
         this.name = name;
         this.sectionId = sectionId;
+        this.ranked = ranked;
     }
 
 }
