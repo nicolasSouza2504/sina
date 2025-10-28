@@ -27,19 +27,23 @@ import {
   CheckCircle,
   ExternalLink,
   Download,
-  Users
+  Users,
+  Trophy
 } from 'lucide-react';
 import { mockCourseService, Course, Trail, Task, Material } from '@/lib/services/mockCourseService';
 import { mockSubmissionService } from '@/lib/services/mockSubmissionService';
 import { StudentSubmissionsModal } from '@/components/professor/StudentSubmissionsModal';
 import CreateKnowledgeTrailModal from '@/components/professor/CreateKnowledgeTrailModal';
+import EditKnowledgeTrailModal from '@/components/professor/EditKnowledgeTrailModal';
 import QuickActions from '@/components/admin/quickActions';
 import { toast } from 'sonner';
 import CourseList from '@/lib/api/course/courseList';
 import CreateKnowledgeTrailService from '@/lib/api/knowledgetrail/createKnowledgeTrail';
+import UpdateKnowledgeTrailService from '@/lib/api/knowledgetrail/updateKnowledgeTrail';
 import CourseContentSummaryService from '@/lib/api/course/courseContentSummary';
 import type { Course as ApiCourse } from '@/lib/interfaces/courseInterfaces';
 import type { CourseContentSummary } from '@/lib/interfaces/courseContentInterfaces';
+import type { EditKnowledgeTrailFormData } from '@/lib/interfaces/knowledgeTrailInterfaces';
 
 interface ContentItem {
   id: string;
@@ -85,12 +89,7 @@ export default function GerenciarConteudo() {
   const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
   const [selectedTaskForSubmissions, setSelectedTaskForSubmissions] = useState<{ id: string; title: string } | null>(null);
   
-  const [editTrail, setEditTrail] = useState({
-    id: '',
-    title: '',
-    description: '',
-    semesterNumber: ''
-  });
+  const [editTrail, setEditTrail] = useState<EditKnowledgeTrailFormData | null>(null);
   
   const [newTask, setNewTask] = useState({
     title: '',
@@ -246,7 +245,7 @@ export default function GerenciarConteudo() {
     return parseInt(a[0]) - parseInt(b[0]);
   });
 
-  const handleCreateTrail = async (data: { name: string; sectionId: number }) => {
+  const handleCreateTrail = async (data: { name: string; sectionId: number; ranked: boolean }) => {
     try {
       const response = await CreateKnowledgeTrailService(data);
       
@@ -270,30 +269,32 @@ export default function GerenciarConteudo() {
     }
   };
 
-  const handleEditTrail = () => {
-    if (!editTrail.id) return;
-
-    const trail = mockCourseService.getTrailById(editTrail.id);
-    if (!trail) {
-      toast.error('❌ Trilha não encontrada');
-      return;
-    }
-
-    const allTrails = mockCourseService.getAllTrails();
-    const trailIndex = allTrails.findIndex(t => t.id === editTrail.id);
-    if (trailIndex !== -1) {
-      allTrails[trailIndex] = {
-        ...allTrails[trailIndex],
-        title: editTrail.title,
-        description: editTrail.description,
-        semesterNumber: parseInt(editTrail.semesterNumber)
-      };
-      localStorage.setItem('mockTrails', JSON.stringify(allTrails));
-      loadContent();
-      setIsEditTrailModalOpen(false);
-      toast.success('Trilha atualizada com sucesso', {
+  const handleEditTrail = async (data: { id: number; name: string; sectionId: number; ranked: boolean }) => {
+    try {
+      await UpdateKnowledgeTrailService(data.id, {
+        name: data.name,
+        sectionId: data.sectionId,
+        ranked: data.ranked
+      });
+      
+      toast.success('✅ Trilha atualizada com sucesso', {
         description: 'As alterações foram salvas e aplicadas à trilha.'
       });
+      
+      // Recarrega o conteúdo do curso
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
+      
+      setEditTrail(null);
+      setIsEditTrailModalOpen(false);
+    } catch (error) {
+      console.error('Erro ao atualizar trilha:', error);
+      toast.error('❌ Erro ao atualizar trilha de conhecimento', {
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+      });
+      throw error;
     }
   };
 
@@ -739,8 +740,16 @@ export default function GerenciarConteudo() {
                         <CardHeader>
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <CardTitle className="text-lg">{trail.name}</CardTitle>
-                              <Badge variant="outline" className="mt-2">
+                              <div className="flex items-center gap-2 mb-2">
+                                <CardTitle className="text-lg">{trail.name}</CardTitle>
+                                {trail.ranked && (
+                                  <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-0">
+                                    <Trophy className="h-3 w-3 mr-1" />
+                                    Rankeada
+                                  </Badge>
+                                )}
+                              </div>
+                              <Badge variant="outline" className="mt-1">
                                 {trail.tasks.length} {trail.tasks.length === 1 ? 'tarefa' : 'tarefas'}
                               </Badge>
                             </div>
@@ -760,8 +769,18 @@ export default function GerenciarConteudo() {
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => {
-                                  // TODO: Implementar edição de trilha
-                                  toast.info('Funcionalidade em desenvolvimento');
+                                  const section = courseContent.sections.find(s => 
+                                    s.knowledgeTrails.some(kt => kt.id === trail.id)
+                                  );
+                                  
+                                  setEditTrail({
+                                    id: trail.id,
+                                    name: trail.name,
+                                    sectionId: section?.id || 0,
+                                    sectionName: section?.name || '',
+                                    ranked: trail.ranked || false
+                                  });
+                                  setIsEditTrailModalOpen(true);
                                 }}
                               >
                                 <Edit className="h-4 w-4" />
@@ -902,87 +921,12 @@ export default function GerenciarConteudo() {
         onSubmit={handleCreateTrail}
       />
 
-      <Dialog open={isEditTrailModalOpen} onOpenChange={setIsEditTrailModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="relative">
-            <DialogHeader className="pb-6">
-                    <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-blue-600 rounded-xl">
-                  <Edit className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <DialogTitle className="text-2xl font-bold text-gray-900">
-                    Editar Trilha
-                  </DialogTitle>
-                  <p className="text-sm text-gray-600 mt-1">Atualize as informações da trilha de conhecimento</p>
-                </div>
-              </div>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="edit-trail-title" className="text-sm font-semibold text-gray-700">
-                  Título
-                </Label>
-                <Input
-                  id="edit-trail-title"
-                  value={editTrail.title}
-                  onChange={(e) => setEditTrail(prev => ({ ...prev, title: e.target.value }))}
-                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-trail-description" className="text-sm font-semibold text-gray-700">
-                  Descrição
-                </Label>
-                <Textarea
-                  id="edit-trail-description"
-                  value={editTrail.description}
-                  onChange={(e) => setEditTrail(prev => ({ ...prev, description: e.target.value }))}
-                  rows={4}
-                  className="border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl resize-none"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-trail-semester" className="text-sm font-semibold text-gray-700">
-                  Semestre
-                </Label>
-                <Select value={editTrail.semesterNumber} onValueChange={(value) => setEditTrail(prev => ({ ...prev, semesterNumber: value }))}>
-                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-                    <SelectValue placeholder="Selecione um semestre" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {selectedCourseId && mockCourseService.getCourseById(selectedCourseId)?.semesters.map(semester => (
-                      <SelectItem key={semester.number} value={semester.number.toString()} className="py-3">
-                        {semester.number}º - {semester.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-3 pt-8 border-t border-gray-100">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsEditTrailModalOpen(false)}
-                className="h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleEditTrail}
-                className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Salvar Alterações
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <EditKnowledgeTrailModal
+        open={isEditTrailModalOpen}
+        onOpenChange={setIsEditTrailModalOpen}
+        trail={editTrail}
+        onSubmit={handleEditTrail}
+      />
 
       <Dialog open={isTaskModalOpen} onOpenChange={setIsTaskModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

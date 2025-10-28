@@ -6,14 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, BookOpen, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Loader2, BookOpen, X, Trophy } from 'lucide-react';
 import { Course } from '@/lib/interfaces/courseInterfaces';
 import type { KnowledgeTrailFormData } from '@/lib/interfaces/knowledgeTrailInterfaces';
 
 interface Section {
   id: number;
   name: string;
-  semester: number;
+  semester: number | null;
   courseId: number;
 }
 
@@ -22,7 +23,7 @@ interface CreateKnowledgeTrailModalProps {
   onOpenChange: (open: boolean) => void;
   courses: Course[];
   isLoadingCourses: boolean;
-  onSubmit: (data: { name: string; sectionId: number }) => Promise<void>;
+  onSubmit: (data: { name: string; sectionId: number; ranked: boolean }) => Promise<void>;
 }
 
 export default function CreateKnowledgeTrailModal({
@@ -35,7 +36,8 @@ export default function CreateKnowledgeTrailModal({
   const [formData, setFormData] = useState<KnowledgeTrailFormData>({
     name: '',
     courseId: '',
-    sectionId: ''
+    sectionId: '',
+    ranked: false
   });
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [availableSections, setAvailableSections] = useState<Section[]>([]);
@@ -49,7 +51,7 @@ export default function CreateKnowledgeTrailModal({
       setSelectedCourse(course || null);
       setAvailableSections(course?.sections || []);
       // Limpa a seção selecionada quando o curso muda
-      setFormData(prev => ({ ...prev, sectionId: '' }));
+      setFormData(prev => ({ ...prev, sectionId: '', ranked: false }));
     } else {
       setSelectedCourse(null);
       setAvailableSections([]);
@@ -80,7 +82,8 @@ export default function CreateKnowledgeTrailModal({
       setError('');
       await onSubmit({
         name: formData.name.trim(),
-        sectionId: parseInt(formData.sectionId)
+        sectionId: parseInt(formData.sectionId),
+        ranked: formData.ranked
       });
       handleClose();
     } catch (err) {
@@ -92,7 +95,7 @@ export default function CreateKnowledgeTrailModal({
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setFormData({ name: '', courseId: '', sectionId: '' });
+      setFormData({ name: '', courseId: '', sectionId: '', ranked: false });
       setSelectedCourse(null);
       setAvailableSections([]);
       setError('');
@@ -215,6 +218,42 @@ export default function CreateKnowledgeTrailModal({
                   )}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Campo Ranked (Checkbox) */}
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-100 rounded-xl">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500 shadow-md flex-shrink-0">
+                  <Trophy className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">Rankeamento de Atividades</h4>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Ative esta opção para habilitar o sistema de rankeamento das atividades entregues pelos alunos nesta trilha. 
+                      O ranking será exibido em outra seção do sistema.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id="ranked"
+                      checked={formData.ranked}
+                      onCheckedChange={(checked) => {
+                        setFormData(prev => ({ ...prev, ranked: checked as boolean }));
+                        setError('');
+                      }}
+                      disabled={isSubmitting}
+                      className="h-5 w-5 border-2 border-amber-400 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                    />
+                    <Label
+                      htmlFor="ranked"
+                      className="text-sm font-medium text-gray-700 cursor-pointer select-none"
+                    >
+                      Habilitar rankeamento para esta trilha
+                    </Label>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Preview do Curso Selecionado */}
