@@ -89,6 +89,8 @@ public class TaskService implements ITaskService {
         task.setName(taskRegister.name());
         task.setDescription(taskRegister.description());
         task.setKnowledgeTrailId(taskRegister.knowledgeTrailId());
+        task.setDifficultyLevel(taskRegister.difficultyLevel());
+        task.setDueDate(taskRegister.dueDate());
 
         return taskRepository.save(task);
 
