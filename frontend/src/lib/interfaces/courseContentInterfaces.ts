@@ -15,6 +15,7 @@ export interface TaskSummary {
 export interface KnowledgeTrailSummary {
     id: number;
     name: string;
+    ranked?: boolean;
     tasks: TaskSummary[];
 }
 
