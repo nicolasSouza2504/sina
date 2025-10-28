@@ -110,10 +110,9 @@ public class TaskService implements ITaskService {
 
         Validation validation = new Validation();
 
-
         if (taskRegister.courseId() == null) {
             validation.add("courseId", "Curso é obrigatório");
-        } else if (courseRepository.existsById(taskRegister.courseId())) {
+        } else if (!courseRepository.existsById(taskRegister.courseId())) {
             validation.add("courseId", "Curso informado não existe");
         }
 
@@ -138,6 +137,8 @@ public class TaskService implements ITaskService {
             }
 
         }
+
+        validation.throwIfHasErrors();
 
 
     }
