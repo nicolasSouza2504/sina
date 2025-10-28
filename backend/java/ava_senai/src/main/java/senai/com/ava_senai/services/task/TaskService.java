@@ -8,14 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.config.RabbitMQConfig;
 import senai.com.ava_senai.domain.task.*;
+import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.exception.NotFoundException;
-import senai.com.ava_senai.repository.TaskContentRepository;
-import senai.com.ava_senai.repository.TaskRepository;
-import senai.com.ava_senai.repository.TaskUserRepository;
-import senai.com.ava_senai.repository.UserRepository;
+import senai.com.ava_senai.exception.Validation;
+import senai.com.ava_senai.repository.*;
 import senai.com.ava_senai.services.messaging.RabbitMQSender;
 import senai.com.ava_senai.taskuser.TaskUser;
 
@@ -31,10 +30,13 @@ public class TaskService implements ITaskService {
     private final TaskRepository taskRepository;
     private final RabbitMQSender rabbitMQSender;
     private final TaskUserRepository taskUserRepository;
+    private final CourseRepository courseRepository;
+    private final KnowledgeTrailRepository knowledgeTrailRepository;
 
     @Override
     public TaskResponseDTO createTasks(TaskRegisterDTO taskRegister) {
 
+        validateMandatoryFields(taskRegister);
         Task task = createTask(taskRegister);
 
         sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
@@ -103,5 +105,42 @@ public class TaskService implements ITaskService {
         );
 
     }
+
+    public void validateMandatoryFields(TaskRegisterDTO taskRegister) {
+
+        Validation validation = new Validation();
+
+
+        if (taskRegister.courseId() == null) {
+            validation.add("courseId", "Curso é obrigatório");
+        } else if (courseRepository.existsById(taskRegister.courseId())) {
+            validation.add("courseId", "Curso informado não existe");
+        }
+
+        if (taskRegister.knowledgeTrailId() == null) {
+            validation.add("knowledgeTrailId", "Trilha de conhecimento é obrigatória");
+        } else {
+
+            KnowledgeTrail knowledgeTrail = knowledgeTrailRepository.findById(taskRegister.knowledgeTrailId()).orElse(null);
+
+            if (knowledgeTrail == null) {
+                validation.add("knowledgeTrailId", "Trilha de conhecimento informada não existe");
+            } else if (BooleanUtils.isTrue(knowledgeTrail.getRanked())) {
+
+                if (taskRegister.difficultyLevel() == null) {
+                    validation.add("difficultyLevel", "Nível de dificuldade é obrigatório para trilhas ranqueadas");
+                }
+
+                if (taskRegister.dueDate() == null) {
+                    validation.add("dueDate", "Data de entrega é obrigatória para trilhas ranqueadas");
+                }
+
+            }
+
+        }
+
+
+    }
+
 
 }
