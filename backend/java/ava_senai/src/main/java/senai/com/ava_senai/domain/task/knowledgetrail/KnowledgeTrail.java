@@ -25,12 +25,15 @@ public class KnowledgeTrail extends DefaultEntity {
     @Column(name = "section_id", nullable = false)
     private Long sectionId;
 
+    @Column(name = "ranked")
+    private Boolean ranked;
+
     @OneToMany(mappedBy = "knowledgeTrail")
     private Set<Task> tasks;
 
     public KnowledgeTrail() {}
 
-    public  KnowledgeTrail(String name, Long sectionId) {
+    public  KnowledgeTrail(String name, Long sectionId, Boolean ranked) {
         this.name = name;
         this.sectionId = sectionId;
     }

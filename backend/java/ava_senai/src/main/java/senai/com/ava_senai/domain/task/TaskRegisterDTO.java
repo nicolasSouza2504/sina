@@ -1,4 +1,6 @@
 package senai.com.ava_senai.domain.task;
 
-public record TaskRegisterDTO(Long courseId, Long knowledgeTrailId, String name, String description) {
+import java.util.Date;
+
+public record TaskRegisterDTO(Long courseId, Long knowledgeTrailId, String name, String description, Dificuldade difficultyLevel, Date dueDate) {
 }

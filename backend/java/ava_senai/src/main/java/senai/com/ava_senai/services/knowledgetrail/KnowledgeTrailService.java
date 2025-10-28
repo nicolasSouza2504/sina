@@ -66,7 +66,7 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
     }
 
     private KnowledgeTrail buildKnowledgeTrail(KnowledgeTrailRegisterDTO knowledgeTrailRequest) {
-        return new KnowledgeTrail(knowledgeTrailRequest.name(), knowledgeTrailRequest.sectionId());
+        return new KnowledgeTrail(knowledgeTrailRequest.name(), knowledgeTrailRequest.sectionId(), knowledgeTrailRequest.ranked());
 
     }
 
@@ -132,6 +132,7 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
     private KnowledgeTrail updateData(KnowledgeTrail knowledgeTrailDB, KnowledgeTrailRegisterDTO knowledgeTrailRegister) {
         knowledgeTrailDB.setName(knowledgeTrailRegister.name());
         knowledgeTrailDB.setSectionId(knowledgeTrailRegister.sectionId());
+        knowledgeTrailDB.setRanked(knowledgeTrailRegister.ranked());
         return knowledgeTrailDB;
     }
 }

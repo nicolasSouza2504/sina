@@ -8,6 +8,7 @@ import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 import senai.com.ava_senai.taskuser.TaskUser;
 
+import java.util.Date;
 import java.util.Set;
 
 @Data
@@ -23,6 +24,13 @@ public class Task extends DefaultEntity {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "difficulty_level", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Dificuldade difficultyLevel;
+
+    @Column(name = "due_date", nullable = false)
+    private Date dueDate;
 
     @ManyToOne
     @JoinColumn(name = "knowledge_trail_id", nullable = false, updatable = false, insertable = false)

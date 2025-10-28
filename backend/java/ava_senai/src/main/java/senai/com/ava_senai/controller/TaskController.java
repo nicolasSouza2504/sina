@@ -6,11 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import senai.com.ava_senai.domain.task.TaskRegisterDTO;
-import senai.com.ava_senai.domain.task.TaskResponseDTO;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.task.TaskService;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
