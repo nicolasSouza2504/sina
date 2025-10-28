@@ -1,3 +1,5 @@
+import { DifficultyLevel } from './taskInterfaces';
+
 export interface TaskContentSummary {
     id: number;
     contentType: string;
@@ -8,6 +10,8 @@ export interface TaskSummary {
     id: number;
     name: string;
     description: string;
+    difficultyLevel?: DifficultyLevel;
+    dueDate?: string;
     taskOrder: number;
     contents: TaskContentSummary[];
 }

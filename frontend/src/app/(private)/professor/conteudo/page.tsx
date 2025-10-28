@@ -35,15 +35,18 @@ import { mockSubmissionService } from '@/lib/services/mockSubmissionService';
 import { StudentSubmissionsModal } from '@/components/professor/StudentSubmissionsModal';
 import CreateKnowledgeTrailModal from '@/components/professor/CreateKnowledgeTrailModal';
 import EditKnowledgeTrailModal from '@/components/professor/EditKnowledgeTrailModal';
+import CreateTaskModal from '@/components/professor/CreateTaskModal';
 import QuickActions from '@/components/admin/quickActions';
 import { toast } from 'sonner';
 import CourseList from '@/lib/api/course/courseList';
 import CreateKnowledgeTrailService from '@/lib/api/knowledgetrail/createKnowledgeTrail';
 import UpdateKnowledgeTrailService from '@/lib/api/knowledgetrail/updateKnowledgeTrail';
 import CourseContentSummaryService from '@/lib/api/course/courseContentSummary';
+import CreateTaskService from '@/lib/api/task/createTask';
 import type { Course as ApiCourse } from '@/lib/interfaces/courseInterfaces';
 import type { CourseContentSummary } from '@/lib/interfaces/courseContentInterfaces';
 import type { EditKnowledgeTrailFormData } from '@/lib/interfaces/knowledgeTrailInterfaces';
+import type { TaskFormData } from '@/lib/interfaces/taskInterfaces';
 
 interface ContentItem {
   id: string;
@@ -90,6 +93,15 @@ export default function GerenciarConteudo() {
   const [selectedTaskForSubmissions, setSelectedTaskForSubmissions] = useState<{ id: string; title: string } | null>(null);
   
   const [editTrail, setEditTrail] = useState<EditKnowledgeTrailFormData | null>(null);
+  
+  // Estados para criação de tarefa
+  const [selectedKnowledgeTrailForTask, setSelectedKnowledgeTrailForTask] = useState<{
+    id: number;
+    name: string;
+    courseId: number;
+    courseName: string;
+    isRanked: boolean;
+  } | null>(null);
   
   const [newTask, setNewTask] = useState({
     title: '',
@@ -312,49 +324,48 @@ export default function GerenciarConteudo() {
     }
   };
 
-  const handleCreateTask = () => {
-    if (!selectedTrail) {
-      toast.error('❌ Selecione uma trilha primeiro');
+  const handleCreateTask = async (data: TaskFormData) => {
+    if (!selectedKnowledgeTrailForTask) {
+      toast.error('❌ Erro: Trilha de conhecimento não selecionada');
       return;
     }
 
-    if (!newTask.title.trim()) {
-      toast.error('❌ Título da tarefa é obrigatório');
-      return;
+    try {
+      // Prepare payload - difficultyLevel is always required, dueDate only for ranked trails
+      const payload: any = {
+        courseId: selectedKnowledgeTrailForTask.courseId,
+        knowledgeTrailId: selectedKnowledgeTrailForTask.id,
+        name: data.name,
+        description: data.description,
+        difficultyLevel: data.difficultyLevel
+      };
+
+      // Add dueDate only for ranked trails
+      if (selectedKnowledgeTrailForTask.isRanked && data.dueDate) {
+        const dueDateISO = new Date(data.dueDate + 'T23:59:59.000Z').toISOString();
+        payload.dueDate = dueDateISO;
+      }
+      
+      await CreateTaskService(payload);
+
+      toast.success('✅ Tarefa criada com sucesso', {
+        description: 'A tarefa foi adicionada à trilha e está disponível.'
+      });
+
+      // Recarrega o conteúdo do curso mantendo o curso selecionado
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
+
+      setSelectedKnowledgeTrailForTask(null);
+    } catch (error) {
+      console.error('Erro ao criar tarefa:', error);
+      toast.error('❌ Erro ao criar tarefa', {
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+      });
+      throw error;
     }
-
-    if (!newTask.description.trim()) {
-      toast.error('❌ Descrição da tarefa é obrigatória');
-      return;
-    }
-
-    if (!newTask.estimatedTime.trim()) {
-      toast.error('❌ Tempo estimado é obrigatório');
-      return;
-    }
-
-    mockCourseService.createTask({
-      trailId: selectedTrail.id,
-      title: newTask.title,
-      description: newTask.description,
-      type: newTask.type,
-      difficulty: newTask.difficulty,
-      estimatedTime: newTask.estimatedTime,
-      status: 'unlocked'
-    });
-
-    setNewTask({
-      title: '',
-      description: '',
-      type: 'teórica',
-      difficulty: 'Iniciante',
-      estimatedTime: ''
-    });
-    setIsTaskModalOpen(false);
-    loadContent();
-    toast.success('Tarefa criada com sucesso', {
-      description: 'A tarefa foi adicionada à trilha e está pronta para receber materiais.'
-    });
   };
 
   const handleEditTask = () => {
@@ -758,8 +769,14 @@ export default function GerenciarConteudo() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
-                                  // TODO: Implementar criação de tarefa
-                                  toast.info('Funcionalidade em desenvolvimento');
+                                  setSelectedKnowledgeTrailForTask({
+                                    id: trail.id,
+                                    name: trail.name,
+                                    courseId: courseContent.id,
+                                    courseName: courseContent.name,
+                                    isRanked: trail.ranked || false
+                                  });
+                                  setIsTaskModalOpen(true);
                                 }}
                               >
                                 <Plus className="h-4 w-4 mr-1" />
@@ -874,7 +891,14 @@ export default function GerenciarConteudo() {
                                   variant="outline"
                                   className="mt-4"
                                   onClick={() => {
-                                    toast.info('Funcionalidade em desenvolvimento');
+                                    setSelectedKnowledgeTrailForTask({
+                                      id: trail.id,
+                                      name: trail.name,
+                                      courseId: courseContent.id,
+                                      courseName: courseContent.name,
+                                      isRanked: trail.ranked || false
+                                    });
+                                    setIsTaskModalOpen(true);
                                   }}
                                 >
                                   <Plus className="h-4 w-4 mr-2" />
@@ -928,119 +952,23 @@ export default function GerenciarConteudo() {
         onSubmit={handleEditTrail}
       />
 
-      <Dialog open={isTaskModalOpen} onOpenChange={setIsTaskModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="relative">
-            <DialogHeader className="pb-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-blue-600 rounded-xl">
-                  <Plus className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <DialogTitle className="text-2xl font-bold text-gray-900">
-                    Nova Tarefa
-                  </DialogTitle>
-                  <p className="text-sm text-gray-600 mt-1">Crie uma nova tarefa para a trilha de conhecimento</p>
-                </div>
-              </div>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="task-title" className="text-sm font-semibold text-gray-700">
-                  Título
-                </Label>
-                <Input
-                  id="task-title"
-                  value={newTask.title}
-                  onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Ex: Introdução à Programação"
-                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="task-description" className="text-sm font-semibold text-gray-700">
-                  Descrição
-                </Label>
-                <Textarea
-                  id="task-description"
-                  value={newTask.description}
-                  onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Descreva os objetivos desta tarefa..."
-                  rows={4}
-                  className="border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl resize-none"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="task-type" className="text-sm font-semibold text-gray-700">
-                    Tipo
-                  </Label>
-                  <Select value={newTask.type} onValueChange={(value: any) => setNewTask(prev => ({ ...prev, type: value }))}>
-                    <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="teórica" className="py-3">Teórica</SelectItem>
-                      <SelectItem value="prática" className="py-3">Prática</SelectItem>
-                      <SelectItem value="projeto" className="py-3">Projeto</SelectItem>
-                      <SelectItem value="avaliação" className="py-3">Avaliação</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="task-difficulty" className="text-sm font-semibold text-gray-700">
-                    Dificuldade
-                  </Label>
-                  <Select value={newTask.difficulty} onValueChange={(value: any) => setNewTask(prev => ({ ...prev, difficulty: value }))}>
-                    <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Iniciante" className="py-3">Iniciante</SelectItem>
-                      <SelectItem value="Intermediário" className="py-3">Intermediário</SelectItem>
-                      <SelectItem value="Avançado" className="py-3">Avançado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="task-time" className="text-sm font-semibold text-gray-700">
-                  Tempo Estimado
-                </Label>
-                <Input
-                  id="task-time"
-                  value={newTask.estimatedTime}
-                  onChange={(e) => setNewTask(prev => ({ ...prev, estimatedTime: e.target.value }))}
-                  placeholder="Ex: 8 horas"
-                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                />
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-3 pt-8 border-t border-gray-100">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsTaskModalOpen(false)}
-                className="h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleCreateTask}
-                className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Tarefa
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {selectedKnowledgeTrailForTask && (
+        <CreateTaskModal
+          open={isTaskModalOpen}
+          onOpenChange={(open) => {
+            setIsTaskModalOpen(open);
+            if (!open) {
+              setSelectedKnowledgeTrailForTask(null);
+            }
+          }}
+          courseId={selectedKnowledgeTrailForTask.courseId}
+          courseName={selectedKnowledgeTrailForTask.courseName}
+          knowledgeTrailId={selectedKnowledgeTrailForTask.id}
+          knowledgeTrailName={selectedKnowledgeTrailForTask.name}
+          isRanked={selectedKnowledgeTrailForTask.isRanked}
+          onSubmit={handleCreateTask}
+        />
+      )}
 
       <Dialog open={isEditTaskModalOpen} onOpenChange={setIsEditTaskModalOpen}>
         <DialogContent className="max-w-md">
