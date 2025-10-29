@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +15,8 @@ import {
   Type,
   Download,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 import fetchTaskContent from '@/lib/api/task-content/fetchTaskContent';
 
@@ -59,6 +61,7 @@ export default function ViewTaskContentModal({
   const [error, setError] = useState<string | null>(null);
   const [contentData, setContentData] = useState<string | null>(null);
   const [textContent, setTextContent] = useState<string>('');
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     if (open && contentUrl) {
@@ -112,6 +115,40 @@ export default function ViewTaskContentModal({
   const colorClass = contentTypeColors[contentType] || contentTypeColors['TEXT'];
 
   const renderContent = () => {
+    // Em mobile, não renderizar o conteúdo - apenas mostrar informações e botão de download
+    if (isMobile) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 px-4">
+          <div className="p-4 bg-blue-50 rounded-full mb-4">
+            <Icon className="h-12 w-12 text-blue-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">
+            Visualização disponível apenas no desktop
+          </h3>
+          <p className="text-sm text-gray-600 text-center mb-6">
+            Para visualizar este conteúdo diretamente, acesse pelo computador. Você pode fazer o download para visualizar no seu dispositivo.
+          </p>
+          <div className="flex flex-col gap-2 w-full max-w-xs">
+            <Button
+              onClick={handleDownload}
+              className="w-full"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Baixar Arquivo
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.open(contentUrl, '_blank')}
+              className="w-full"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Abrir em Nova Aba
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
     if (isLoading) {
       return (
         <div className="flex flex-col items-center justify-center py-20">
@@ -238,15 +275,15 @@ export default function ViewTaskContentModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
-        <DialogHeader className="pb-4 border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${colorClass.split(' ')[0]}`}>
-                <Icon className={`h-5 w-5 ${colorClass.split(' ')[1]}`} />
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto w-[95vw] sm:w-full">
+        <DialogHeader className="pb-3 sm:pb-4 border-b">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className={`p-1.5 sm:p-2 rounded-lg ${colorClass.split(' ')[0]} flex-shrink-0`}>
+                <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${colorClass.split(' ')[1]}`} />
               </div>
-              <div>
-                <DialogTitle className="text-xl font-bold text-gray-900">
+              <div className="min-w-0 flex-1">
+                <DialogTitle className="text-base sm:text-xl font-bold text-gray-900 truncate">
                   {contentName}
                 </DialogTitle>
                 <Badge 
@@ -257,23 +294,23 @@ export default function ViewTaskContentModal({
                 </Badge>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {contentData && !error && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {!isMobile && contentData && !error && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleDownload}
-                  className="h-9"
+                  className="h-8 sm:h-9 text-xs sm:text-sm"
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  Baixar
+                  <Download className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Baixar</span>
                 </Button>
               )}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => onOpenChange(false)}
-                className="h-9 w-9"
+                className="h-8 w-8 sm:h-9 sm:w-9"
               >
                 <X className="h-4 w-4" />
               </Button>

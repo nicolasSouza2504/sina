@@ -78,32 +78,32 @@ export default function TaskMaterialsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="text-2xl font-bold text-gray-900">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+        <DialogHeader className="pb-3 sm:pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-lg sm:text-2xl font-bold text-gray-900">
                 Materiais da Tarefa
               </DialogTitle>
-              <p className="text-sm text-gray-500 mt-1">{taskName}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1 truncate">{taskName}</p>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              className="h-8 w-8"
+              className="h-8 w-8 flex-shrink-0"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
         </DialogHeader>
 
-        <div className="space-y-3 mt-4">
+        <div className="space-y-2 sm:space-y-3 mt-3 sm:mt-4">
           {materials.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-              <p className="text-gray-500 font-medium">Nenhum material adicionado</p>
-              <p className="text-sm text-gray-400 mt-1">
+            <div className="text-center py-8 sm:py-12">
+              <FileText className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-gray-300" />
+              <p className="text-sm sm:text-base text-gray-500 font-medium">Nenhum material adicionado</p>
+              <p className="text-xs sm:text-sm text-gray-400 mt-1">
                 Adicione materiais para esta tarefa
               </p>
             </div>
@@ -116,46 +116,48 @@ export default function TaskMaterialsModal({
               return (
                 <div
                   key={material.id}
-                  className="flex items-center gap-4 p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-md transition-all"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-md transition-all"
                 >
-                  <div className={`p-3 rounded-lg ${colorClass.split(' ')[0]}`}>
-                    <Icon className={`h-6 w-6 ${colorClass.split(' ')[1]}`} />
+                  <div className={`p-2 sm:p-3 rounded-lg ${colorClass.split(' ')[0]} flex-shrink-0 self-start sm:self-center`}>
+                    <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${colorClass.split(' ')[1]}`} />
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold text-gray-900 truncate">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <h4 className="font-semibold text-sm sm:text-base text-gray-900 truncate">
                         Material {material.id}
                       </h4>
                       <Badge 
                         variant="outline" 
-                        className={`${colorClass} text-xs`}
+                        className={`${colorClass} text-xs flex-shrink-0`}
                       >
                         {typeLabel}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-500 truncate">
+                    <p className="text-xs sm:text-sm text-gray-500 truncate">
                       {material.contentUrl}
                     </p>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 w-full sm:w-auto">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleViewContent(material)}
-                      className="h-9 px-4 border-2 hover:bg-purple-50 hover:border-purple-300"
+                      className="flex-1 sm:flex-none h-9 px-3 sm:px-4 border-2 hover:bg-purple-50 hover:border-purple-300 text-xs sm:text-sm"
                     >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Visualizar
+                      <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Visualizar</span>
+                      <span className="sm:hidden">Ver</span>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDownload(material.contentUrl)}
-                      className="h-9 px-4 border-2 hover:bg-blue-50 hover:border-blue-300"
+                      className="h-9 w-9 sm:px-4 sm:w-auto border-2 hover:bg-blue-50 hover:border-blue-300 p-0 sm:p-2"
                     >
-                      <Download className="h-4 w-4" />
+                      <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline sm:ml-2">Baixar</span>
                     </Button>
                   </div>
                 </div>
@@ -164,10 +166,10 @@ export default function TaskMaterialsModal({
           )}
         </div>
 
-        <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-6">
+        <div className="flex justify-end gap-3 pt-4 sm:pt-6 border-t border-gray-100 mt-4 sm:mt-6">
           <Button 
             onClick={() => onOpenChange(false)}
-            className="h-11 px-6 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl"
+            className="h-10 sm:h-11 px-4 sm:px-6 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl w-full sm:w-auto text-sm sm:text-base"
           >
             Fechar
           </Button>
