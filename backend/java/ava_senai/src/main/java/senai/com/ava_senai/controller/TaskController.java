@@ -6,8 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import senai.com.ava_senai.domain.task.TaskRegisterDTO;
+import senai.com.ava_senai.domain.task.TaskUpdateOrderDTO;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.task.TaskService;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,9 +27,18 @@ public class TaskController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getTasksByKnowledgeTrailId(@PathVariable @Valid Long id) {
-
         return ResponseEntity.ok().body(new ApiResponse("Sucesso!", taskService.getTaskById(id)));
+    }
+
+    @PostMapping("update-order-tasks/")
+    @Secured({"ADMIN", "TEACHER"})
+    public ResponseEntity<ApiResponse> updateTaskOrder(@RequestBody @Valid List<TaskUpdateOrderDTO> taskUpdateOrderDTOS) {
+
+        taskService.updateTaskOrder(taskUpdateOrderDTOS);
+
+        return ResponseEntity.ok().body(new ApiResponse("Ordem das tarefas atualizada com sucesso!", null));
 
     }
+
 
 }

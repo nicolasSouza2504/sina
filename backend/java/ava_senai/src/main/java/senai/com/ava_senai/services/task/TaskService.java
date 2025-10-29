@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.config.RabbitMQConfig;
@@ -37,6 +38,7 @@ public class TaskService implements ITaskService {
     public TaskResponseDTO createTask(TaskRegisterDTO taskRegister) {
 
         validateMandatoryFields(taskRegister);
+
         Task task = create(taskRegister);
 
         sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
@@ -83,8 +85,27 @@ public class TaskService implements ITaskService {
     }
 
     @Override
-    public TaskRegisterDTO updateTask(Long id) throws Exception {
+    public TaskRegisterDTO updateTask(Long id) {
         return null;
+    }
+
+    @Override
+    public void updateTaskOrder(List<TaskUpdateOrderDTO> taskUpdateOrderDTOS) {
+
+        if (!CollectionUtils.isEmpty(taskUpdateOrderDTOS)) {
+
+            taskUpdateOrderDTOS.forEach(taskUpdateOrderDTO -> {
+
+                Task task = taskRepository.findById(taskUpdateOrderDTO.taskId()).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+
+                task.setTaskOrder(taskUpdateOrderDTO.newOrder());
+
+                taskRepository.save(task);
+
+            });
+
+        }
+
     }
 
     private Task create(TaskRegisterDTO taskRegister) {
@@ -96,6 +117,7 @@ public class TaskService implements ITaskService {
         task.setKnowledgeTrailId(taskRegister.knowledgeTrailId());
         task.setDifficultyLevel(taskRegister.difficultyLevel());
         task.setDueDate(taskRegister.dueDate());
+        task.setTaskOrder(task.getTaskOrder());
 
         return taskRepository.save(task);
 

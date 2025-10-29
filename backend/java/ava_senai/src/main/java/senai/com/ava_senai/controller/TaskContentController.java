@@ -1,6 +1,7 @@
 package senai.com.ava_senai.controller;
 
 import com.google.gson.Gson;
+import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -25,7 +26,7 @@ public class TaskContentController {
     @PostMapping("/save")
     public ResponseEntity uploadContent(
             @RequestParam @Valid String taskContentStr,
-            @RequestParam("file") MultipartFile file) throws IOException {
+            @RequestParam("file") @Nullable MultipartFile file) throws IOException {
 
         TaskContentResponseDTO taskContentResponesDTO = taskContentService.saveTaskContent(new Gson().fromJson(taskContentStr, TaskContentRegisterDTO.class), file);
 

@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import senai.com.ava_senai.domain.task.TaskContentResponseDTO;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
+import senai.com.ava_senai.domain.task.taskcontent.TaskContentType;
 import senai.com.ava_senai.dto.FileData;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.TaskContentRepository;
@@ -47,7 +48,10 @@ public class TaskContentService implements ITaskContentService {
 
         TaskContent taskContent = createTaskContent(taskContentRegisterDTO);
 
-        uploadContent(taskContent, file);
+        // Only upload file if content type is not LINK
+        if (!TaskContentType.LINK.equals(taskContent.getContentType())) {
+            uploadContent(taskContent, file);
+        }
 
         return new TaskContentResponseDTO(taskContent);
 
@@ -79,9 +83,9 @@ public class TaskContentService implements ITaskContentService {
     public void uploadContent(TaskContent taskContent, MultipartFile file) throws IOException {
 
         String objectKey = storageService.uploadTaskContent(
-            file.getBytes(),
-            file.getContentType(),
-            taskContent.getTaskId().toString()
+                file.getBytes(),
+                file.getContentType(),
+                taskContent.getTaskId().toString()
         );
 
         taskContent.setContentUrl(objectKey);
@@ -98,11 +102,15 @@ public class TaskContentService implements ITaskContentService {
         taskContent.setTaskId(taskContentRegisterDTO.taskId());
         taskContent.setName(taskContentRegisterDTO.name());
 
+        if (StringUtils.isNotBlank(taskContentRegisterDTO.link())) {
+            taskContent.setContentUrl(taskContentRegisterDTO.link());
+        }
+
         return taskContentRepository.save(taskContent);
 
     }
 
-    public FileData     findContentByPathWithMetadata(String filePath) throws IOException {
+    public FileData findContentByPathWithMetadata(String filePath) throws IOException {
 
         logger.info("Fetching file from MinIO. Bucket: {}, Object: {}", StorageService.TASK_CONTENT_BUCKET, filePath);
 
@@ -113,10 +121,10 @@ public class TaskContentService implements ITaskContentService {
         try {
 
             InputStream stream = minioClient.getObject(
-                GetObjectArgs.builder()
-                    .bucket(StorageService.TASK_CONTENT_BUCKET)
-                    .object(filePath)
-                    .build()
+                    GetObjectArgs.builder()
+                            .bucket(StorageService.TASK_CONTENT_BUCKET)
+                            .object(filePath)
+                            .build()
             );
 
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -145,10 +153,10 @@ public class TaskContentService implements ITaskContentService {
             try {
 
                 var stat = minioClient.statObject(
-                    StatObjectArgs.builder()
-                        .bucket(StorageService.TASK_CONTENT_BUCKET)
-                        .object(filePath)
-                        .build()
+                        StatObjectArgs.builder()
+                                .bucket(StorageService.TASK_CONTENT_BUCKET)
+                                .object(filePath)
+                                .build()
                 );
 
                 mimeType = stat.contentType();
@@ -169,9 +177,9 @@ public class TaskContentService implements ITaskContentService {
 
     private String inferMimeType(String filePath) {
         String ext = Optional.ofNullable(filePath)
-            .filter(f -> f.contains("."))
-            .map(f -> f.substring(f.lastIndexOf('.') + 1))
-            .orElse("");
+                .filter(f -> f.contains("."))
+                .map(f -> f.substring(f.lastIndexOf('.') + 1))
+                .orElse("");
         return switch (ext.toLowerCase()) {
             case "pdf" -> MediaType.APPLICATION_PDF_VALUE;
             case "mp4" -> "video/mp4";
