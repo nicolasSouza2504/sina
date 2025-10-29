@@ -89,7 +89,6 @@ public class TaskContentService implements ITaskContentService {
         taskContent.setContentType(taskContentRegisterDTO.taskContentType());
         taskContent.setTaskId(taskContentRegisterDTO.taskId());
         taskContent.setName(taskContentRegisterDTO.name());
-        taskContent.setStatus(TaskContentUploadStatus.COMPLETED);
 
         return taskContentRepository.save(taskContent);
 

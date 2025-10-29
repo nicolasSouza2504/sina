@@ -19,7 +19,7 @@ public class TaskController {
     @PostMapping
     @Secured({"ADMIN", "TEACHER"})
     public ResponseEntity<ApiResponse> addTask(@RequestBody @Valid TaskRegisterDTO taskRegisterDTO) {
-        return ResponseEntity.ok().body(new ApiResponse("Tarefas registradas com sucesso!", taskService.createTasks(taskRegisterDTO)));
+        return ResponseEntity.ok().body(new ApiResponse("Tarefas registradas com sucesso!", taskService.createTask(taskRegisterDTO)));
     }
 
     @GetMapping("/{id}")
