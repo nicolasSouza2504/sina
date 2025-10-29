@@ -34,10 +34,10 @@ public class TaskService implements ITaskService {
     private final KnowledgeTrailRepository knowledgeTrailRepository;
 
     @Override
-    public TaskResponseDTO createTasks(TaskRegisterDTO taskRegister) {
+    public TaskResponseDTO createTask(TaskRegisterDTO taskRegister) {
 
         validateMandatoryFields(taskRegister);
-        Task task = createTask(taskRegister);
+        Task task = create(taskRegister);
 
         sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
 
@@ -82,7 +82,12 @@ public class TaskService implements ITaskService {
 
     }
 
-    private Task createTask(TaskRegisterDTO taskRegister) {
+    @Override
+    public TaskRegisterDTO updateTask(Long id) throws Exception {
+        return null;
+    }
+
+    private Task create(TaskRegisterDTO taskRegister) {
 
         Task task = new Task();
 
