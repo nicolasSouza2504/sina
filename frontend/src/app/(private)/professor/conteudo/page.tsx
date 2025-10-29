@@ -36,6 +36,8 @@ import { StudentSubmissionsModal } from '@/components/professor/StudentSubmissio
 import CreateKnowledgeTrailModal from '@/components/professor/CreateKnowledgeTrailModal';
 import EditKnowledgeTrailModal from '@/components/professor/EditKnowledgeTrailModal';
 import CreateTaskModal from '@/components/professor/CreateTaskModal';
+import CreateTaskContentModal from '@/components/KnowledgeTrail/CreateTaskContentModal';
+import TaskMaterialsModal from '@/components/KnowledgeTrail/TaskMaterialsModal';
 import QuickActions from '@/components/admin/quickActions';
 import { toast } from 'sonner';
 import CourseList from '@/lib/api/course/courseList';
@@ -43,10 +45,12 @@ import CreateKnowledgeTrailService from '@/lib/api/knowledgetrail/createKnowledg
 import UpdateKnowledgeTrailService from '@/lib/api/knowledgetrail/updateKnowledgeTrail';
 import CourseContentSummaryService from '@/lib/api/course/courseContentSummary';
 import CreateTaskService from '@/lib/api/task/createTask';
+import CreateTaskContentService from '@/lib/api/task-content/createTaskContent';
 import type { Course as ApiCourse } from '@/lib/interfaces/courseInterfaces';
-import type { CourseContentSummary } from '@/lib/interfaces/courseContentInterfaces';
+import type { CourseContentSummary, TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces';
 import type { EditKnowledgeTrailFormData } from '@/lib/interfaces/knowledgeTrailInterfaces';
 import type { TaskFormData } from '@/lib/interfaces/taskInterfaces';
+import type { TaskContentFormData } from '@/lib/interfaces/taskContentInterfaces';
 
 interface ContentItem {
   id: string;
@@ -102,6 +106,21 @@ export default function GerenciarConteudo() {
     courseName: string;
     isRanked: boolean;
   } | null>(null);
+
+  // Estados para criação de conteúdo de tarefa
+  const [selectedTaskForContent, setSelectedTaskForContent] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const [isTaskContentModalOpen, setIsTaskContentModalOpen] = useState(false);
+
+  // Estados para visualização de materiais
+  const [selectedTaskForMaterials, setSelectedTaskForMaterials] = useState<{
+    id: number;
+    name: string;
+    materials: TaskContentSummary[];
+  } | null>(null);
+  const [isTaskMaterialsModalOpen, setIsTaskMaterialsModalOpen] = useState(false);
   
   const [newTask, setNewTask] = useState({
     title: '',
@@ -362,6 +381,44 @@ export default function GerenciarConteudo() {
     } catch (error) {
       console.error('Erro ao criar tarefa:', error);
       toast.error('❌ Erro ao criar tarefa', {
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+      });
+      throw error;
+    }
+  };
+
+  const handleCreateTaskContent = async (data: TaskContentFormData) => {
+    if (!selectedTaskForContent) {
+      toast.error('❌ Erro: Tarefa não selecionada');
+      return;
+    }
+
+    if (!data.file) {
+      toast.error('❌ Erro: Arquivo é obrigatório');
+      return;
+    }
+
+    try {
+      await CreateTaskContentService({
+        taskId: selectedTaskForContent.id,
+        name: data.name,
+        taskContentType: data.taskContentType
+      }, data.file);
+
+      toast.success('✅ Material adicionado com sucesso', {
+        description: 'O material foi vinculado à tarefa e está disponível.'
+      });
+
+      // Recarrega o conteúdo do curso mantendo o curso selecionado
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
+
+      setSelectedTaskForContent(null);
+    } catch (error) {
+      console.error('Erro ao criar conteúdo:', error);
+      toast.error('❌ Erro ao adicionar material', {
         description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
       });
       throw error;
@@ -828,10 +885,48 @@ export default function GerenciarConteudo() {
                                         <Badge variant="outline" className="text-xs">
                                           Ordem: {task.taskOrder}
                                         </Badge>
+                                        {task.contents && task.contents.length > 0 && (
+                                          <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                                            {task.contents.length} {task.contents.length === 1 ? 'material' : 'materiais'}
+                                          </Badge>
+                                        )}
                                       </div>
                                       <p className="text-sm text-gray-600">{task.description}</p>
                                     </div>
                                     <div className="flex gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedTaskForContent({
+                                            id: task.id,
+                                            name: task.name
+                                          });
+                                          setIsTaskContentModalOpen(true);
+                                        }}
+                                        className="hover:bg-purple-50 hover:border-purple-300"
+                                      >
+                                        <Upload className="h-4 w-4 mr-1" />
+                                        Material
+                                      </Button>
+                                      {task.contents && task.contents.length > 0 && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => {
+                                            setSelectedTaskForMaterials({
+                                              id: task.id,
+                                              name: task.name,
+                                              materials: task.contents
+                                            });
+                                            setIsTaskMaterialsModalOpen(true);
+                                          }}
+                                          className="hover:bg-blue-50 hover:border-blue-300"
+                                        >
+                                          <Eye className="h-4 w-4 mr-1" />
+                                          Ver
+                                        </Button>
+                                      )}
                                       <Button
                                         variant="outline"
                                         size="sm"
@@ -967,6 +1062,35 @@ export default function GerenciarConteudo() {
           knowledgeTrailName={selectedKnowledgeTrailForTask.name}
           isRanked={selectedKnowledgeTrailForTask.isRanked}
           onSubmit={handleCreateTask}
+        />
+      )}
+
+      {selectedTaskForContent && (
+        <CreateTaskContentModal
+          open={isTaskContentModalOpen}
+          onOpenChange={(open) => {
+            setIsTaskContentModalOpen(open);
+            if (!open) {
+              setSelectedTaskForContent(null);
+            }
+          }}
+          taskId={selectedTaskForContent.id}
+          taskName={selectedTaskForContent.name}
+          onSubmit={handleCreateTaskContent}
+        />
+      )}
+
+      {selectedTaskForMaterials && (
+        <TaskMaterialsModal
+          open={isTaskMaterialsModalOpen}
+          onOpenChange={(open) => {
+            setIsTaskMaterialsModalOpen(open);
+            if (!open) {
+              setSelectedTaskForMaterials(null);
+            }
+          }}
+          taskName={selectedTaskForMaterials.name}
+          materials={selectedTaskForMaterials.materials}
         />
       )}
 
