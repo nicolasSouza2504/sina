@@ -84,9 +84,7 @@ public class TaskContentService implements ITaskContentService {
             taskContent.getTaskId().toString()
         );
 
-        String contentUrl = String.format("%s/%s/%s", minioEndpoint, StorageService.TASK_CONTENT_BUCKET, objectKey);
-
-        taskContent.setContentUrl(contentUrl);
+        taskContent.setContentUrl(objectKey);
 
         taskContentRepository.save(taskContent);
 
