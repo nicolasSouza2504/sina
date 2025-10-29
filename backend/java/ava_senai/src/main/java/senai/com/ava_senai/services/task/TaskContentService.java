@@ -44,7 +44,7 @@ public class TaskContentService implements ITaskContentService {
     @Override
     public TaskContentResponseDTO saveTaskContent(TaskContentRegisterDTO taskContentRegisterDTO, MultipartFile file) throws IOException {
 
-        validateMandatoryFields(taskContentRegisterDTO);
+        validateMandatoryFields(taskContentRegisterDTO, file);
 
         TaskContent taskContent = createTaskContent(taskContentRegisterDTO);
 
@@ -57,7 +57,7 @@ public class TaskContentService implements ITaskContentService {
 
     }
 
-    private void validateMandatoryFields(TaskContentRegisterDTO taskContentRegisterDTO) {
+    private void validateMandatoryFields(TaskContentRegisterDTO taskContentRegisterDTO, MultipartFile file) {
 
         Validation validation = new Validation();
 
@@ -73,6 +73,14 @@ public class TaskContentService implements ITaskContentService {
 
         if (taskContentRegisterDTO.taskContentType() == null) {
             validation.add("taskContentType", "Content type do arquivo é obrigatório");
+        }
+
+        if (TaskContentType.LINK.equals(taskContentRegisterDTO.taskContentType()) && StringUtils.isBlank(taskContentRegisterDTO.link())) {
+            validation.add("link", "Link do conteúdo é obrigatório para o tipo LINK");
+        } else if (!TaskContentType.LINK.equals(taskContentRegisterDTO.taskContentType())) {
+            if (file == null || file.isEmpty()) {
+                validation.add("file", "Arquivo do conteúdo é obrigatório para o tipo " + taskContentRegisterDTO.taskContentType());
+            }
         }
 
         validation.throwIfHasErrors();
