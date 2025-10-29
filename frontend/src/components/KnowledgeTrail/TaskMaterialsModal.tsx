@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,11 +11,12 @@ import {
   Music, 
   Link as LinkIcon, 
   Type,
-  ExternalLink,
+  Eye,
   Download,
   X
 } from 'lucide-react';
 import type { TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces';
+import ViewTaskContentModal from './ViewTaskContentModal';
 
 interface TaskMaterialsModalProps {
   open: boolean;
@@ -62,8 +64,15 @@ export default function TaskMaterialsModal({
   taskName,
   materials
 }: TaskMaterialsModalProps) {
+  const [selectedContent, setSelectedContent] = useState<TaskContentSummary | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   
-  const handleOpenContent = (url: string) => {
+  const handleViewContent = (material: TaskContentSummary) => {
+    setSelectedContent(material);
+    setIsViewModalOpen(true);
+  };
+
+  const handleDownload = (url: string) => {
     window.open(url, '_blank');
   };
 
@@ -134,16 +143,16 @@ export default function TaskMaterialsModal({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleOpenContent(material.contentUrl)}
+                      onClick={() => handleViewContent(material)}
                       className="h-9 px-4 border-2 hover:bg-purple-50 hover:border-purple-300"
                     >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Abrir
+                      <Eye className="h-4 w-4 mr-2" />
+                      Visualizar
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleOpenContent(material.contentUrl)}
+                      onClick={() => handleDownload(material.contentUrl)}
                       className="h-9 px-4 border-2 hover:bg-blue-50 hover:border-blue-300"
                     >
                       <Download className="h-4 w-4" />
@@ -164,6 +173,21 @@ export default function TaskMaterialsModal({
           </Button>
         </div>
       </DialogContent>
+
+      {selectedContent && (
+        <ViewTaskContentModal
+          open={isViewModalOpen}
+          onOpenChange={(open) => {
+            setIsViewModalOpen(open);
+            if (!open) {
+              setSelectedContent(null);
+            }
+          }}
+          contentName={`Material ${selectedContent.id}`}
+          contentType={selectedContent.contentType}
+          contentUrl={selectedContent.contentUrl}
+        />
+      )}
     </Dialog>
   );
 }
