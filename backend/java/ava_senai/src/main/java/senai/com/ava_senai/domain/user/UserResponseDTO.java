@@ -7,6 +7,7 @@ import java.util.List;
 
 public record UserResponseDTO(Long id, String email, String nome, UserStatus status, Role role, String institutionName, String cpf, List<ClassResponseDTO> classes) {
     public UserResponseDTO(User user ) {
-        this(user.getId(), user.getEmail(), user.getName(), user.getUserStatus(), user.getRole(), user.getInstitution().getInstitutionName(),  user.getCpf(), user.getUserClasses() != null ? user.getUserClasses().stream().map((userClass) -> new ClassResponseDTO(userClass.getClassEntity())).toList() : null);
+        this(user.getId(), user.getEmail(), user.getName(), user.getUserStatus(), user.getRole(), user.getInstitution() != null ? user.getInstitution().getInstitutionName() : null,  user.getCpf(),
+                user.getUserClasses() != null ? user.getUserClasses().stream().map((userClass) -> userClass.getClassEntity() != null ? new ClassResponseDTO(userClass.getClassEntity()) : null).toList() : null);
     }
 }

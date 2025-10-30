@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -128,6 +129,8 @@ public class UserService implements IUserService {
             });
 
         }
+
+        userDb.getUserClasses().removeAll(userClasses);
 
     }
 
@@ -282,7 +285,21 @@ public class UserService implements IUserService {
         if (userRegisterDTO.getClassesId() != null && !userRegisterDTO.getClassesId().isEmpty()) {
 
             userRegisterDTO.getClassesId().forEach(classId -> {
-                userClassRepository.save(new UserClass(userDb.getId(), classId));
+
+                UserClass userClass = userClassRepository.save(new UserClass(userDb, classRepository.findById(classId).get()));
+
+                if (userDb.getUserClasses() != null) {
+                    userDb.getUserClasses().add(userClass);
+                } else {
+
+                    List<UserClass> userClasses = new ArrayList<>();
+
+                    userClasses.add(userClass);
+
+                    userDb.setUserClasses(userClasses);
+
+                }
+
             });
 
         }

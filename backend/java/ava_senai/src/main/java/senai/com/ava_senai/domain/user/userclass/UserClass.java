@@ -30,9 +30,20 @@ public class UserClass {
 
     public UserClass() {}
 
-    public UserClass(Long userId, Long classId) {
-        this.userId = userId;
-        this.classId = classId;
+    public UserClass(User user, Class classEntity) {
+        this.user = user;
+        this.classEntity = classEntity;
+    }
+
+    @PreUpdate
+    @PrePersist
+    private void prePersist() {
+        if (this.user != null) {
+            this.userId = this.user.getId();
+        }
+        if (this.classEntity != null) {
+            this.classId = this.classEntity.getId();
+        }
     }
 
 }
