@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,7 +36,9 @@ import {
   ExternalLink,
   Download,
   Users,
-  Trophy
+  Trophy,
+  Check,
+  ChevronsUpDown
 } from 'lucide-react';
 import { mockCourseService, Course, Trail, Task, Material } from '@/lib/services/mockCourseService';
 import { mockSubmissionService } from '@/lib/services/mockSubmissionService';
@@ -86,6 +90,8 @@ export default function GerenciarConteudo() {
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [content, setContent] = useState<ContentItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [openCourseCombobox, setOpenCourseCombobox] = useState(false);
+  const [courseSearchTerm, setCourseSearchTerm] = useState('');
   
   // Estados para API real
   const [apiCourses, setApiCourses] = useState<ApiCourse[]>([]);
@@ -105,6 +111,12 @@ export default function GerenciarConteudo() {
   const [selectedTaskForSubmissions, setSelectedTaskForSubmissions] = useState<{ id: string; title: string } | null>(null);
   
   const [editTrail, setEditTrail] = useState<EditKnowledgeTrailFormData | null>(null);
+  
+  // Estados para contexto do modal de criar trilha
+  const [trailModalContext, setTrailModalContext] = useState<{
+    courseId?: string;
+    sectionId?: string;
+  }>({});
   
   // Estados para criação de tarefa
   const [selectedKnowledgeTrailForTask, setSelectedKnowledgeTrailForTask] = useState<{
@@ -188,10 +200,12 @@ export default function GerenciarConteudo() {
     const loadCourseContent = async () => {
       if (!selectedCourseId) {
         setCourseContent(null);
+        setSearchTerm(''); // Limpa o filtro quando não há curso selecionado
         return;
       }
 
       setIsLoadingContent(true);
+      setSearchTerm(''); // Limpa o filtro ao trocar de curso
       try {
         const content = await CourseContentSummaryService(parseInt(selectedCourseId));
         setCourseContent(content);
@@ -263,30 +277,22 @@ export default function GerenciarConteudo() {
     setContent(allTrailsFormatted);
   };
 
-  const filteredContent = content.filter(item =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const groupedBySemester = filteredContent.reduce((acc, trail) => {
-    const semesterKey = trail.semesterId || 'sem-semestre';
-    const semesterName = trail.semesterName || 'Sem semestre';
-    
-    if (!acc[semesterKey]) {
-      acc[semesterKey] = {
-        semesterName,
-        trails: []
-      };
-    }
-    
-    acc[semesterKey].trails.push(trail);
-    return acc;
-  }, {} as Record<string, { semesterName: string; trails: ContentItem[] }>);
-
-  const sortedSemesters = Object.entries(groupedBySemester).sort((a, b) => {
-    if (a[0] === 'sem-semestre') return 1;
-    if (b[0] === 'sem-semestre') return -1;
-    return parseInt(a[0]) - parseInt(b[0]);
-  });
+  // Filtra apenas tarefas por nome quando há filtro ativo
+  const filteredSections = courseContent?.sections
+    .map(section => ({
+      ...section,
+      knowledgeTrails: section.knowledgeTrails
+        .map(trail => ({
+          ...trail,
+          tasks: searchTerm 
+            ? trail.tasks.filter(task => 
+                task.name.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+            : trail.tasks // Sem filtro, mostra todas as tarefas
+        }))
+        .filter(trail => searchTerm ? trail.tasks.length > 0 : true) // Remove trilhas vazias apenas se houver filtro
+    }))
+    .filter(section => searchTerm ? section.knowledgeTrails.length > 0 : true) || []; // Remove sections vazias apenas se houver filtro
 
   const handleCreateTrail = async (data: { name: string; sectionId: number; ranked: boolean }) => {
     try {
@@ -752,35 +758,93 @@ export default function GerenciarConteudo() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gerenciar Conteúdo</h1>
           <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Organize trilhas de conhecimento, tarefas e materiais</p>
           </div>
-        <Button onClick={() => setIsTrailModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+        <Button 
+          onClick={() => {
+            setTrailModalContext({
+              courseId: selectedCourseId || undefined,
+              sectionId: undefined
+            });
+            setIsTrailModalOpen(true);
+          }} 
+          className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nova Trilha
         </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-        <Select value={selectedCourseId} onValueChange={setSelectedCourseId} disabled={isLoadingCourses}>
-          <SelectTrigger className="w-full sm:w-64">
-            <SelectValue placeholder={isLoadingCourses ? "Carregando cursos..." : "Selecione um curso"} />
-          </SelectTrigger>
-          <SelectContent>
-            {apiCourses.map(course => (
-              <SelectItem key={course.id} value={course.id.toString()}>
-                {course.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="w-full">
+          <Label className="text-sm font-medium text-gray-700 mb-2 block">Selecionar Curso</Label>
+          <Popover open={openCourseCombobox} onOpenChange={setOpenCourseCombobox}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openCourseCombobox}
+                className="w-full justify-between h-11 text-left font-normal"
+                disabled={isLoadingCourses}
+              >
+                <span className="truncate">
+                  {selectedCourseId
+                    ? apiCourses.find((course) => course.id.toString() === selectedCourseId)?.name
+                    : isLoadingCourses ? "Carregando cursos..." : "Selecione um curso"}
+                </span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Buscar curso..." />
+                <CommandEmpty>Nenhum curso encontrado.</CommandEmpty>
+                <CommandGroup className="max-h-64 overflow-auto">
+                  {apiCourses.map((course) => (
+                    <CommandItem
+                      key={course.id}
+                      value={course.name}
+                      onSelect={() => {
+                        setSelectedCourseId(course.id.toString());
+                        setOpenCourseCombobox(false);
+                      }}
+                    >
+                      <Check
+                        className={`mr-2 h-4 w-4 shrink-0 ${
+                          selectedCourseId === course.id.toString() ? "opacity-100" : "opacity-0"
+                        }`}
+                      />
+                      <span className="truncate">{course.name}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
         
-        <div className="relative flex-1 sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-            placeholder="Buscar trilhas, tarefas ou materiais..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+        {selectedCourseId && (
+          <div className="w-full">
+            <Label className="text-sm font-medium text-gray-700 mb-2 block">Filtrar Tarefas</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Digite o nome da tarefa..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-11"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 px-2 text-xs hover:bg-gray-100"
+                >
+                  Limpar
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {!selectedCourseId ? (
@@ -847,9 +911,41 @@ export default function GerenciarConteudo() {
         </div>
       ) : courseContent ? (
         <div className="space-y-4">
-          {courseContent.sections.length > 0 ? (
+          {searchTerm && (
+            <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <Search className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-blue-900 flex-1">
+                Filtrando por: <strong>"{searchTerm}"</strong>
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchTerm('')}
+                className="h-7 px-2 text-xs text-blue-600 hover:bg-blue-100"
+              >
+                Limpar filtro
+              </Button>
+            </div>
+          )}
+          
+          {searchTerm && filteredSections.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <Search className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Nenhuma tarefa encontrada</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Não encontramos tarefas com o termo "{searchTerm}"
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSearchTerm('')}
+              >
+                Limpar filtro
+              </Button>
+            </div>
+          ) : filteredSections.length > 0 ? (
             <Accordion type="multiple" className="space-y-3">
-              {courseContent.sections.map((section) => (
+              {filteredSections.map((section) => (
                 <AccordionItem key={section.id} value={`section-${section.id}`} className="border rounded-lg bg-white">
                   <AccordionTrigger className="px-4 py-3 hover:no-underline">
                     <div className="flex items-center gap-2 text-left">
@@ -875,8 +971,9 @@ export default function GerenciarConteudo() {
                                       Rankeada
                                     </Badge>
                                   )}
-                                  <Badge variant="outline" className="text-xs">
+                                  <Badge variant="outline" className={`text-xs ${searchTerm ? 'bg-green-50 text-green-700 border-green-300' : ''}`}>
                                     {trail.tasks.length} {trail.tasks.length === 1 ? 'tarefa' : 'tarefas'}
+                                    {searchTerm && ' encontrada' + (trail.tasks.length === 1 ? '' : 's')}
                                   </Badge>
                                 </div>
                               </AccordionTrigger>
@@ -1090,7 +1187,13 @@ export default function GerenciarConteudo() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setIsTrailModalOpen(true)}
+                          onClick={() => {
+                            setTrailModalContext({
+                              courseId: courseContent?.id.toString(),
+                              sectionId: section.id.toString()
+                            });
+                            setIsTrailModalOpen(true);
+                          }}
                         >
                           <Plus className="h-3 w-3 mr-2" />
                           Criar Trilha
@@ -1113,10 +1216,17 @@ export default function GerenciarConteudo() {
 
       <CreateKnowledgeTrailModal
         open={isTrailModalOpen}
-        onOpenChange={setIsTrailModalOpen}
+        onOpenChange={(open) => {
+          setIsTrailModalOpen(open);
+          if (!open) {
+            setTrailModalContext({});
+          }
+        }}
         courses={apiCourses}
         isLoadingCourses={isLoadingCourses}
         onSubmit={handleCreateTrail}
+        prefilledCourseId={trailModalContext.courseId}
+        prefilledSectionId={trailModalContext.sectionId}
       />
 
       <EditKnowledgeTrailModal
