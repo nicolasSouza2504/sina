@@ -16,7 +16,7 @@ public interface ITaskService {
 
     TaskResponseDTO getTaskById(Long id) throws Exception;
 
-    TaskRegisterDTO updateTask(Long id);
+    TaskResponseDTO updateTask(Long id, TaskRegisterDTO taskRegisterDTO) throws Exception;
 
     void updateTaskOrder(@Valid List<TaskUpdateOrderDTO> taskUpdateOrderDTOS) throws Exception;
 }

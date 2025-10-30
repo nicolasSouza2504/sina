@@ -76,17 +76,25 @@ public class TaskService implements ITaskService {
     }
 
     @Override
-    public TaskResponseDTO getTaskById(@Valid Long id) {
+    public TaskResponseDTO updateTask(Long id, TaskRegisterDTO taskRegisterDTO) {
 
         Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+
+        task = updateData(task, taskRegisterDTO);
+
+        taskRepository.save(task);
 
         return new TaskResponseDTO(task);
 
     }
 
     @Override
-    public TaskRegisterDTO updateTask(Long id) {
-        return null;
+    public TaskResponseDTO getTaskById(Long id) {
+
+        Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+
+        return new TaskResponseDTO(task);
+
     }
 
     @Override
@@ -169,8 +177,19 @@ public class TaskService implements ITaskService {
 
         validation.throwIfHasErrors();
 
-
     }
 
+    private Task updateData(Task task, TaskRegisterDTO taskRegister) {
+
+        task.setName(taskRegister.name());
+        task.setDescription(taskRegister.description());
+        task.setKnowledgeTrailId(taskRegister.knowledgeTrailId());
+        task.setDifficultyLevel(taskRegister.difficultyLevel());
+        task.setDueDate(taskRegister.dueDate());
+        task.setTaskOrder(taskRegister.taskOrder());
+
+        return taskRepository.save(task);
+
+    }
 
 }
