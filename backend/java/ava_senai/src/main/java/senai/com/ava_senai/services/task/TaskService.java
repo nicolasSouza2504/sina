@@ -1,17 +1,13 @@
 package senai.com.ava_senai.services.task;
 
 import com.google.gson.Gson;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
-import org.aspectj.weaver.ast.Not;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.config.RabbitMQConfig;
 import senai.com.ava_senai.domain.task.*;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.Validation;
@@ -19,7 +15,6 @@ import senai.com.ava_senai.repository.*;
 import senai.com.ava_senai.services.messaging.RabbitMQSender;
 import senai.com.ava_senai.taskuser.TaskUser;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
