@@ -11,6 +11,7 @@ import {
   Music, 
   Link as LinkIcon, 
   Type,
+  FileType,
   Eye,
   Download,
   X
@@ -32,6 +33,7 @@ const contentTypeIcons: Record<string, any> = {
   'JPG': Image,
   'PNG': Image,
   'MP3': Music,
+  'DOCX': FileType,
   'LINK': LinkIcon,
   'TEXT': Type
 };
@@ -43,6 +45,7 @@ const contentTypeColors: Record<string, string> = {
   'JPG': 'bg-blue-100 text-blue-700 border-blue-200',
   'PNG': 'bg-blue-100 text-blue-700 border-blue-200',
   'MP3': 'bg-green-100 text-green-700 border-green-200',
+  'DOCX': 'bg-orange-100 text-orange-700 border-orange-200',
   'LINK': 'bg-indigo-100 text-indigo-700 border-indigo-200',
   'TEXT': 'bg-gray-100 text-gray-700 border-gray-200'
 };
@@ -54,8 +57,14 @@ const contentTypeLabels: Record<string, string> = {
   'JPG': 'Imagem',
   'PNG': 'Imagem',
   'MP3': 'Áudio',
+  'DOCX': 'DOCX',
   'LINK': 'Link',
   'TEXT': 'Texto'
+};
+
+// Tipos que podem ser visualizados no modal
+const canPreview = (type: string): boolean => {
+  return ['PDF', 'MP4', 'JPG', 'PNG', 'MP3', 'LINK'].includes(type);
 };
 
 export default function TaskMaterialsModal({
@@ -72,8 +81,30 @@ export default function TaskMaterialsModal({
     setIsViewModalOpen(true);
   };
 
-  const handleDownload = (url: string) => {
-    window.open(url, '_blank');
+  const handleDownload = async (material: TaskContentSummary) => {
+    try {
+      // Buscar o arquivo
+      const response = await fetch(`/api/task-content/download?url=${encodeURIComponent(material.contentUrl)}`);
+      
+      if (!response.ok) {
+        throw new Error('Erro ao baixar arquivo');
+      }
+      
+      // Criar blob e fazer download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `material-${material.id}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Erro ao baixar:', error);
+      // Fallback: abrir em nova aba
+      window.open(material.contentUrl, '_blank');
+    }
   };
 
   return (
@@ -87,14 +118,6 @@ export default function TaskMaterialsModal({
               </DialogTitle>
               <p className="text-xs sm:text-sm text-gray-500 mt-1 truncate">{taskName}</p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-              className="h-8 w-8 flex-shrink-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </DialogHeader>
 
@@ -125,7 +148,7 @@ export default function TaskMaterialsModal({
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <h4 className="font-semibold text-sm sm:text-base text-gray-900 truncate">
-                        Material {material.id}
+                        {material.name}
                       </h4>
                       <Badge 
                         variant="outline" 
@@ -140,25 +163,29 @@ export default function TaskMaterialsModal({
                   </div>
 
                   <div className="flex gap-2 w-full sm:w-auto">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewContent(material)}
-                      className="flex-1 sm:flex-none h-9 px-3 sm:px-4 border-2 hover:bg-purple-50 hover:border-purple-300 text-xs sm:text-sm"
-                    >
-                      <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Visualizar</span>
-                      <span className="sm:hidden">Ver</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownload(material.contentUrl)}
-                      className="h-9 w-9 sm:px-4 sm:w-auto border-2 hover:bg-blue-50 hover:border-blue-300 p-0 sm:p-2"
-                    >
-                      <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden sm:inline sm:ml-2">Baixar</span>
-                    </Button>
+                    {canPreview(material.contentType) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewContent(material)}
+                        className={`${material.contentType === 'LINK' ? 'flex-1' : 'flex-1 sm:flex-none'} h-9 px-3 sm:px-4 border-2 hover:bg-purple-50 hover:border-purple-300 text-xs sm:text-sm`}
+                      >
+                        <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Visualizar</span>
+                        <span className="sm:hidden">Ver</span>
+                      </Button>
+                    )}
+                    {material.contentType !== 'LINK' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(material)}
+                        className={`h-9 ${canPreview(material.contentType) ? 'w-9 sm:w-auto' : 'flex-1'} sm:px-4 border-2 hover:bg-blue-50 hover:border-blue-300 ${canPreview(material.contentType) ? 'p-0 sm:p-2' : ''}`}
+                      >
+                        <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline sm:ml-2">Baixar</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
               );
@@ -185,7 +212,7 @@ export default function TaskMaterialsModal({
               setSelectedContent(null);
             }
           }}
-          contentName={`Material ${selectedContent.id}`}
+          contentName={selectedContent.name}
           contentType={selectedContent.contentType}
           contentUrl={selectedContent.contentUrl}
         />

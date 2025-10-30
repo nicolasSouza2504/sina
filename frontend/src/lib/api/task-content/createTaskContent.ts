@@ -5,7 +5,7 @@ import getTokenFromSession from "@/lib/auth/jwtAuth.server";
 
 export default async function createTaskContent(
     taskContentData: CreateTaskContent, 
-    file: File
+    file: File | null
 ): Promise<TaskContentResponse> {
     const base = getApiBaseUrl();
     const token = await getTokenFromSession();
@@ -14,10 +14,19 @@ export default async function createTaskContent(
         const formData = new FormData();
 
         // Adiciona o JSON como string (igual ao backend espera)
-        formData.append("taskContentStr", JSON.stringify(taskContentData));
+        const jsonPayload = JSON.stringify(taskContentData);
+        formData.append("taskContentStr", jsonPayload);
 
-        // Adiciona o arquivo
-        formData.append("file", file);
+        console.log('🔧 createTaskContent - Payload JSON:', jsonPayload);
+        console.log('🔧 createTaskContent - Arquivo:', file ? file.name : 'null');
+
+        // Adiciona o arquivo (se houver)
+        if (file) {
+            formData.append("file", file);
+            console.log('✅ Arquivo adicionado ao FormData');
+        } else {
+            console.log('⚠️ Nenhum arquivo - enviando apenas JSON');
+        }
 
         const response = await fetch(`${base}/task-content/save`, {
             method: "POST",

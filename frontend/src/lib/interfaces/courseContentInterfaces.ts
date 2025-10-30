@@ -4,6 +4,7 @@ export interface TaskContentSummary {
     id: number;
     contentType: string;
     contentUrl: string;
+    name: string; // Nome do conteúdo
 }
 
 export interface TaskSummary {

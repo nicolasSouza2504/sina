@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Upload, FileText, Video, Image, Music, Link as LinkIcon, Type } from 'lucide-react';
+import { Plus, Upload, FileText, Video, Image, Music, Link as LinkIcon, Type, FileType } from 'lucide-react';
 import type { TaskContentFormData, TaskContentType } from '@/lib/interfaces/taskContentInterfaces';
 
 interface CreateTaskContentModalProps {
@@ -24,7 +24,20 @@ const contentTypeMap: Record<string, TaskContentType> = {
   'Imagem (PNG)': 'PNG',
   'Áudio (MP3)': 'MP3',
   'Link': 'LINK',
-  'Texto': 'TEXT'
+  'Texto e DOCX': 'TEXT'
+};
+
+// Mapeamento de tipos aceitos por cada opção
+const acceptedFileTypes: Record<TaskContentType, string> = {
+  'PDF': '.pdf',
+  'VIDEO': '.mp4',
+  'MP4': '.mp4',
+  'JPG': '.jpg,.jpeg',
+  'PNG': '.png',
+  'MP3': '.mp3',
+  'DOCX': '.txt,.docx',
+  'LINK': '',
+  'TEXT': '.txt,.docx'
 };
 
 const contentTypeIcons: Record<TaskContentType, any> = {
@@ -34,6 +47,7 @@ const contentTypeIcons: Record<TaskContentType, any> = {
   'JPG': Image,
   'PNG': Image,
   'MP3': Music,
+  'DOCX': FileType,
   'LINK': LinkIcon,
   'TEXT': Type
 };
@@ -45,6 +59,7 @@ const contentTypeColors: Record<TaskContentType, string> = {
   'JPG': 'text-blue-600',
   'PNG': 'text-blue-600',
   'MP3': 'text-green-600',
+  'DOCX': 'text-orange-600',
   'LINK': 'text-indigo-600',
   'TEXT': 'text-gray-600'
 };
@@ -59,7 +74,8 @@ export default function CreateTaskContentModal({
   const [formData, setFormData] = useState<TaskContentFormData>({
     name: '',
     taskContentType: 'PDF',
-    file: null
+    file: null,
+    link: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string>('');
@@ -70,7 +86,8 @@ export default function CreateTaskContentModal({
       setFormData({
         name: '',
         taskContentType: 'PDF',
-        file: null
+        file: null,
+        link: ''
       });
       setFileName('');
     }
@@ -79,6 +96,16 @@ export default function CreateTaskContentModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validar tipo de arquivo
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+      const acceptedTypes = acceptedFileTypes[formData.taskContentType];
+      
+      if (acceptedTypes && !acceptedTypes.split(',').some(type => fileExtension === type)) {
+        alert(`Tipo de arquivo inválido. Tipos aceitos: ${acceptedTypes}`);
+        e.target.value = ''; // Limpar input
+        return;
+      }
+      
       setFormData(prev => ({ ...prev, file }));
       setFileName(file.name);
     }
@@ -90,8 +117,17 @@ export default function CreateTaskContentModal({
       return;
     }
 
-    if (!formData.file) {
-      return;
+    // Se for LINK, validar URL ao invés de arquivo
+    if (formData.taskContentType === 'LINK') {
+      if (!formData.link?.trim()) {
+        alert('Por favor, insira a URL do link');
+        return;
+      }
+    } else {
+      // Para outros tipos, validar arquivo
+      if (!formData.file) {
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -205,57 +241,83 @@ export default function CreateTaskContentModal({
                       Link
                     </div>
                   </SelectItem>
-                  <SelectItem value="Texto" className="py-3">
+                  <SelectItem value="Texto e DOCX" className="py-3">
                     <div className="flex items-center gap-2">
                       <Type className="h-4 w-4 text-gray-600" />
-                      Texto
+                      Texto e DOCX
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Upload de Arquivo */}
-            <div className="space-y-2">
-              <Label htmlFor="content-file" className="text-sm font-semibold text-gray-700">
-                Arquivo <span className="text-red-500">*</span>
-              </Label>
-              <div className="relative">
-                <input
-                  id="content-file"
-                  type="file"
-                  onChange={handleFileChange}
-                  className="hidden"
+            {/* Campo de Link (apenas para tipo LINK) */}
+            {formData.taskContentType === 'LINK' ? (
+              <div className="space-y-2">
+                <Label htmlFor="content-link" className="text-sm font-semibold text-gray-700">
+                  URL do Link <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="content-link"
+                  type="url"
+                  placeholder="https://exemplo.com ou https://youtube.com/watch?v=..."
+                  value={formData.link || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, link: e.target.value }))}
                   disabled={isSubmitting}
+                  className="h-12 border-2 border-gray-300 focus:border-indigo-500 rounded-xl"
                 />
-                <label
-                  htmlFor="content-file"
-                  className={`flex items-center justify-center gap-3 h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
-                    formData.file
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
-                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {formData.file ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <Icon className={`h-8 w-8 ${contentTypeColors[formData.taskContentType]}`} />
-                      <span className="text-sm font-medium text-gray-700">{fileName}</span>
-                      <span className="text-xs text-gray-500">Clique para alterar</span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <Upload className="h-8 w-8 text-gray-400" />
-                      <span className="text-sm font-medium text-gray-600">
-                        Clique para selecionar o arquivo
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        Ou arraste e solte aqui
-                      </span>
-                    </div>
-                  )}
-                </label>
+                <p className="text-xs text-gray-500 mt-2">
+                  <span className="font-medium">💡 Dica:</span> Links do YouTube serão renderizados como vídeo embed
+                </p>
               </div>
-            </div>
+            ) : (
+              /* Upload de Arquivo (para outros tipos) */
+              <div className="space-y-2">
+                <Label htmlFor="content-file" className="text-sm font-semibold text-gray-700">
+                  Arquivo <span className="text-red-500">*</span>
+                </Label>
+                <div className="relative">
+                  <input
+                    id="content-file"
+                    type="file"
+                    accept={acceptedFileTypes[formData.taskContentType]}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    disabled={isSubmitting}
+                  />
+                  <label
+                    htmlFor="content-file"
+                    className={`flex items-center justify-center gap-3 h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                      formData.file
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
+                    } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {formData.file ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Icon className={`h-8 w-8 ${contentTypeColors[formData.taskContentType]}`} />
+                        <span className="text-sm font-medium text-gray-700">{fileName}</span>
+                        <span className="text-xs text-gray-500">Clique para alterar</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <Upload className="h-8 w-8 text-gray-400" />
+                        <span className="text-sm font-medium text-gray-600">
+                          Clique para selecionar o arquivo
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Ou arraste e solte aqui
+                        </span>
+                      </div>
+                    )}
+                  </label>
+                </div>
+                {/* Informação sobre tipos aceitos */}
+                <p className="text-xs text-gray-500 mt-2">
+                  <span className="font-medium">Tipos aceitos:</span> {acceptedFileTypes[formData.taskContentType] || 'Todos os tipos'}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Footer com Botões */}
@@ -271,7 +333,11 @@ export default function CreateTaskContentModal({
             <Button 
               onClick={handleSubmit}
               className="h-12 px-8 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              disabled={isSubmitting || !formData.name.trim() || !formData.file}
+              disabled={
+                isSubmitting || 
+                !formData.name.trim() || 
+                (formData.taskContentType === 'LINK' ? !formData.link?.trim() : !formData.file)
+              }
             >
               {isSubmitting ? (
                 <>

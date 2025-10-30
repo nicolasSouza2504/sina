@@ -44,6 +44,7 @@ import EditKnowledgeTrailModal from '@/components/professor/EditKnowledgeTrailMo
 import CreateTaskModal from '@/components/professor/CreateTaskModal';
 import CreateTaskContentModal from '@/components/KnowledgeTrail/CreateTaskContentModal';
 import TaskMaterialsModal from '@/components/KnowledgeTrail/TaskMaterialsModal';
+import ViewTaskContentModal from '@/components/KnowledgeTrail/ViewTaskContentModal';
 import QuickActions from '@/components/admin/quickActions';
 import { toast } from 'sonner';
 import CourseList from '@/lib/api/course/courseList';
@@ -52,6 +53,7 @@ import UpdateKnowledgeTrailService from '@/lib/api/knowledgetrail/updateKnowledg
 import CourseContentSummaryService from '@/lib/api/course/courseContentSummary';
 import CreateTaskService from '@/lib/api/task/createTask';
 import CreateTaskContentService from '@/lib/api/task-content/createTaskContent';
+import DeleteTaskContentService from '@/lib/api/task-content/deleteTaskContent';
 import type { Course as ApiCourse } from '@/lib/interfaces/courseInterfaces';
 import type { CourseContentSummary, TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces';
 import type { EditKnowledgeTrailFormData } from '@/lib/interfaces/knowledgeTrailInterfaces';
@@ -127,6 +129,10 @@ export default function GerenciarConteudo() {
     materials: TaskContentSummary[];
   } | null>(null);
   const [isTaskMaterialsModalOpen, setIsTaskMaterialsModalOpen] = useState(false);
+
+  // Estados para visualização direta de conteúdo
+  const [selectedContentForView, setSelectedContentForView] = useState<TaskContentSummary | null>(null);
+  const [isViewContentModalOpen, setIsViewContentModalOpen] = useState(false);
   
   const [newTask, setNewTask] = useState({
     title: '',
@@ -399,17 +405,34 @@ export default function GerenciarConteudo() {
       return;
     }
 
-    if (!data.file) {
+    // Validação condicional: arquivo obrigatório exceto para LINK
+    if (data.taskContentType !== 'LINK' && !data.file) {
       toast.error('❌ Erro: Arquivo é obrigatório');
       return;
     }
 
+    // Validação para LINK: URL obrigatória
+    if (data.taskContentType === 'LINK' && !data.link?.trim()) {
+      toast.error('❌ Erro: URL do link é obrigatória');
+      return;
+    }
+
     try {
-      await CreateTaskContentService({
+      const payload: any = {
         taskId: selectedTaskForContent.id,
         name: data.name,
         taskContentType: data.taskContentType
-      }, data.file);
+      };
+
+      // Adiciona link se for tipo LINK
+      if (data.taskContentType === 'LINK' && data.link) {
+        payload.link = data.link;
+      }
+
+      console.log('📤 Enviando payload:', payload);
+      console.log('📎 Arquivo:', data.file ? data.file.name : 'null (sem arquivo)');
+
+      await CreateTaskContentService(payload, data.file);
 
       toast.success('✅ Material adicionado com sucesso', {
         description: 'O material foi vinculado à tarefa e está disponível.'
@@ -428,6 +451,31 @@ export default function GerenciarConteudo() {
         description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
       });
       throw error;
+    }
+  };
+
+  const handleDeleteTaskContent = async (contentId: number, contentName: string) => {
+    if (!confirm(`Tem certeza que deseja excluir o conteúdo "${contentName}"?`)) {
+      return;
+    }
+
+    try {
+      await DeleteTaskContentService(contentId);
+
+      toast.success('✅ Conteúdo excluído com sucesso', {
+        description: `O material "${contentName}" foi removido.`
+      });
+
+      // Recarrega o conteúdo do curso mantendo o curso selecionado
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
+    } catch (error) {
+      console.error('Erro ao excluir conteúdo:', error);
+      toast.error('❌ Erro ao excluir material', {
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+      });
     }
   };
 
@@ -972,17 +1020,32 @@ export default function GerenciarConteudo() {
                                                   <Badge variant="secondary" className="text-xs flex-shrink-0">
                                                     {content.contentType}
                                                   </Badge>
-                                                  <span className="text-gray-600 truncate flex-1 min-w-0">
-                                                    {content.contentUrl}
+                                                  <span className="text-gray-900 font-medium truncate flex-1 min-w-0">
+                                                    {content.name}
                                                   </span>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => window.open(content.contentUrl, '_blank')}
-                                                    className="h-6 w-6 p-0 flex-shrink-0"
-                                                  >
-                                                    <ExternalLink className="h-3 w-3" />
-                                                  </Button>
+                                                  <div className="flex items-center gap-1 flex-shrink-0">
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        setSelectedContentForView(content);
+                                                        setIsViewContentModalOpen(true);
+                                                      }}
+                                                      className="h-6 w-6 p-0 hover:bg-purple-100"
+                                                      title="Visualizar conteúdo"
+                                                    >
+                                                      <Eye className="h-3 w-3 text-purple-600" />
+                                                    </Button>
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => handleDeleteTaskContent(content.id, content.name)}
+                                                      className="h-6 w-6 p-0 hover:bg-red-100"
+                                                      title="Excluir conteúdo"
+                                                    >
+                                                      <Trash2 className="h-3 w-3 text-red-600" />
+                                                    </Button>
+                                                  </div>
                                                 </div>
                                               ))}
                                             </div>
@@ -1107,6 +1170,21 @@ export default function GerenciarConteudo() {
           }}
           taskName={selectedTaskForMaterials.name}
           materials={selectedTaskForMaterials.materials}
+        />
+      )}
+
+      {selectedContentForView && (
+        <ViewTaskContentModal
+          open={isViewContentModalOpen}
+          onOpenChange={(open) => {
+            setIsViewContentModalOpen(open);
+            if (!open) {
+              setSelectedContentForView(null);
+            }
+          }}
+          contentName={selectedContentForView.name}
+          contentType={selectedContentForView.contentType}
+          contentUrl={selectedContentForView.contentUrl}
         />
       )}
 
