@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,10 +14,14 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Upload, AlertCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Upload, AlertCircle, Users, X, Plus } from "lucide-react"
 import { z } from "zod"
 import createUser from "@/lib/api/user/userCreate";
 import {toast} from "sonner";
+import { Class } from "@/lib/interfaces/classInterfaces"
+import ClassList from "@/lib/api/class/classList"
+import { ClassSelectorModal } from "./ClassSelectorModal"
 
 // Schema de validação com Zod
 const studentSchema = z.object({
@@ -49,6 +53,12 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
     const [isSubmitting, setIsSubmitting] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
+    // Class selection states
+    const [availableClasses, setAvailableClasses] = useState<Class[]>([])
+    const [isLoadingClasses, setIsLoadingClasses] = useState(false)
+    const [isClassModalOpen, setIsClassModalOpen] = useState(false)
+    const [selectedClassIds, setSelectedClassIds] = useState<number[]>([])
+
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -56,6 +66,25 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
         cpf: "",
         idInstitution: 1, // SENAI_JOINVILLE fixado
     })
+
+    // Load available classes
+    useEffect(() => {
+        const loadClasses = async () => {
+            setIsLoadingClasses(true)
+            try {
+                const classes = await ClassList()
+                setAvailableClasses(classes)
+            } catch (error) {
+                console.error("[StudentFormModal] Erro ao carregar turmas:", error)
+                toast.error("Erro ao carregar turmas disponíveis")
+            } finally {
+                setIsLoadingClasses(false)
+            }
+        }
+        if (isOpen) {
+            loadClasses()
+        }
+    }, [isOpen])
 
     const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -91,6 +120,7 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
                 password: formData.password,
                 cpf: formData.cpf,
                 idInstitution: formData.idInstitution, // ID 1 = SENAI_JOINVILLE
+                classesId: selectedClassIds.length > 0 ? selectedClassIds : undefined,
                 // role será definido no backend através do path parameter
             }
 
@@ -126,6 +156,19 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
         setSelectedImage(null)
         setImagePreview(null)
         setErrors({})
+        setSelectedClassIds([])
+    }
+
+    const handleClassesConfirm = (classIds: number[]) => {
+        setSelectedClassIds(classIds)
+    }
+
+    const handleRemoveClass = (classId: number) => {
+        setSelectedClassIds((prev) => prev.filter((id) => id !== classId))
+    }
+
+    const getSelectedClasses = () => {
+        return availableClasses.filter((cls) => selectedClassIds.includes(cls.id))
     }
 
     const handleClose = () => {
@@ -229,6 +272,55 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
                         <p className="text-xs text-muted-foreground">Instituição padrão para novos alunos</p>
                     </div>
 
+                    {/* Class Selection */}
+                    <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            Turmas do Aluno
+                        </Label>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsClassModalOpen(true)}
+                            className="w-full justify-start"
+                            disabled={isSubmitting || isLoadingClasses}
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            {isLoadingClasses ? "Carregando turmas..." : "Adicionar Turmas"}
+                        </Button>
+                        
+                        {selectedClassIds.length > 0 && (
+                            <div className="space-y-2 mt-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">
+                                        {selectedClassIds.length} {selectedClassIds.length === 1 ? "turma selecionada" : "turmas selecionadas"}
+                                    </span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {getSelectedClasses().map((cls) => (
+                                        <Badge
+                                            key={cls.id}
+                                            variant="secondary"
+                                            className="flex items-center gap-1 pr-1"
+                                        >
+                                            <span className="truncate max-w-[150px]">{cls.nome}</span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                                onClick={() => handleRemoveClass(cls.id)}
+                                                disabled={isSubmitting}
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="space-y-2">
                         <Label>Foto do Aluno</Label>
                         <div className="flex items-center gap-4">
@@ -279,6 +371,16 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
                         </Button>
                     </DialogFooter>
                 </form>
+
+                {/* Class Selector Modal */}
+                <ClassSelectorModal
+                    isOpen={isClassModalOpen}
+                    onClose={() => setIsClassModalOpen(false)}
+                    availableClasses={availableClasses}
+                    selectedClassIds={selectedClassIds}
+                    onConfirm={handleClassesConfirm}
+                    isLoading={isLoadingClasses}
+                />
             </DialogContent>
         </Dialog>
     )

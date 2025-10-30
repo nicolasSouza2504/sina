@@ -6,6 +6,7 @@ export interface UserRegister {
     password: string;
     cpf: number|string
     idInstitution: number
+    classesId?: number[]
 }
 
 export interface UserRegisterForm {
