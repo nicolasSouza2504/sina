@@ -31,10 +31,10 @@ public record CourseContentSummaryDTO(String name, Integer quantitySemester, Lon
 
                 }
 
-                record TaskContentSummaryDTO(Long id, String contentType, String contentUrl) {
+                record TaskContentSummaryDTO(Long id, String contentType, String contentUrl, String name) {
 
                     public TaskContentSummaryDTO(TaskContent taskContent) {
-                        this(taskContent.getId(), taskContent.getContentType().toString(), taskContent.getContentUrl());
+                        this(taskContent.getId(), taskContent.getContentType().toString(), taskContent.getContentUrl(), taskContent.getName());
                     }
 
                 }
