@@ -10,6 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { 
   BookOpen, 
   Plus, 
@@ -27,13 +33,32 @@ import {
   CheckCircle,
   ExternalLink,
   Download,
-  Users
+  Users,
+  Trophy
 } from 'lucide-react';
 import { mockCourseService, Course, Trail, Task, Material } from '@/lib/services/mockCourseService';
 import { mockSubmissionService } from '@/lib/services/mockSubmissionService';
 import { StudentSubmissionsModal } from '@/components/professor/StudentSubmissionsModal';
+import CreateKnowledgeTrailModal from '@/components/professor/CreateKnowledgeTrailModal';
+import EditKnowledgeTrailModal from '@/components/professor/EditKnowledgeTrailModal';
+import CreateTaskModal from '@/components/professor/CreateTaskModal';
+import CreateTaskContentModal from '@/components/KnowledgeTrail/CreateTaskContentModal';
+import TaskMaterialsModal from '@/components/KnowledgeTrail/TaskMaterialsModal';
+import ViewTaskContentModal from '@/components/KnowledgeTrail/ViewTaskContentModal';
 import QuickActions from '@/components/admin/quickActions';
 import { toast } from 'sonner';
+import CourseList from '@/lib/api/course/courseList';
+import CreateKnowledgeTrailService from '@/lib/api/knowledgetrail/createKnowledgeTrail';
+import UpdateKnowledgeTrailService from '@/lib/api/knowledgetrail/updateKnowledgeTrail';
+import CourseContentSummaryService from '@/lib/api/course/courseContentSummary';
+import CreateTaskService from '@/lib/api/task/createTask';
+import CreateTaskContentService from '@/lib/api/task-content/createTaskContent';
+import DeleteTaskContentService from '@/lib/api/task-content/deleteTaskContent';
+import type { Course as ApiCourse } from '@/lib/interfaces/courseInterfaces';
+import type { CourseContentSummary, TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces';
+import type { EditKnowledgeTrailFormData } from '@/lib/interfaces/knowledgeTrailInterfaces';
+import type { TaskFormData } from '@/lib/interfaces/taskInterfaces';
+import type { TaskContentFormData } from '@/lib/interfaces/taskContentInterfaces';
 
 interface ContentItem {
   id: string;
@@ -62,6 +87,12 @@ export default function GerenciarConteudo() {
   const [content, setContent] = useState<ContentItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Estados para API real
+  const [apiCourses, setApiCourses] = useState<ApiCourse[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
+  const [courseContent, setCourseContent] = useState<CourseContentSummary | null>(null);
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
+  
   const [selectedTrail, setSelectedTrail] = useState<ContentItem | null>(null);
   const [selectedTask, setSelectedTask] = useState<ContentItem | null>(null);
   const [taskMaterials, setTaskMaterials] = useState<Material[]>([]);
@@ -73,19 +104,35 @@ export default function GerenciarConteudo() {
   const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
   const [selectedTaskForSubmissions, setSelectedTaskForSubmissions] = useState<{ id: string; title: string } | null>(null);
   
-  const [newTrail, setNewTrail] = useState({
-    courseId: '',
-    title: '',
-    description: '',
-    semesterNumber: ''
-  });
+  const [editTrail, setEditTrail] = useState<EditKnowledgeTrailFormData | null>(null);
   
-  const [editTrail, setEditTrail] = useState({
-    id: '',
-    title: '',
-    description: '',
-    semesterNumber: ''
-  });
+  // Estados para criação de tarefa
+  const [selectedKnowledgeTrailForTask, setSelectedKnowledgeTrailForTask] = useState<{
+    id: number;
+    name: string;
+    courseId: number;
+    courseName: string;
+    isRanked: boolean;
+  } | null>(null);
+
+  // Estados para criação de conteúdo de tarefa
+  const [selectedTaskForContent, setSelectedTaskForContent] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const [isTaskContentModalOpen, setIsTaskContentModalOpen] = useState(false);
+
+  // Estados para visualização de materiais
+  const [selectedTaskForMaterials, setSelectedTaskForMaterials] = useState<{
+    id: number;
+    name: string;
+    materials: TaskContentSummary[];
+  } | null>(null);
+  const [isTaskMaterialsModalOpen, setIsTaskMaterialsModalOpen] = useState(false);
+
+  // Estados para visualização direta de conteúdo
+  const [selectedContentForView, setSelectedContentForView] = useState<TaskContentSummary | null>(null);
+  const [isViewContentModalOpen, setIsViewContentModalOpen] = useState(false);
   
   const [newTask, setNewTask] = useState({
     title: '',
@@ -116,6 +163,50 @@ export default function GerenciarConteudo() {
   const [viewingMaterial, setViewingMaterial] = useState<Material | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
+  // Carrega cursos da API real
+  useEffect(() => {
+    const loadApiCourses = async () => {
+      setIsLoadingCourses(true);
+      try {
+        const courses = await CourseList();
+        if (courses) {
+          setApiCourses(courses);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar cursos:', error);
+        toast.error('Erro ao carregar cursos da API');
+      } finally {
+        setIsLoadingCourses(false);
+      }
+    };
+    
+    loadApiCourses();
+  }, []);
+
+  // Carrega conteúdo do curso quando selecionado
+  useEffect(() => {
+    const loadCourseContent = async () => {
+      if (!selectedCourseId) {
+        setCourseContent(null);
+        return;
+      }
+
+      setIsLoadingContent(true);
+      try {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      } catch (error) {
+        console.error('Erro ao carregar conteúdo do curso:', error);
+        toast.error('Erro ao carregar conteúdo do curso');
+        setCourseContent(null);
+      } finally {
+        setIsLoadingContent(false);
+      }
+    };
+
+    loadCourseContent();
+  }, [selectedCourseId]);
+
   useEffect(() => {
     const allTrails = mockCourseService.getAllTrails();
     const needsReset = allTrails.some(trail => !trail.tasks);
@@ -128,10 +219,6 @@ export default function GerenciarConteudo() {
     
     const allCourses = mockCourseService.getAllCourses();
     setCourses(allCourses.map(c => ({ id: c.id, name: c.title })));
-    
-    if (allCourses.length === 1) {
-      setSelectedCourseId(allCourses[0].id);
-    }
   }, []);
 
   useEffect(() => {
@@ -201,70 +288,56 @@ export default function GerenciarConteudo() {
     return parseInt(a[0]) - parseInt(b[0]);
   });
 
-  const handleCreateTrail = () => {
-    if (!newTrail.courseId) {
-      toast.error('❌ Selecione um curso');
-      return;
+  const handleCreateTrail = async (data: { name: string; sectionId: number; ranked: boolean }) => {
+    try {
+      const response = await CreateKnowledgeTrailService(data);
+      
+      toast.success('✅ Trilha de conhecimento criada com sucesso', {
+        description: 'A trilha foi adicionada e está disponível para uso.'
+      });
+      
+      // Recarrega o conteúdo do curso
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Erro ao criar trilha:', error);
+      toast.error('❌ Erro ao criar trilha de conhecimento', {
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+      });
+      throw error;
     }
-
-    if (!newTrail.title.trim()) {
-      toast.error('❌ Título da trilha é obrigatório');
-      return;
-    }
-
-    if (!newTrail.description.trim()) {
-      toast.error('❌ Descrição da trilha é obrigatória');
-      return;
-    }
-
-    if (!newTrail.semesterNumber) {
-      toast.error('❌ Selecione um semestre');
-      return;
-    }
-
-    mockCourseService.createTrail({
-      courseId: newTrail.courseId,
-      semesterNumber: parseInt(newTrail.semesterNumber),
-      title: newTrail.title,
-      description: newTrail.description
-    });
-
-    setNewTrail({ courseId: '', title: '', description: '', semesterNumber: '' });
-    setIsTrailModalOpen(false);
-    
-    if (newTrail.courseId === selectedCourseId) {
-      loadContent();
-    }
-    
-    toast.success('Trilha de conhecimento criada com sucesso', {
-      description: 'A trilha foi adicionada ao curso e está disponível para uso.'
-    });
   };
 
-  const handleEditTrail = () => {
-    if (!editTrail.id) return;
-
-    const trail = mockCourseService.getTrailById(editTrail.id);
-    if (!trail) {
-      toast.error('❌ Trilha não encontrada');
-      return;
-    }
-
-    const allTrails = mockCourseService.getAllTrails();
-    const trailIndex = allTrails.findIndex(t => t.id === editTrail.id);
-    if (trailIndex !== -1) {
-      allTrails[trailIndex] = {
-        ...allTrails[trailIndex],
-        title: editTrail.title,
-        description: editTrail.description,
-        semesterNumber: parseInt(editTrail.semesterNumber)
-      };
-      localStorage.setItem('mockTrails', JSON.stringify(allTrails));
-      loadContent();
-      setIsEditTrailModalOpen(false);
-      toast.success('Trilha atualizada com sucesso', {
+  const handleEditTrail = async (data: { id: number; name: string; sectionId: number; ranked: boolean }) => {
+    try {
+      await UpdateKnowledgeTrailService(data.id, {
+        name: data.name,
+        sectionId: data.sectionId,
+        ranked: data.ranked
+      });
+      
+      toast.success('✅ Trilha atualizada com sucesso', {
         description: 'As alterações foram salvas e aplicadas à trilha.'
       });
+      
+      // Recarrega o conteúdo do curso
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
+      
+      setEditTrail(null);
+      setIsEditTrailModalOpen(false);
+    } catch (error) {
+      console.error('Erro ao atualizar trilha:', error);
+      toast.error('❌ Erro ao atualizar trilha de conhecimento', {
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+      });
+      throw error;
     }
   };
 
@@ -282,49 +355,128 @@ export default function GerenciarConteudo() {
     }
   };
 
-  const handleCreateTask = () => {
-    if (!selectedTrail) {
-      toast.error('❌ Selecione uma trilha primeiro');
+  const handleCreateTask = async (data: TaskFormData) => {
+    if (!selectedKnowledgeTrailForTask) {
+      toast.error('❌ Erro: Trilha de conhecimento não selecionada');
       return;
     }
 
-    if (!newTask.title.trim()) {
-      toast.error('❌ Título da tarefa é obrigatório');
+    try {
+      // Prepare payload - difficultyLevel is always required, dueDate only for ranked trails
+      const payload: any = {
+        courseId: selectedKnowledgeTrailForTask.courseId,
+        knowledgeTrailId: selectedKnowledgeTrailForTask.id,
+        name: data.name,
+        description: data.description,
+        difficultyLevel: data.difficultyLevel
+      };
+
+      // Add dueDate only for ranked trails
+      if (selectedKnowledgeTrailForTask.isRanked && data.dueDate) {
+        const dueDateISO = new Date(data.dueDate + 'T23:59:59.000Z').toISOString();
+        payload.dueDate = dueDateISO;
+      }
+      
+      await CreateTaskService(payload);
+
+      toast.success('✅ Tarefa criada com sucesso', {
+        description: 'A tarefa foi adicionada à trilha e está disponível.'
+      });
+
+      // Recarrega o conteúdo do curso mantendo o curso selecionado
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
+
+      setSelectedKnowledgeTrailForTask(null);
+    } catch (error) {
+      console.error('Erro ao criar tarefa:', error);
+      toast.error('❌ Erro ao criar tarefa', {
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+      });
+      throw error;
+    }
+  };
+
+  const handleCreateTaskContent = async (data: TaskContentFormData) => {
+    if (!selectedTaskForContent) {
+      toast.error('❌ Erro: Tarefa não selecionada');
       return;
     }
 
-    if (!newTask.description.trim()) {
-      toast.error('❌ Descrição da tarefa é obrigatória');
+    // Validação condicional: arquivo obrigatório exceto para LINK
+    if (data.taskContentType !== 'LINK' && !data.file) {
+      toast.error('❌ Erro: Arquivo é obrigatório');
       return;
     }
 
-    if (!newTask.estimatedTime.trim()) {
-      toast.error('❌ Tempo estimado é obrigatório');
+    // Validação para LINK: URL obrigatória
+    if (data.taskContentType === 'LINK' && !data.link?.trim()) {
+      toast.error('❌ Erro: URL do link é obrigatória');
       return;
     }
 
-    mockCourseService.createTask({
-      trailId: selectedTrail.id,
-      title: newTask.title,
-      description: newTask.description,
-      type: newTask.type,
-      difficulty: newTask.difficulty,
-      estimatedTime: newTask.estimatedTime,
-      status: 'unlocked'
-    });
+    try {
+      const payload: any = {
+        taskId: selectedTaskForContent.id,
+        name: data.name,
+        taskContentType: data.taskContentType
+      };
 
-    setNewTask({
-      title: '',
-      description: '',
-      type: 'teórica',
-      difficulty: 'Iniciante',
-      estimatedTime: ''
-    });
-    setIsTaskModalOpen(false);
-    loadContent();
-    toast.success('Tarefa criada com sucesso', {
-      description: 'A tarefa foi adicionada à trilha e está pronta para receber materiais.'
-    });
+      // Adiciona link se for tipo LINK
+      if (data.taskContentType === 'LINK' && data.link) {
+        payload.link = data.link;
+      }
+
+      console.log('📤 Enviando payload:', payload);
+      console.log('📎 Arquivo:', data.file ? data.file.name : 'null (sem arquivo)');
+
+      await CreateTaskContentService(payload, data.file);
+
+      toast.success('✅ Material adicionado com sucesso', {
+        description: 'O material foi vinculado à tarefa e está disponível.'
+      });
+
+      // Recarrega o conteúdo do curso mantendo o curso selecionado
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
+
+      setSelectedTaskForContent(null);
+    } catch (error) {
+      console.error('Erro ao criar conteúdo:', error);
+      toast.error('❌ Erro ao adicionar material', {
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+      });
+      throw error;
+    }
+  };
+
+  const handleDeleteTaskContent = async (contentId: number, contentName: string) => {
+    if (!confirm(`Tem certeza que deseja excluir o conteúdo "${contentName}"?`)) {
+      return;
+    }
+
+    try {
+      await DeleteTaskContentService(contentId);
+
+      toast.success('✅ Conteúdo excluído com sucesso', {
+        description: `O material "${contentName}" foi removido.`
+      });
+
+      // Recarrega o conteúdo do curso mantendo o curso selecionado
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
+    } catch (error) {
+      console.error('Erro ao excluir conteúdo:', error);
+      toast.error('❌ Erro ao excluir material', {
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+      });
+    }
   };
 
   const handleEditTask = () => {
@@ -594,33 +746,33 @@ export default function GerenciarConteudo() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gerenciar Conteúdo</h1>
-          <p className="text-gray-600 mt-2">Organize trilhas de conhecimento, tarefas e materiais</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gerenciar Conteúdo</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Organize trilhas de conhecimento, tarefas e materiais</p>
           </div>
-        <Button onClick={() => setIsTrailModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => setIsTrailModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Nova Trilha
         </Button>
       </div>
 
-      <div className="flex gap-4">
-        <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="Selecione um curso" />
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <Select value={selectedCourseId} onValueChange={setSelectedCourseId} disabled={isLoadingCourses}>
+          <SelectTrigger className="w-full sm:w-64">
+            <SelectValue placeholder={isLoadingCourses ? "Carregando cursos..." : "Selecione um curso"} />
           </SelectTrigger>
           <SelectContent>
-            {courses.map(course => (
-              <SelectItem key={course.id} value={course.id}>
+            {apiCourses.map(course => (
+              <SelectItem key={course.id} value={course.id.toString()}>
                 {course.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
             placeholder="Buscar trilhas, tarefas ou materiais..."
@@ -631,566 +783,410 @@ export default function GerenciarConteudo() {
               </div>
       </div>
 
-      {selectedCourseId ? (
-        <div className="space-y-6">
-          {sortedSemesters.length > 0 ? (
-            sortedSemesters.map(([semesterKey, { semesterName, trails }]) => (
-              <div key={semesterKey}>
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  {semesterName}
-                </h2>
-                
-                <div className="grid gap-4">
-                  {trails.map(trail => (
-                    <Card key={trail.id} className="border-l-4 border-l-blue-500">
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg">{trail.title}</CardTitle>
-                            <p className="text-sm text-gray-600 mt-1">{trail.description}</p>
+      {!selectedCourseId ? (
+        <div className="relative overflow-hidden rounded-3xl border border-dashed border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-16 px-6 sm:px-10">
+          <span className="absolute -top-16 -left-16 h-48 w-48 rounded-full bg-blue-100/60 blur-3xl" />
+          <span className="absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-indigo-200/50 blur-3xl" />
+
+          <div className="relative z-10 mx-auto max-w-3xl text-center">
+            <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/20 animate-pulse">
+              <BookOpen className="h-12 w-12 text-white" />
             </div>
-            <div className="flex gap-2">
-              <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedTrail(trail);
-                                setIsTaskModalOpen(true);
-                              }}
-                            >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Nova Tarefa
-              </Button>
-              <Button
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                setEditTrail({
-                                  id: trail.id,
-                                  title: trail.title,
-                                  description: trail.description,
-                                  semesterNumber: trail.semesterId || ''
-                                });
-                                setIsEditTrailModalOpen(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleDeleteTrail(trail.id)}
-              >
-                              <Trash2 className="h-4 w-4" />
-              </Button>
+
+            <h3 className="text-2xl font-semibold text-gray-900 sm:text-3xl">Selecione um curso para começar</h3>
+            <p className="mt-3 text-base text-gray-600 sm:text-lg">
+              Escolha um curso no seletor acima para visualizar e organizar trilhas, tarefas e materiais. Tudo fica em um só lugar para facilitar o planejamento das aulas.
+            </p>
+
+            <div className="mt-10 grid gap-4 px-2 sm:grid-cols-3">
+              {[{
+                title: 'Trilhas de conhecimento',
+                description: 'Acompanhe o progresso das trilhas alvo de cada semestre.',
+                icon: <BookOpen className="h-5 w-5" />,
+                accent: 'from-blue-500/10 to-blue-600/10'
+              }, {
+                title: 'Tarefas e atividades',
+                description: 'Planeje desafios e mantenha o histórico de atividades.',
+                icon: <CheckCircle className="h-5 w-5" />,
+                accent: 'from-green-500/10 to-green-600/10'
+              }, {
+                title: 'Materiais centralizados',
+                description: 'Vídeos, links e arquivos acessíveis a um clique.',
+                icon: <FileText className="h-5 w-5" />,
+                accent: 'from-purple-500/10 to-purple-600/10'
+              }].map((feature) => (
+                <div
+                  key={feature.title}
+                  className="group relative overflow-hidden rounded-xl border border-white/40 bg-white/70 p-5 shadow-sm transition transform hover:-translate-y-1 hover:shadow-lg"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.accent} opacity-0 transition-opacity group-hover:opacity-100`} />
+                  <div className="relative flex items-start gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-inner shadow-black/5 text-blue-600">
+                      {feature.icon}
+                    </div>
+                    <div className="text-left">
+                      <h4 className="text-sm font-semibold text-gray-900 sm:text-base">{feature.title}</h4>
+                      <p className="mt-1 text-xs text-gray-600 sm:text-sm">{feature.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-12 inline-flex items-center gap-3 rounded-full bg-white/70 px-5 py-2 text-sm font-medium text-blue-600 shadow-sm shadow-blue-500/10">
+              <div className="flex h-3 w-3 animate-ping rounded-full bg-blue-500" />
+              Aguarde — selecione um curso para desbloquear o painel de conteúdo
             </div>
           </div>
-                      </CardHeader>
-                      
-                      <CardContent>
-                        <div className="space-y-3">
-                          {trail.tasks && trail.tasks.length > 0 ? (
-                            trail.tasks.map(task => (
-                              <div key={task.id} className="border rounded-lg p-4 bg-gray-50">
-                                <div className="flex justify-between items-start mb-3">
-                                  <div className="flex items-center gap-2 flex-1">
-                                    {getStatusIcon(task.status)}
-                                    <h3 className="font-medium">{task.title}</h3>
-                                    <Badge variant="outline">{task.type}</Badge>
-                                    <Badge variant="secondary">{task.difficulty}</Badge>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                                      variant="outline"
-                                      size="sm"
-                                        onClick={() => {
-                                          setSelectedTask({
-                                            id: task.id,
-                                            type: 'tarefa',
-                                            title: task.title,
-                                            description: task.description,
-                                            taskId: task.id // Adicionar taskId para referência
-                                          });
-                                          loadTaskMaterials(task.id); // Carregar materiais da tarefa
-                                          setIsMaterialModalOpen(true);
-                                        }}
-                                    >
-                                      <Plus className="h-4 w-4 mr-1" />
-                                      Material
-                                    </Button>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm"
-                                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                      onClick={() => {
-                                        setSelectedTaskForSubmissions({
-                                          id: task.id,
-                                          title: task.title
-                                        });
-                                        setIsSubmissionsModalOpen(true);
-                                      }}
-                                    >
-                                      <Users className="h-4 w-4 mr-1" />
-                                      Entregas
-                                    </Button>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm"
-                                      onClick={() => {
-                                        setEditTask({
-                                          id: task.id,
-                                          title: task.title,
-                                          description: task.description,
-                                          type: task.type,
-                                          difficulty: task.difficulty,
-                                          estimatedTime: task.estimatedTime
-                                        });
-                                        setIsEditTaskModalOpen(true);
-                                      }}
-                                    >
-                                      <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                                      variant="outline" 
-                                      size="sm"
-                                      onClick={() => handleDeleteTask(task.id)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
+        </div>
+      ) : isLoadingContent ? (
+        <div className="text-center py-16">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Carregando conteúdo...</h3>
+          <p className="text-gray-600">Aguarde enquanto buscamos as trilhas e tarefas</p>
+        </div>
+      ) : courseContent ? (
+        <div className="space-y-4">
+          {courseContent.sections.length > 0 ? (
+            <Accordion type="multiple" className="space-y-3">
+              {courseContent.sections.map((section) => (
+                <AccordionItem key={section.id} value={`section-${section.id}`} className="border rounded-lg bg-white">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                    <div className="flex items-center gap-2 text-left">
+                      <BookOpen className="h-5 w-5 flex-shrink-0" />
+                      <span className="font-semibold text-base sm:text-lg">{section.name}</span>
+                      <Badge variant="outline" className="ml-2 text-xs">
+                        {section.knowledgeTrails?.length || 0} {section.knowledgeTrails?.length === 1 ? 'trilha' : 'trilhas'}
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    {section.knowledgeTrails && section.knowledgeTrails.length > 0 ? (
+                      <Accordion type="multiple" className="space-y-2">
+                        {section.knowledgeTrails.map(trail => (
+                          <AccordionItem key={trail.id} value={`trail-${trail.id}`} className="border-l-4 border-l-blue-500 rounded-lg bg-blue-50/30">
+                            <div className="flex items-center justify-between gap-4 px-3 py-2">
+                              <AccordionTrigger className="py-0 hover:no-underline [&>svg]:ml-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="font-medium text-sm sm:text-base">{trail.name}</span>
+                                  {trail.ranked && (
+                                    <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-0 text-xs">
+                                      <Trophy className="h-3 w-3 mr-1" />
+                                      Rankeada
+                                    </Badge>
+                                  )}
+                                  <Badge variant="outline" className="text-xs">
+                                    {trail.tasks.length} {trail.tasks.length === 1 ? 'tarefa' : 'tarefas'}
+                                  </Badge>
                                 </div>
-                                
-                                <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-                                
-                                <div className="flex items-center gap-4 text-sm text-gray-500">
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    {task.estimatedTime}
-                                  </span>
-                                </div>
-
-                                {task.materials && task.materials.length > 0 && (
-                                  <div className="mt-4">
-                                    <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                      <FileText className="h-4 w-4" />
-                                      Materiais ({task.materials.length})
-                                    </h4>
-                                    <div className="grid gap-2">
-                                      {task.materials.map(material => (
-                                        <Card key={material.id} className="p-3 hover:shadow-sm transition-shadow">
-                                          <div className="flex items-center gap-3">
-                                            <div className="text-blue-600">
-                                              {getTypeIcon(material.type)}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                              <h5 className="font-medium text-sm truncate">{material.title}</h5>
-                                              <div className="flex items-center gap-2 mt-1">
-                                                {material.type === 'text' && material.content && (
-                                                  <span className="text-xs text-gray-500 truncate">
-                                                    {material.content.substring(0, 50)}...
+                              </AccordionTrigger>
+                              <div className="flex gap-1 flex-shrink-0">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedKnowledgeTrailForTask({
+                                      id: trail.id,
+                                      name: trail.name,
+                                      courseId: courseContent.id,
+                                      courseName: courseContent.name,
+                                      isRanked: trail.ranked || false
+                                    });
+                                    setIsTaskModalOpen(true);
+                                  }}
+                                  className="h-8 px-2 text-xs"
+                                >
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  <span className="hidden sm:inline">Nova</span>
+                                </Button>
+                                <Button
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    const section = courseContent.sections.find(s => 
+                                      s.knowledgeTrails.some(kt => kt.id === trail.id)
+                                    );
+                                    
+                                    setEditTrail({
+                                      id: trail.id,
+                                      name: trail.name,
+                                      sectionId: section?.id || 0,
+                                      sectionName: section?.name || '',
+                                      ranked: trail.ranked || false
+                                    });
+                                    setIsEditTrailModalOpen(true);
+                                  }}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    toast.info('Funcionalidade em desenvolvimento');
+                                  }}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                            <AccordionContent className="px-3 pb-3">
+                              {trail.tasks && trail.tasks.length > 0 ? (
+                                <Accordion type="multiple" className="space-y-2">
+                                  {trail.tasks.map(task => (
+                                    <AccordionItem key={task.id} value={`task-${task.id}`} className="border rounded-lg bg-white">
+                                      <div className="flex items-center justify-between gap-4 px-3 py-2">
+                                        <AccordionTrigger className="py-0 hover:no-underline [&>svg]:ml-2">
+                                          <div className="flex flex-wrap items-center gap-2">
+                                            <span className="font-medium text-sm">{task.name}</span>
+                                            <Badge variant="outline" className="text-xs">
+                                              Ordem: {task.taskOrder}
+                                            </Badge>
+                                            {task.contents && task.contents.length > 0 && (
+                                              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                                                {task.contents.length} {task.contents.length === 1 ? 'material' : 'materiais'}
+                                              </Badge>
+                                            )}
+                                          </div>
+                                        </AccordionTrigger>
+                                        <div className="flex gap-1 flex-shrink-0">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                              setSelectedTaskForContent({
+                                                id: task.id,
+                                                name: task.name
+                                              });
+                                              setIsTaskContentModalOpen(true);
+                                            }}
+                                            className="h-8 px-2 text-xs hover:bg-purple-50 hover:border-purple-300"
+                                          >
+                                            <Upload className="h-3 w-3 mr-1" />
+                                            <span className="hidden sm:inline">Mat</span>
+                                          </Button>
+                                          {task.contents && task.contents.length > 0 && (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => {
+                                                setSelectedTaskForMaterials({
+                                                  id: task.id,
+                                                  name: task.name,
+                                                  materials: task.contents
+                                                });
+                                                setIsTaskMaterialsModalOpen(true);
+                                              }}
+                                              className="h-8 w-8 p-0 hover:bg-blue-50 hover:border-blue-300"
+                                            >
+                                              <Eye className="h-3 w-3" />
+                                            </Button>
+                                          )}
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                              toast.info('Funcionalidade em desenvolvimento');
+                                            }}
+                                            className="h-8 w-8 p-0"
+                                          >
+                                            <Edit className="h-3 w-3" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                              toast.info('Funcionalidade em desenvolvimento');
+                                            }}
+                                            className="h-8 w-8 p-0"
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                      <AccordionContent className="px-3 pb-2">
+                                        <p className="text-xs sm:text-sm text-gray-600 mb-3">{task.description}</p>
+                                        {task.contents && task.contents.length > 0 && (
+                                          <div className="space-y-2">
+                                            <h4 className="text-xs font-medium text-gray-700 flex items-center gap-2">
+                                              <FileText className="h-3 w-3" />
+                                              Conteúdos ({task.contents.length})
+                                            </h4>
+                                            <div className="space-y-1">
+                                              {task.contents.map(content => (
+                                                <div key={content.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded border text-xs">
+                                                  <Badge variant="secondary" className="text-xs flex-shrink-0">
+                                                    {content.contentType}
+                                                  </Badge>
+                                                  <span className="text-gray-900 font-medium truncate flex-1 min-w-0">
+                                                    {content.name}
                                                   </span>
-                                                )}
-                                                {material.type === 'video' && (
-                                                  <Badge variant="outline" className="text-xs">🎥 Vídeo</Badge>
-                                                )}
-                                                {material.type === 'link' && (
-                                                  <Badge variant="outline" className="text-xs">🔗 Link</Badge>
-                                                )}
-                                                {material.type === 'file' && material.fileName && (
-                                                  <Badge variant="outline" className="text-xs">📄 {material.fileName}</Badge>
-                                                )}
-                                              </div>
-                                            </div>
-                                            <div className="flex gap-1">
-                                              <Button 
-                                                variant="ghost" 
-                                                size="sm"
-                                                onClick={() => viewMaterial(material)}
-                                                className="h-8 w-8 p-0"
-                                              >
-                                                <Eye className="h-4 w-4" />
-                                              </Button>
-                                              <Button 
-                                                variant="ghost" 
-                                                size="sm"
-                                                onClick={() => {
-                                                  setSelectedTask({
-                                                    id: task.id,
-                                                    type: 'tarefa',
-                                                    title: task.title,
-                                                    description: task.description,
-                                                    taskId: task.id
-                                                  });
-                                                  loadTaskMaterials(task.id); // Carregar materiais da tarefa
-                                                  startEditingMaterial(material);
-                                                  setIsMaterialModalOpen(true);
-                                                }}
-                                                className="h-8 w-8 p-0"
-                                              >
-                                                <Edit className="h-4 w-4" />
-                                              </Button>
-                                              <Button 
-                                                variant="ghost" 
-                                                size="sm"
-                                                onClick={() => handleDeleteMaterial(material.id)}
-                                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                                              >
-                                                <Trash2 className="h-4 w-4" />
-                                              </Button>
+                                                  <div className="flex items-center gap-1 flex-shrink-0">
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        setSelectedContentForView(content);
+                                                        setIsViewContentModalOpen(true);
+                                                      }}
+                                                      className="h-6 w-6 p-0 hover:bg-purple-100"
+                                                      title="Visualizar conteúdo"
+                                                    >
+                                                      <Eye className="h-3 w-3 text-purple-600" />
+                                                    </Button>
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => handleDeleteTaskContent(content.id, content.name)}
+                                                      className="h-6 w-6 p-0 hover:bg-red-100"
+                                                      title="Excluir conteúdo"
+                                                    >
+                                                      <Trash2 className="h-3 w-3 text-red-600" />
+                                                    </Button>
+                                                  </div>
+                                                </div>
+                                              ))}
                                             </div>
                                           </div>
-                                        </Card>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            ))
-                          ) : (
-                            <div className="text-center py-8 text-gray-500">
-                              <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                              <p>Nenhuma tarefa criada nesta trilha</p>
-                              <Button
-                                variant="outline"
-                                className="mt-4"
-                                onClick={() => {
-                                  setSelectedTrail(trail);
-                                  setIsTaskModalOpen(true);
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Criar Primeira Tarefa
-                              </Button>
-                            </div>
-                          )}
-          </div>
-        </CardContent>
-      </Card>
-                  ))}
-                </div>
-              </div>
-            ))
+                                        )}
+                                      </AccordionContent>
+                                    </AccordionItem>
+                                  ))}
+                                </Accordion>
+                              ) : (
+                                <div className="text-center py-6 text-gray-500">
+                                  <FileText className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                                  <p className="text-sm">Nenhuma tarefa criada nesta trilha</p>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-3"
+                                    onClick={() => {
+                                      setSelectedKnowledgeTrailForTask({
+                                        id: trail.id,
+                                        name: trail.name,
+                                        courseId: courseContent.id,
+                                        courseName: courseContent.name,
+                                        isRanked: trail.ranked || false
+                                      });
+                                      setIsTaskModalOpen(true);
+                                    }}
+                                  >
+                                    <Plus className="h-3 w-3 mr-2" />
+                                    Criar Primeira Tarefa
+                                  </Button>
+                                </div>
+                              )}
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    ) : (
+                      <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                        <BookOpen className="h-10 w-10 mx-auto mb-2 text-gray-400" />
+                        <p className="text-sm text-gray-600 mb-2">Nenhuma trilha neste semestre</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsTrailModalOpen(true)}
+                        >
+                          <Plus className="h-3 w-3 mr-2" />
+                          Criar Trilha
+                        </Button>
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           ) : (
             <div className="text-center py-12">
               <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma trilha encontrada</h3>
-              <p className="text-gray-600 mb-4">Comece criando uma nova trilha de conhecimento</p>
-              <Button onClick={() => setIsTrailModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Primeira Trilha
-              </Button>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Nenhuma seção encontrada</h3>
+              <p className="text-sm text-gray-600 mb-4">Este curso ainda não possui seções configuradas</p>
             </div>
           )}
         </div>
-      ) : (
-        <div className="text-center py-12">
-          <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Selecione um curso</h3>
-          <p className="text-gray-600">Escolha um curso para visualizar e gerenciar seu conteúdo</p>
-        </div>
+      ) : null}
+
+      <CreateKnowledgeTrailModal
+        open={isTrailModalOpen}
+        onOpenChange={setIsTrailModalOpen}
+        courses={apiCourses}
+        isLoadingCourses={isLoadingCourses}
+        onSubmit={handleCreateTrail}
+      />
+
+      <EditKnowledgeTrailModal
+        open={isEditTrailModalOpen}
+        onOpenChange={setIsEditTrailModalOpen}
+        trail={editTrail}
+        onSubmit={handleEditTrail}
+      />
+
+      {selectedKnowledgeTrailForTask && (
+        <CreateTaskModal
+          open={isTaskModalOpen}
+          onOpenChange={(open) => {
+            setIsTaskModalOpen(open);
+            if (!open) {
+              setSelectedKnowledgeTrailForTask(null);
+            }
+          }}
+          courseId={selectedKnowledgeTrailForTask.courseId}
+          courseName={selectedKnowledgeTrailForTask.courseName}
+          knowledgeTrailId={selectedKnowledgeTrailForTask.id}
+          knowledgeTrailName={selectedKnowledgeTrailForTask.name}
+          isRanked={selectedKnowledgeTrailForTask.isRanked}
+          onSubmit={handleCreateTask}
+        />
       )}
 
-      <Dialog open={isTrailModalOpen} onOpenChange={setIsTrailModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="relative">
-            <DialogHeader className="pb-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-blue-600 rounded-xl">
-                  <BookOpen className="h-6 w-6 text-white" />
-                  </div>
-                <div>
-                  <DialogTitle className="text-2xl font-bold text-gray-900">
-                    Nova Trilha de Conhecimento
-                  </DialogTitle>
-                  <p className="text-sm text-gray-600 mt-1">Crie uma nova trilha de aprendizado para seus alunos</p>
-                </div>
-              </div>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="trail-course" className="text-sm font-semibold text-gray-700">
-                  Curso
-                </Label>
-                <Select value={newTrail.courseId} onValueChange={(value) => setNewTrail(prev => ({ ...prev, courseId: value }))}>
-                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-                    <SelectValue placeholder="Selecione um curso" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courses.map(course => (
-                      <SelectItem key={course.id} value={course.id} className="py-3">
-                        {course.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="trail-title" className="text-sm font-semibold text-gray-700">
-                  Título da Trilha
-                </Label>
-                <Input
-                  id="trail-title"
-                  value={newTrail.title}
-                  onChange={(e) => setNewTrail(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Ex: Fundamentos de Programação"
-                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="trail-description" className="text-sm font-semibold text-gray-700">
-                  Descrição
-                </Label>
-                <Textarea
-                  id="trail-description"
-                  value={newTrail.description}
-                  onChange={(e) => setNewTrail(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Descreva os objetivos desta trilha..."
-                  rows={4}
-                  className="border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl resize-none"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="trail-semester" className="text-sm font-semibold text-gray-700">
-                  Semestre
-                </Label>
-                <Select value={newTrail.semesterNumber} onValueChange={(value) => setNewTrail(prev => ({ ...prev, semesterNumber: value }))}>
-                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-                    <SelectValue placeholder="Selecione um semestre" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {newTrail.courseId && mockCourseService.getCourseById(newTrail.courseId)?.semesters.map(semester => (
-                      <SelectItem key={semester.number} value={semester.number.toString()} className="py-3">
-                        {semester.number}º - {semester.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-3 pt-8 border-t border-gray-100">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setIsTrailModalOpen(false);
-                  setNewTrail({ courseId: '', title: '', description: '', semesterNumber: '' });
-                }}
-                className="h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleCreateTrail}
-                className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Criar Trilha
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {selectedTaskForContent && (
+        <CreateTaskContentModal
+          open={isTaskContentModalOpen}
+          onOpenChange={(open) => {
+            setIsTaskContentModalOpen(open);
+            if (!open) {
+              setSelectedTaskForContent(null);
+            }
+          }}
+          taskId={selectedTaskForContent.id}
+          taskName={selectedTaskForContent.name}
+          onSubmit={handleCreateTaskContent}
+        />
+      )}
 
-      <Dialog open={isEditTrailModalOpen} onOpenChange={setIsEditTrailModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="relative">
-            <DialogHeader className="pb-6">
-                    <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-blue-600 rounded-xl">
-                  <Edit className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <DialogTitle className="text-2xl font-bold text-gray-900">
-                    Editar Trilha
-                  </DialogTitle>
-                  <p className="text-sm text-gray-600 mt-1">Atualize as informações da trilha de conhecimento</p>
-                </div>
-              </div>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="edit-trail-title" className="text-sm font-semibold text-gray-700">
-                  Título
-                </Label>
-                <Input
-                  id="edit-trail-title"
-                  value={editTrail.title}
-                  onChange={(e) => setEditTrail(prev => ({ ...prev, title: e.target.value }))}
-                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-trail-description" className="text-sm font-semibold text-gray-700">
-                  Descrição
-                </Label>
-                <Textarea
-                  id="edit-trail-description"
-                  value={editTrail.description}
-                  onChange={(e) => setEditTrail(prev => ({ ...prev, description: e.target.value }))}
-                  rows={4}
-                  className="border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl resize-none"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-trail-semester" className="text-sm font-semibold text-gray-700">
-                  Semestre
-                </Label>
-                <Select value={editTrail.semesterNumber} onValueChange={(value) => setEditTrail(prev => ({ ...prev, semesterNumber: value }))}>
-                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-                    <SelectValue placeholder="Selecione um semestre" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {selectedCourseId && mockCourseService.getCourseById(selectedCourseId)?.semesters.map(semester => (
-                      <SelectItem key={semester.number} value={semester.number.toString()} className="py-3">
-                        {semester.number}º - {semester.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-3 pt-8 border-t border-gray-100">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsEditTrailModalOpen(false)}
-                className="h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleEditTrail}
-                className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Salvar Alterações
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {selectedTaskForMaterials && (
+        <TaskMaterialsModal
+          open={isTaskMaterialsModalOpen}
+          onOpenChange={(open) => {
+            setIsTaskMaterialsModalOpen(open);
+            if (!open) {
+              setSelectedTaskForMaterials(null);
+            }
+          }}
+          taskName={selectedTaskForMaterials.name}
+          materials={selectedTaskForMaterials.materials}
+        />
+      )}
 
-      <Dialog open={isTaskModalOpen} onOpenChange={setIsTaskModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="relative">
-            <DialogHeader className="pb-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-blue-600 rounded-xl">
-                  <Plus className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <DialogTitle className="text-2xl font-bold text-gray-900">
-                    Nova Tarefa
-                  </DialogTitle>
-                  <p className="text-sm text-gray-600 mt-1">Crie uma nova tarefa para a trilha de conhecimento</p>
-                </div>
-              </div>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="task-title" className="text-sm font-semibold text-gray-700">
-                  Título
-                </Label>
-                <Input
-                  id="task-title"
-                  value={newTask.title}
-                  onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Ex: Introdução à Programação"
-                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="task-description" className="text-sm font-semibold text-gray-700">
-                  Descrição
-                </Label>
-                <Textarea
-                  id="task-description"
-                  value={newTask.description}
-                  onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Descreva os objetivos desta tarefa..."
-                  rows={4}
-                  className="border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl resize-none"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="task-type" className="text-sm font-semibold text-gray-700">
-                    Tipo
-                  </Label>
-                  <Select value={newTask.type} onValueChange={(value: any) => setNewTask(prev => ({ ...prev, type: value }))}>
-                    <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="teórica" className="py-3">Teórica</SelectItem>
-                      <SelectItem value="prática" className="py-3">Prática</SelectItem>
-                      <SelectItem value="projeto" className="py-3">Projeto</SelectItem>
-                      <SelectItem value="avaliação" className="py-3">Avaliação</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="task-difficulty" className="text-sm font-semibold text-gray-700">
-                    Dificuldade
-                  </Label>
-                  <Select value={newTask.difficulty} onValueChange={(value: any) => setNewTask(prev => ({ ...prev, difficulty: value }))}>
-                    <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Iniciante" className="py-3">Iniciante</SelectItem>
-                      <SelectItem value="Intermediário" className="py-3">Intermediário</SelectItem>
-                      <SelectItem value="Avançado" className="py-3">Avançado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="task-time" className="text-sm font-semibold text-gray-700">
-                  Tempo Estimado
-                </Label>
-                <Input
-                  id="task-time"
-                  value={newTask.estimatedTime}
-                  onChange={(e) => setNewTask(prev => ({ ...prev, estimatedTime: e.target.value }))}
-                  placeholder="Ex: 8 horas"
-                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                />
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-3 pt-8 border-t border-gray-100">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsTaskModalOpen(false)}
-                className="h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleCreateTask}
-                className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Tarefa
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {selectedContentForView && (
+        <ViewTaskContentModal
+          open={isViewContentModalOpen}
+          onOpenChange={(open) => {
+            setIsViewContentModalOpen(open);
+            if (!open) {
+              setSelectedContentForView(null);
+            }
+          }}
+          contentName={selectedContentForView.name}
+          contentType={selectedContentForView.contentType}
+          contentUrl={selectedContentForView.contentUrl}
+        />
+      )}
 
       <Dialog open={isEditTaskModalOpen} onOpenChange={setIsEditTaskModalOpen}>
         <DialogContent className="max-w-md">

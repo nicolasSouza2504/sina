@@ -11,10 +11,10 @@ public record CourseContentSummaryDTO(String name, Integer quantitySemester, Lon
 
     record SectionSummaryDTO(Long id, String name, Integer semester, Long courseId, List<KnowledgeTrailSummaryDTO> knowledgeTrails) {
 
-        record KnowledgeTrailSummaryDTO(Long id, String name, List<TaskSummaryDTO> tasks) {
+        record KnowledgeTrailSummaryDTO(Long id, String name, Boolean ranked, List<TaskSummaryDTO> tasks) {
 
             public KnowledgeTrailSummaryDTO(KnowledgeTrail knowledgeTrail) {
-                this(knowledgeTrail.getId(), knowledgeTrail.getName(),
+                this(knowledgeTrail.getId(), knowledgeTrail.getName(), knowledgeTrail.getRanked(),
                         knowledgeTrail.getTasks() != null ? knowledgeTrail.getTasks().stream()
                                 .map(task -> new TaskSummaryDTO(task))
                                 .toList() : List.of());
@@ -31,10 +31,10 @@ public record CourseContentSummaryDTO(String name, Integer quantitySemester, Lon
 
                 }
 
-                record TaskContentSummaryDTO(Long id, String contentType, String contentUrl) {
+                record TaskContentSummaryDTO(Long id, String contentType, String contentUrl, String name) {
 
                     public TaskContentSummaryDTO(TaskContent taskContent) {
-                        this(taskContent.getId(), taskContent.getContentType().toString(), taskContent.getContentUrl());
+                        this(taskContent.getId(), taskContent.getContentType().toString(), taskContent.getContentUrl(), taskContent.getName());
                     }
 
                 }

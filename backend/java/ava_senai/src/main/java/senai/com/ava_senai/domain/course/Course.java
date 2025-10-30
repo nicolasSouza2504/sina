@@ -3,15 +3,18 @@ package senai.com.ava_senai.domain.course;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.section.Section;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "course")
+@EqualsAndHashCode(callSuper = true, of = "id")
 public class Course extends DefaultEntity {
 
     @Column(name = "quantity_semester")
@@ -21,7 +24,7 @@ public class Course extends DefaultEntity {
     private String name;
 
     @OneToMany(mappedBy = "course")
-    private List<Section> sections;
+    private Set<Section> sections;
 
     @OneToMany(mappedBy = "course")
     private List<Class> classes;

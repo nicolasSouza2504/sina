@@ -24,10 +24,6 @@ public class TaskContent {
     @Column(nullable = false)
     private TaskContentType contentType;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TaskContentUploadStatus status;
-
     @ManyToOne
     @JoinColumn(name = "task_id", updatable = false, insertable = false)
     private Task task;
@@ -38,10 +34,6 @@ public class TaskContent {
     @PrePersist
     @PreUpdate
     private void prePersist() {
-
-        if (status == null) {
-            status = TaskContentUploadStatus.PENDING;
-        }
 
         if (task != null) {
             this.taskId = task.getId();

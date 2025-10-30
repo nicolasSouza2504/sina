@@ -28,7 +28,6 @@ import java.util.Optional;
 public class CourseService implements ICourseService {
 
     private final CourseRepository courseRepository;
-    private final ClassRepository classRepository;
     private final SectionRepository sectionRepository;
 
     @Override
@@ -147,7 +146,7 @@ public class CourseService implements ICourseService {
     @Override
     public CourseContentSummaryDTO getCourseContentSummaryById(Long id) {
 
-        Course course = courseRepository.findById(id)
+        Course course = courseRepository.findCourseWithContentById(id)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado!"));
 
         return new CourseContentSummaryDTO(course);

@@ -3,15 +3,18 @@ package senai.com.ava_senai.domain.course.section;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.course.Course;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "section")
+@EqualsAndHashCode(callSuper = true, of = "id")
 public class Section extends DefaultEntity {
 
     @Column(length = 80, nullable = false)
@@ -27,6 +30,6 @@ public class Section extends DefaultEntity {
     private Long courseId;
 
     @OneToMany(mappedBy = "section")
-    private List<KnowledgeTrail> knowledgeTrails;
+    private Set<KnowledgeTrail> knowledgeTrails;
 
 }

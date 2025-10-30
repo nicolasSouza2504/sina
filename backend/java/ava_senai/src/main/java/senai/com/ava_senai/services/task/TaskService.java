@@ -4,18 +4,18 @@ import com.google.gson.Gson;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.config.RabbitMQConfig;
 import senai.com.ava_senai.domain.task.*;
+import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.exception.NotFoundException;
-import senai.com.ava_senai.repository.TaskContentRepository;
-import senai.com.ava_senai.repository.TaskRepository;
-import senai.com.ava_senai.repository.TaskUserRepository;
-import senai.com.ava_senai.repository.UserRepository;
+import senai.com.ava_senai.exception.Validation;
+import senai.com.ava_senai.repository.*;
 import senai.com.ava_senai.services.messaging.RabbitMQSender;
 import senai.com.ava_senai.taskuser.TaskUser;
 
@@ -31,11 +31,15 @@ public class TaskService implements ITaskService {
     private final TaskRepository taskRepository;
     private final RabbitMQSender rabbitMQSender;
     private final TaskUserRepository taskUserRepository;
+    private final CourseRepository courseRepository;
+    private final KnowledgeTrailRepository knowledgeTrailRepository;
 
     @Override
-    public TaskResponseDTO createTasks(TaskRegisterDTO taskRegister) {
+    public TaskResponseDTO createTask(TaskRegisterDTO taskRegister) {
 
-        Task task = createTask(taskRegister);
+        validateMandatoryFields(taskRegister);
+
+        Task task = create(taskRegister);
 
         sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
 
@@ -72,7 +76,20 @@ public class TaskService implements ITaskService {
     }
 
     @Override
-    public TaskResponseDTO getTaskById(@Valid Long id) {
+    public TaskResponseDTO updateTask(Long id, TaskRegisterDTO taskRegisterDTO) {
+
+        Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+
+        task = updateData(task, taskRegisterDTO);
+
+        taskRepository.save(task);
+
+        return new TaskResponseDTO(task);
+
+    }
+
+    @Override
+    public TaskResponseDTO getTaskById(Long id) {
 
         Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
 
@@ -80,13 +97,35 @@ public class TaskService implements ITaskService {
 
     }
 
-    private Task createTask(TaskRegisterDTO taskRegister) {
+    @Override
+    public void updateTaskOrder(List<TaskUpdateOrderDTO> taskUpdateOrderDTOS) {
+
+        if (!CollectionUtils.isEmpty(taskUpdateOrderDTOS)) {
+
+            taskUpdateOrderDTOS.forEach(taskUpdateOrderDTO -> {
+
+                Task task = taskRepository.findById(taskUpdateOrderDTO.taskId()).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+
+                task.setTaskOrder(taskUpdateOrderDTO.newOrder());
+
+                taskRepository.save(task);
+
+            });
+
+        }
+
+    }
+
+    private Task create(TaskRegisterDTO taskRegister) {
 
         Task task = new Task();
 
         task.setName(taskRegister.name());
         task.setDescription(taskRegister.description());
         task.setKnowledgeTrailId(taskRegister.knowledgeTrailId());
+        task.setDifficultyLevel(taskRegister.difficultyLevel());
+        task.setDueDate(taskRegister.dueDate());
+        task.setTaskOrder(taskRegister.taskOrder());
 
         return taskRepository.save(task);
 
@@ -101,6 +140,55 @@ public class TaskService implements ITaskService {
             RabbitMQConfig.ROUTING_CREATE_USER_TASK,
             jsonMessage
         );
+
+    }
+
+    public void validateMandatoryFields(TaskRegisterDTO taskRegister) {
+
+        Validation validation = new Validation();
+
+        if (taskRegister.courseId() == null) {
+            validation.add("courseId", "Curso é obrigatório");
+        } else if (!courseRepository.existsById(taskRegister.courseId())) {
+            validation.add("courseId", "Curso informado não existe");
+        }
+
+        if (taskRegister.knowledgeTrailId() == null) {
+            validation.add("knowledgeTrailId", "Trilha de conhecimento é obrigatória");
+        } else {
+
+            KnowledgeTrail knowledgeTrail = knowledgeTrailRepository.findById(taskRegister.knowledgeTrailId()).orElse(null);
+
+            if (knowledgeTrail == null) {
+                validation.add("knowledgeTrailId", "Trilha de conhecimento informada não existe");
+            } else if (BooleanUtils.isTrue(knowledgeTrail.getRanked())) {
+
+                if (taskRegister.difficultyLevel() == null) {
+                    validation.add("difficultyLevel", "Nível de dificuldade é obrigatório para trilhas ranqueadas");
+                }
+
+                if (taskRegister.dueDate() == null) {
+                    validation.add("dueDate", "Data de entrega é obrigatória para trilhas ranqueadas");
+                }
+
+            }
+
+        }
+
+        validation.throwIfHasErrors();
+
+    }
+
+    private Task updateData(Task task, TaskRegisterDTO taskRegister) {
+
+        task.setName(taskRegister.name());
+        task.setDescription(taskRegister.description());
+        task.setKnowledgeTrailId(taskRegister.knowledgeTrailId());
+        task.setDifficultyLevel(taskRegister.difficultyLevel());
+        task.setDueDate(taskRegister.dueDate());
+        task.setTaskOrder(taskRegister.taskOrder());
+
+        return taskRepository.save(task);
 
     }
 
