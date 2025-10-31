@@ -77,7 +77,7 @@ function SortableTaskItem({
         flex items-center gap-3 p-3 bg-white rounded-lg transition-all
         ${isDragging ? 'opacity-50 scale-105 shadow-2xl z-50' : 'shadow-sm'}
         ${hasChanged 
-          ? 'border-2 border-amber-400 bg-amber-50 ring-2 ring-amber-200' 
+          ? 'border-2 border-amber-500' 
           : 'border-2 border-gray-200 hover:border-blue-300'
         }
       `}
@@ -86,11 +86,7 @@ function SortableTaskItem({
       <div
         {...attributes}
         {...listeners}
-        className={`
-          cursor-grab active:cursor-grabbing flex-shrink-0 p-1 rounded
-          ${isDragging ? 'cursor-grabbing' : ''}
-          ${hasChanged ? 'text-amber-600' : 'text-gray-400 hover:text-blue-600'}
-        `}
+        className="cursor-grab active:cursor-grabbing flex-shrink-0 p-1 rounded text-gray-400 hover:text-blue-600"
       >
         <GripVertical className="h-5 w-5" />
       </div>
@@ -100,9 +96,9 @@ function SortableTaskItem({
         <div className="flex items-center gap-2 flex-wrap">
           {/* Número da Nova Posição */}
           <div className={`
-            flex items-center justify-center w-7 h-7 rounded-full font-bold text-sm
+            flex items-center justify-center w-7 h-7 rounded-full font-bold text-sm transition-colors
             ${hasChanged 
-              ? 'bg-amber-500 text-white ring-2 ring-amber-300' 
+              ? 'bg-amber-500 text-white' 
               : 'bg-blue-500 text-white'
             }
           `}>
@@ -115,14 +111,17 @@ function SortableTaskItem({
           {/* Badge de Ordem Original */}
           <Badge 
             variant="outline" 
-            className={`text-xs ${hasChanged ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-gray-100 border-gray-300 text-gray-600'}`}
+            className="text-xs bg-gray-100 border-gray-300 text-gray-600"
           >
             Original: #{originalOrder}
           </Badge>
 
-          {/* Indicador de Alteração */}
+          {/* Indicador de Alteração - Discreto */}
           {hasChanged && (
-            <Badge className="bg-amber-500 text-white text-xs animate-pulse">
+            <Badge 
+              variant="outline"
+              className="text-xs bg-blue-50 border-blue-300 text-blue-700"
+            >
               <MoveVertical className="h-3 w-3 mr-1" />
               Alterado
             </Badge>
@@ -284,12 +283,11 @@ export default function ReorderTasksModal({
         </DialogHeader>
 
         {/* Instruções */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-          <p className="text-xs text-blue-800 flex items-center gap-2">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mt-4">
+          <p className="text-xs text-gray-600 flex items-center gap-2">
             <GripVertical className="h-4 w-4" />
             <span>
-              <strong>Arraste e solte</strong> para reordenar ou use os botões de seta. 
-              Itens alterados ficam destacados em <strong className="text-amber-600">amarelo</strong>.
+              Arraste e solte para reordenar ou use os botões de seta.
             </span>
           </p>
         </div>
