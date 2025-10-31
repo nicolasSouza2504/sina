@@ -30,7 +30,7 @@ public class TaskController {
         return ResponseEntity.ok().body(new ApiResponse("Sucesso!", taskService.getTaskById(id)));
     }
 
-    @PutMapping("/update/{id}")
+    @PatchMapping("/update/{id}")
     @Secured({"ADMIN", "TEACHER"})
     public ResponseEntity<ApiResponse> updateTask(@PathVariable("id") Long id, @RequestBody @Valid TaskRegisterDTO taskRegisterDTO) {
         return ResponseEntity.ok().body(new ApiResponse("Tarefa atualizada com sucesso!", taskService.updateTask(id, taskRegisterDTO)));
