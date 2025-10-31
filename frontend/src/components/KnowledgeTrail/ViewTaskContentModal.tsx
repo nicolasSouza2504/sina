@@ -147,14 +147,7 @@ export default function ViewTaskContentModal({
               <Download className="h-4 w-4 mr-2" />
               Baixar Arquivo
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.open(contentUrl, '_blank')}
-              className="w-full"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Abrir em Nova Aba
-            </Button>
+            
           </div>
         </div>
       );

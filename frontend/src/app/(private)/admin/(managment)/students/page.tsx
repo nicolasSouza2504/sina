@@ -6,12 +6,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {Search, Plus, Edit, Trash2, Users, GraduationCap, Filter, X, RefreshCcw, Rotate3d, Eye, Mail, Calendar, User, FileText} from "lucide-react"
 import React, {useEffect, useState} from "react"
 import {StudentFormModal} from "@/components/admin/students/StudentFormModal";
 import {UserData} from "@/lib/interfaces/userInterfaces";
 import { EditStudentModal } from "@/components/admin/students/EditStudentModal";
+import { StudentClassesModal } from "@/components/admin/students/StudentClassesModal";
 import UserListService from "@/lib/api/user/userListService";
+import ClassList from "@/lib/api/class/classList";
+import { Class } from "@/lib/interfaces/classInterfaces";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {EditStudentSituationModal} from "@/components/admin/students/EditStudentSituationModal";
@@ -30,27 +34,52 @@ export default function StudentsManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [statusFilter, setStatusFilter] = useState<string | null>(null);
-    const [selectedClassFilter, setSelectedClassFilter] = useState<{
-        id: number
-        code: string | null
-        name: string
-        startDate: string | null
-        endDate: string | null
-        semester: number | null
-        courseId: number |null
-        imgClass: string | null
-    } | null>(null)
+    const [selectedClassFilter, setSelectedClassFilter] = useState<Class | null>(null)
+    const [availableClasses, setAvailableClasses] = useState<Class[]>([])
+    const [isLoadingClasses, setIsLoadingClasses] = useState(false)
+    const [showOnlyWithoutClass, setShowOnlyWithoutClass] = useState(false)
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+    const [isClassesModalOpen, setIsClassesModalOpen] = useState(false)
+    const [selectedStudentForClasses, setSelectedStudentForClasses] = useState<UserData | null>(null)
+
+    useEffect(() => {
+        const init = async () => {
+            await loadClasses();
+            await getStudents();
+        };
+        init();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         getStudents();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedClassFilter, showOnlyWithoutClass]);
+
+    const loadClasses = async () => {
+        try {
+            setIsLoadingClasses(true);
+            const classes = await ClassList();
+            setAvailableClasses(classes);
+        } catch (err) {
+            console.error("Error loading classes:", err);
+            toast.error("Erro ao carregar turmas");
+        } finally {
+            setIsLoadingClasses(false);
+        }
+    };
 
     const getStudents = async () => {
         try {
             setLoading(true);
             setError(null);
-            const studentsData = await UserListService(null, 3);
+            // Se o filtro "Sem turma" estiver ativo, não envia filtro de turma para a API
+            // Isso traz todos os alunos e filtra no frontend
+            const classIdFilter = showOnlyWithoutClass ? null : (selectedClassFilter?.id || null);
+            console.log('[getStudents] Fetching with classId:', classIdFilter);
+            console.log('[getStudents] showOnlyWithoutClass:', showOnlyWithoutClass);
+            const studentsData = await UserListService(null, 3, null, classIdFilter);
+            console.log('[getStudents] Response:', studentsData);
 
             const mappedStudents = studentsData.data?.map((cls: any) => ({
                 id: cls.id,
@@ -60,6 +89,7 @@ export default function StudentsManagement() {
                 institutionName: cls.institutionName,
                 cpf: cls.cpf,
                 status: cls.status,
+                classes: cls.classes || [],
             })) || [];
 
             console.log(mappedStudents)
@@ -87,17 +117,46 @@ export default function StudentsManagement() {
 
         const matchesStatus = statusFilter === null || student.status === statusFilter
 
-        // const matchesClass = selectedClassFilter === null || student.classId === selectedClassFilter.id
-        return matchesSearch && matchesStatus;
-        // return matchesSearch && matchesClass
+        // Filtro de "Sem turma" - verifica se o aluno não tem turmas vinculadas
+        const matchesClassFilter = !showOnlyWithoutClass || (student.classes?.length === 0)
+
+        return matchesSearch && matchesStatus && matchesClassFilter;
     })
 
     const getSelectedClassName = () => {
-        return selectedClassFilter?.name || null
+        if (showOnlyWithoutClass) {
+            return "Sem turma"
+        }
+        return selectedClassFilter?.nome || null
     }
 
     const clearClassFilter = () => {
         setSelectedClassFilter(null)
+        setShowOnlyWithoutClass(false)
+    }
+
+    const handleClassFilterChange = (classId: string) => {
+        console.log('[ClassFilter] Selected classId:', classId);
+        
+        // Desativa o filtro "Sem turma" quando seleciona uma turma específica
+        if (classId !== "all" && classId !== "no-class") {
+            setShowOnlyWithoutClass(false);
+        }
+        
+        if (classId === "all") {
+            console.log('[ClassFilter] Clearing filter');
+            setSelectedClassFilter(null);
+            setShowOnlyWithoutClass(false);
+        } else if (classId === "no-class") {
+            console.log('[ClassFilter] Showing only students without class');
+            setSelectedClassFilter(null);
+            setShowOnlyWithoutClass(true);
+        } else {
+            const selectedClass = availableClasses.find(c => c.id === parseInt(classId));
+            console.log('[ClassFilter] Selected class:', selectedClass);
+            setSelectedClassFilter(selectedClass || null);
+            setShowOnlyWithoutClass(false);
+        }
     }
 
     const getStatusFilterLabel = () => {
@@ -147,6 +206,16 @@ export default function StudentsManagement() {
     const handleCloseDetails = () => {
         setSelectedUser(null)
         setIsDetailModalOpen(false)
+    }
+
+    const handleViewClasses = (student: UserData) => {
+        setSelectedStudentForClasses(student)
+        setIsClassesModalOpen(true)
+    }
+
+    const handleCloseClasses = () => {
+        setSelectedStudentForClasses(null)
+        setIsClassesModalOpen(false)
     }
 
     const handleEditSuccess = async () => {
@@ -272,10 +341,10 @@ export default function StudentsManagement() {
                                 </div>
                             </div>
 
-                            {(selectedClassFilter !== null || statusFilter !== null) && (
+                            {(selectedClassFilter !== null || showOnlyWithoutClass || statusFilter !== null) && (
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-sm text-muted-foreground">Filtros ativos:</span>
-                                    {selectedClassFilter !== null && (
+                                    {(selectedClassFilter !== null || showOnlyWithoutClass) && (
                                         <Badge variant="default" className="flex items-center gap-2">
                                             {getSelectedClassName()}
                                             <button
@@ -310,12 +379,41 @@ export default function StudentsManagement() {
                     className="pl-10"
                   />
                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                                    {/* Class Filter Select */}
+                                    <Select
+                                        value={
+                                            showOnlyWithoutClass 
+                                                ? "no-class" 
+                                                : selectedClassFilter?.id.toString() || "all"
+                                        }
+                                        onValueChange={handleClassFilterChange}
+                                        disabled={isLoadingClasses}
+                                    >
+                                        <SelectTrigger className="w-full sm:w-[220px]">
+                                            <SelectValue placeholder="Filtrar por turma" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">
+                                                Todas as turmas
+                                            </SelectItem>
+                                            <SelectItem value="no-class">
+                                                Sem turma
+                                            </SelectItem>
+                                            {availableClasses.map((cls) => (
+                                                <SelectItem key={cls.id} value={cls.id.toString()}>
+                                                    {cls.nome} {cls.code ? `(${cls.code})` : ''}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+
+                                    {/* Status Filters */}
                                     <Button
                                         variant={statusFilter === "ATIVO" ? "default" : "outline"}
                                         size="sm"
                                         onClick={() => setStatusFilter(statusFilter === "ATIVO" ? null : "ATIVO")}
-                                        className="flex items-center gap-2"
+                                        className="flex items-center gap-2 w-full sm:w-auto"
                                     >
                                         <Filter className="h-4 w-4" />
                                         Ativos
@@ -324,7 +422,7 @@ export default function StudentsManagement() {
                                         variant={statusFilter === "INATIVO" ? "default" : "outline"}
                                         size="sm"
                                         onClick={() => setStatusFilter(statusFilter === "INATIVO" ? null : "INATIVO")}
-                                        className="flex items-center gap-2"
+                                        className="flex items-center gap-2 w-full sm:w-auto"
                                     >
                                         <Filter className="h-4 w-4" />
                                         Inativos
@@ -353,7 +451,7 @@ export default function StudentsManagement() {
                   <TableHead>Aluno</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>CPF</TableHead>
-                                            {/*<TableHead>Turma</TableHead>*/}
+                  <TableHead>Turmas</TableHead>
                   <TableHead>Tipo</TableHead>
                                                 <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
@@ -383,15 +481,19 @@ export default function StudentsManagement() {
                     </TableCell>
                                                         <TableCell>{student?.email}</TableCell>
                                                         <TableCell>{formatCPF(student?.cpf)}</TableCell>
-                                                    {/*<TableCell>*/}
-                                                    {/*    <div className="flex items-center gap-2">*/}
-                                                    {/*        <Avatar className="h-6 w-6">*/}
-                                                    {/*            <AvatarImage src={studentClass?.imgClass || "/placeholder.svg"} />*/}
-                                                    {/*            <AvatarFallback>{studentClass?.nome.substring(0, 2).toUpperCase()}</AvatarFallback>*/}
-                                                    {/*        </Avatar>*/}
-                                                    {/*        <span className="text-sm">{studentClass?.nome || "Sem turma"}</span>*/}
-                                                    {/*    </div>*/}
-                                                    {/*</TableCell>*/}
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewClasses(student)}
+                        className="flex items-center gap-2 h-8"
+                      >
+                        <GraduationCap className="h-4 w-4" />
+                        <Badge variant="secondary">
+                          {student?.classes?.length || 0}
+                        </Badge>
+                      </Button>
+                    </TableCell>
                                                         <TableCell>
                                                             <Badge variant={student?.role.name === "STUDENT" ? "default" : "secondary"}>
                                                                 {student?.role.name === "STUDENT" ? "Aluno" : student?.role.name}
@@ -502,6 +604,20 @@ export default function StudentsManagement() {
                                                             {student?.status === "ATIVO" ? "Ativo" : "Inativo"}
                                                         </Badge>
                                                     </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-medium text-muted-foreground min-w-[60px] flex-shrink-0">Turmas:</span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleViewClasses(student)}
+                                                            className="h-7 px-2 flex items-center gap-2"
+                                                        >
+                                                            <GraduationCap className="h-4 w-4" />
+                                                            <Badge variant="secondary" className="text-xs">
+                                                                {student?.classes?.length || 0}
+                                                            </Badge>
+                                                        </Button>
+                                                    </div>
                                                 </div>
 
                                                 <div className="flex gap-2 pt-3 border-t">
@@ -578,6 +694,12 @@ export default function StudentsManagement() {
                 onClose={handleEditSituationModalClose}
                 onSuccess={handleEditSituationSuccess}
                 user={selectedUser}
+            />
+
+            <StudentClassesModal
+                isOpen={isClassesModalOpen}
+                onClose={handleCloseClasses}
+                student={selectedStudentForClasses}
             />
 
             {/* Modal de Detalhes do Aluno */}

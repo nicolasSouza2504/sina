@@ -26,12 +26,19 @@ export default async function UserListService(
     }
 
     if (classIdFilter !== null) {
-        params.append("classId", classIdFilter.toString());
+        params.append("idClass", classIdFilter.toString());
     }
 
     const queryString = params.toString();
     const url = queryString ? `${base}/user/list-all?${queryString}` : `${base}/user/list-all`;
 
+    console.log('[UserListService] URL:', url);
+    console.log('[UserListService] Params:', {
+        nameFilter,
+        roleFilter,
+        courseIdFilter,
+        classIdFilter
+    });
 
     const response = await fetch(url, {
         method: "GET",
