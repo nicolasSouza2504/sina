@@ -75,6 +75,8 @@ public class TaskService implements ITaskService {
 
         Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
 
+        validateMandatoryFields(taskRegisterDTO);
+
         task = updateData(task, taskRegisterDTO);
 
         taskRepository.save(task);
