@@ -536,8 +536,8 @@ export default function GerenciarConteudo() {
         </Button>
       </div>
 
-      <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="w-full">
+      <div className="mb-6 sm:mb-8 flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex-1 w-full sm:max-w-md">
           <Label className="text-sm font-medium text-gray-700 mb-2 block">Selecionar Curso</Label>
           <Popover open={openCourseCombobox} onOpenChange={setOpenCourseCombobox}>
             <PopoverTrigger asChild>
@@ -545,18 +545,29 @@ export default function GerenciarConteudo() {
                 variant="outline"
                 role="combobox"
                 aria-expanded={openCourseCombobox}
-                className="w-full justify-between h-11 text-left font-normal"
                 disabled={isLoadingCourses}
+                className="w-full justify-between h-12 text-left font-normal border-2 hover:border-blue-300 rounded-xl overflow-hidden"
               >
-                <span className="truncate">
-                  {selectedCourseId
-                    ? apiCourses.find((course) => course.id.toString() === selectedCourseId)?.name
-                    : isLoadingCourses ? "Carregando cursos..." : "Selecione um curso"}
+                <span className="flex-1 text-sm text-left">
+                  {selectedCourseId ? (() => {
+                    const course = apiCourses.find((course) => course.id.toString() === selectedCourseId);
+                    if (!course) return 'Selecione um curso';
+                    const codePrefix = course.classes && course.classes.length > 0 && course.classes[0].code
+                      ? `${course.classes[0].code} - `
+                      : '';
+                    return (
+                      <span className="block whitespace-normal sm:whitespace-pre-wrap text-left">
+                        {codePrefix}{course.name}
+                      </span>
+                    );
+                  })() : (
+                    isLoadingCourses ? "Carregando cursos..." : "Selecione um curso"
+                  )}
                 </span>
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0" align="start">
+            <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[400px] p-0" align="start">
               <Command>
                 <CommandInput placeholder="Buscar curso..." />
                 <CommandEmpty>Nenhum curso encontrado.</CommandEmpty>
@@ -564,7 +575,7 @@ export default function GerenciarConteudo() {
                   {apiCourses.map((course) => (
                     <CommandItem
                       key={course.id}
-                      value={course.name}
+                      value={`${course.classes?.[0]?.code ?? ''} ${course.name}`}
                       onSelect={() => {
                         setSelectedCourseId(course.id.toString());
                         setOpenCourseCombobox(false);
@@ -575,7 +586,18 @@ export default function GerenciarConteudo() {
                           selectedCourseId === course.id.toString() ? "opacity-100" : "opacity-0"
                         }`}
                       />
-                      <span className="truncate">{course.name}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900 leading-tight">
+                          {course.classes && course.classes.length > 0 && course.classes[0].code
+                            ? `${course.classes[0].code} - ${course.name}`
+                            : course.name}
+                        </span>
+                        {course.classes && course.classes.length > 0 && (
+                          <span className="text-xs text-gray-500 leading-tight">
+                            {course.classes[0].nome}
+                          </span>
+                        )}
+                      </div>
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -585,7 +607,7 @@ export default function GerenciarConteudo() {
         </div>
         
         {selectedCourseId && (
-          <div className="w-full">
+          <div className="w-full sm:max-w-md">
             <Label className="text-sm font-medium text-gray-700 mb-2 block">Filtrar Tarefas</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -593,7 +615,7 @@ export default function GerenciarConteudo() {
                 placeholder="Digite o nome da tarefa..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-11"
+                className="pl-10 h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
               />
               {searchTerm && (
                 <Button
@@ -724,79 +746,81 @@ export default function GerenciarConteudo() {
                       <Accordion type="multiple" className="space-y-2">
                         {section.knowledgeTrails.map(trail => (
                           <AccordionItem key={trail.id} value={`trail-${trail.id}`} className="border-l-4 border-l-blue-500 rounded-lg bg-blue-50/30">
-                            <div className="flex items-center justify-between gap-4 px-3 py-2">
-                              <AccordionTrigger className="py-0 hover:no-underline [&>svg]:ml-2">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span className="font-medium text-sm sm:text-base">{trail.name}</span>
-                                  {trail.ranked && (
-                                    <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-0 text-xs">
-                                      <Trophy className="h-3 w-3 mr-1" />
-                                      Rankeada
+                            <div className="px-3 py-2">
+                              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <AccordionTrigger className="py-0 hover:no-underline [&>svg]:ml-2 w-full sm:w-auto">
+                                  <div className="flex flex-wrap items-center gap-2 text-left">
+                                    <span className="font-medium text-sm sm:text-base break-words max-w-full sm:max-w-none">{trail.name}</span>
+                                    {trail.ranked && (
+                                      <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-0 text-xs">
+                                        <Trophy className="h-3 w-3 mr-1" />
+                                        Rankeada
+                                      </Badge>
+                                    )}
+                                    <Badge variant="outline" className={`text-xs ${searchTerm ? 'bg-green-50 text-green-700 border-green-300' : ''}`}>
+                                      {trail.tasks.length} {trail.tasks.length === 1 ? 'tarefa' : 'tarefas'}
+                                      {searchTerm && ' encontrada' + (trail.tasks.length === 1 ? '' : 's')}
                                     </Badge>
-                                  )}
-                                  <Badge variant="outline" className={`text-xs ${searchTerm ? 'bg-green-50 text-green-700 border-green-300' : ''}`}>
-                                    {trail.tasks.length} {trail.tasks.length === 1 ? 'tarefa' : 'tarefas'}
-                                    {searchTerm && ' encontrada' + (trail.tasks.length === 1 ? '' : 's')}
-                                  </Badge>
+                                  </div>
+                                </AccordionTrigger>
+                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-1 w-full sm:w-auto">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedKnowledgeTrailForTask({
+                                        id: trail.id,
+                                        name: trail.name,
+                                        courseId: courseContent.id,
+                                        courseName: courseContent.name,
+                                        isRanked: trail.ranked || false
+                                      });
+                                      setIsTaskModalOpen(true);
+                                    }}
+                                    className="h-9 sm:h-8 px-3 sm:px-2 text-xs w-full sm:w-auto justify-center"
+                                  >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    <span className="sm:inline">Nova</span>
+                                  </Button>
+                                  <Button
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => {
+                                      const section = courseContent.sections.find(s => 
+                                        s.knowledgeTrails.some(kt => kt.id === trail.id)
+                                      );
+                                      
+                                      setEditTrail({
+                                        id: trail.id,
+                                        name: trail.name,
+                                        sectionId: section?.id || 0,
+                                        sectionName: section?.name || '',
+                                        ranked: trail.ranked || false
+                                      });
+                                      setIsEditTrailModalOpen(true);
+                                    }}
+                                    className="h-9 sm:h-8 w-full sm:w-8 px-3 sm:p-0 text-xs sm:text-[0px] justify-center"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedTrailForReorder({
+                                        id: trail.id,
+                                        name: trail.name,
+                                        tasks: trail.tasks
+                                      });
+                                      setIsReorderModalOpen(true);
+                                    }}
+                                    className="h-9 sm:h-8 px-3 sm:px-2 text-xs w-full sm:w-auto justify-center"
+                                    title="Reordenar tarefas"
+                                  >
+                                    <ArrowUpDown className="h-3 w-3 mr-1" />
+                                    <span className="sm:inline">Ordem</span>
+                                  </Button>
                                 </div>
-                              </AccordionTrigger>
-                              <div className="flex gap-1 flex-shrink-0">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedKnowledgeTrailForTask({
-                                      id: trail.id,
-                                      name: trail.name,
-                                      courseId: courseContent.id,
-                                      courseName: courseContent.name,
-                                      isRanked: trail.ranked || false
-                                    });
-                                    setIsTaskModalOpen(true);
-                                  }}
-                                  className="h-8 px-2 text-xs"
-                                >
-                                  <Plus className="h-3 w-3 mr-1" />
-                                  <span className="hidden sm:inline">Nova</span>
-                                </Button>
-                                <Button
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => {
-                                    const section = courseContent.sections.find(s => 
-                                      s.knowledgeTrails.some(kt => kt.id === trail.id)
-                                    );
-                                    
-                                    setEditTrail({
-                                      id: trail.id,
-                                      name: trail.name,
-                                      sectionId: section?.id || 0,
-                                      sectionName: section?.name || '',
-                                      ranked: trail.ranked || false
-                                    });
-                                    setIsEditTrailModalOpen(true);
-                                  }}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <Edit className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedTrailForReorder({
-                                      id: trail.id,
-                                      name: trail.name,
-                                      tasks: trail.tasks
-                                    });
-                                    setIsReorderModalOpen(true);
-                                  }}
-                                  className="h-8 px-2 text-xs"
-                                  title="Reordenar tarefas"
-                                >
-                                  <ArrowUpDown className="h-3 w-3 mr-1" />
-                                  <span className="hidden sm:inline">Ordem</span>
-                                </Button>
                               </div>
                             </div>
                             <AccordionContent className="px-3 pb-3">
@@ -804,81 +828,83 @@ export default function GerenciarConteudo() {
                                 <Accordion type="multiple" className="space-y-2">
                                   {[...trail.tasks].sort((a, b) => a.taskOrder - b.taskOrder).map(task => (
                                     <AccordionItem key={task.id} value={`task-${task.id}`} className="border rounded-lg bg-white">
-                                      <div className="flex items-center justify-between gap-4 px-3 py-2">
-                                        <AccordionTrigger className="py-0 hover:no-underline [&>svg]:ml-2">
-                                          <div className="flex flex-wrap items-center gap-2">
-                                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex-shrink-0">
-                                              {task.taskOrder}
-                                            </span>
-                                            <span className="font-medium text-sm">{task.name}</span>
-                                            {task.contents && task.contents.length > 0 && (
-                                              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
-                                                {task.contents.length} {task.contents.length === 1 ? 'material' : 'materiais'}
-                                              </Badge>
-                                            )}
-                                          </div>
-                                        </AccordionTrigger>
-                                        <div className="flex gap-1 flex-shrink-0">
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                              setSelectedTaskForContent({
-                                                id: task.id,
-                                                name: task.name
-                                              });
-                                              setIsTaskContentModalOpen(true);
-                                            }}
-                                            className="h-8 px-2 text-xs hover:bg-purple-50 hover:border-purple-300"
-                                          >
-                                            <Upload className="h-3 w-3 mr-1" />
-                                            <span className="hidden sm:inline">Mat</span>
-                                          </Button>
-                                          {task.contents && task.contents.length > 0 && (
+                                      <div className="px-3 py-2">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                          <AccordionTrigger className="py-0 hover:no-underline [&>svg]:ml-2 w-full sm:w-auto">
+                                            <div className="flex flex-wrap items-center gap-2 text-left">
+                                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex-shrink-0">
+                                                {task.taskOrder}
+                                              </span>
+                                              <span className="font-medium text-sm break-words max-w-full sm:max-w-none">{task.name}</span>
+                                              {task.contents && task.contents.length > 0 && (
+                                                <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                                                  {task.contents.length} {task.contents.length === 1 ? 'material' : 'materiais'}
+                                                </Badge>
+                                              )}
+                                            </div>
+                                          </AccordionTrigger>
+                                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-1 w-full sm:w-auto">
                                             <Button
                                               variant="outline"
                                               size="sm"
                                               onClick={() => {
-                                                setSelectedTaskForMaterials({
+                                                setSelectedTaskForContent({
+                                                  id: task.id,
+                                                  name: task.name
+                                                });
+                                                setIsTaskContentModalOpen(true);
+                                              }}
+                                              className="h-9 sm:h-8 px-3 sm:px-2 text-xs w-full sm:w-auto justify-center hover:bg-purple-50 hover:border-purple-300"
+                                            >
+                                              <Upload className="h-3 w-3 mr-1" />
+                                              <span className="sm:inline">Mat</span>
+                                            </Button>
+                                            {task.contents && task.contents.length > 0 && (
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                  setSelectedTaskForMaterials({
+                                                    id: task.id,
+                                                    name: task.name,
+                                                    materials: task.contents
+                                                  });
+                                                  setIsTaskMaterialsModalOpen(true);
+                                                }}
+                                                className="h-9 sm:h-8 w-full sm:w-8 px-3 sm:p-0 justify-center hover:bg-blue-50 hover:border-blue-300"
+                                              >
+                                                <Eye className="h-3 w-3" />
+                                              </Button>
+                                            )}
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => {
+                                                // Encontrar a trilha para pegar courseId e isRanked
+                                                const trailData = courseContent?.sections
+                                                  .flatMap(s => s.knowledgeTrails)
+                                                  .find(kt => kt.tasks.some(t => t.id === task.id));
+                                                
+                                                setEditTask({
                                                   id: task.id,
                                                   name: task.name,
-                                                  materials: task.contents
+                                                  description: task.description,
+                                                  difficultyLevel: task.difficultyLevel || 'MEDIO',
+                                                  dueDate: task.dueDate,
+                                                  courseId: courseContent?.id || 0,
+                                                  knowledgeTrailId: trailData?.id || 0,
+                                                  taskOrder: task.taskOrder,
+                                                  isRanked: trailData?.ranked || false
                                                 });
-                                                setIsTaskMaterialsModalOpen(true);
+                                                setIsEditTaskModalOpen(true);
                                               }}
-                                              className="h-8 w-8 p-0 hover:bg-blue-50 hover:border-blue-300"
+                                              className="h-9 sm:h-8 w-full sm:w-8 px-3 sm:p-0 justify-center hover:bg-blue-50 hover:border-blue-300"
+                                              title="Editar tarefa"
                                             >
-                                              <Eye className="h-3 w-3" />
+                                              <Edit className="h-3 w-3" />
                                             </Button>
-                                          )}
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                              // Encontrar a trilha para pegar courseId e isRanked
-                                              const trailData = courseContent?.sections
-                                                .flatMap(s => s.knowledgeTrails)
-                                                .find(kt => kt.tasks.some(t => t.id === task.id));
-                                              
-                                              setEditTask({
-                                                id: task.id,
-                                                name: task.name,
-                                                description: task.description,
-                                                difficultyLevel: task.difficultyLevel || 'MEDIO',
-                                                dueDate: task.dueDate,
-                                                courseId: courseContent?.id || 0,
-                                                knowledgeTrailId: trailData?.id || 0,
-                                                taskOrder: task.taskOrder,
-                                                isRanked: trailData?.ranked || false
-                                              });
-                                              setIsEditTaskModalOpen(true);
-                                            }}
-                                            className="h-8 w-8 p-0 hover:bg-blue-50 hover:border-blue-300"
-                                            title="Editar tarefa"
-                                          >
-                                            <Edit className="h-3 w-3" />
-                                          </Button>
-                                          {/* Botões de excluir tarefa e conteúdo ocultados temporariamente */}
+                                            {/* Botões de excluir tarefa e conteúdo ocultados temporariamente */}
+                                          </div>
                                         </div>
                                       </div>
                                       <AccordionContent className="px-3 pb-2">

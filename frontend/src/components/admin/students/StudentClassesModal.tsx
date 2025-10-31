@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { GraduationCap, Calendar, BookOpen, Hash } from "lucide-react"
+import { GraduationCap, Calendar, BookOpen, Hash, Users } from "lucide-react"
 import { UserData } from "@/lib/interfaces/userInterfaces"
 
 interface StudentClassesModalProps {
@@ -22,30 +22,38 @@ export function StudentClassesModal({ isOpen, onClose, student }: StudentClasses
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <GraduationCap className="h-5 w-5" />
-                        Turmas Vinculadas - {student?.nome}
-                    </DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-4">
-                    {/* Summary Card */}
-                    <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                <GraduationCap className="h-6 w-6 text-blue-600" />
+            <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+                <div className="relative">
+                    <DialogHeader className="pb-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-3 bg-blue-600 rounded-xl">
+                                <Users className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                                <p className="text-sm text-blue-600 font-medium">Total de Turmas</p>
-                                <p className="text-2xl font-bold text-blue-700">{classes.length}</p>
+                                <DialogTitle className="text-2xl font-bold text-gray-900">
+                                    Turmas Vinculadas
+                                </DialogTitle>
+                                <p className="text-sm text-gray-600 mt-1">{student?.nome}</p>
                             </div>
                         </div>
-                        <Badge variant="secondary" className="text-sm">
-                            {classes.length === 0 ? "Nenhuma turma" : classes.length === 1 ? "1 turma vinculada" : `${classes.length} turmas vinculadas`}
-                        </Badge>
-                    </div>
+                    </DialogHeader>
+
+                    <div className="space-y-6">
+                        {/* Summary Card */}
+                        <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                            <div className="flex items-center gap-3">
+                                <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                    <GraduationCap className="h-6 w-6 text-blue-600" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-blue-600 font-medium">Total de Turmas</p>
+                                    <p className="text-2xl font-bold text-blue-700">{classes.length}</p>
+                                </div>
+                            </div>
+                            <Badge variant="secondary" className="text-sm bg-blue-100 text-blue-700 border-blue-300">
+                                {classes.length === 0 ? "Nenhuma turma" : classes.length === 1 ? "1 turma vinculada" : `${classes.length} turmas vinculadas`}
+                            </Badge>
+                        </div>
 
                     {/* Classes List */}
                     {classes.length === 0 ? (
@@ -59,7 +67,7 @@ export function StudentClassesModal({ isOpen, onClose, student }: StudentClasses
                     ) : (
                         <div className="grid grid-cols-1 gap-4">
                             {classes.map((cls) => (
-                                <Card key={cls.Id} className="overflow-hidden hover:shadow-md transition-shadow">
+                                <Card key={cls.Id} className="overflow-hidden border-2 border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all rounded-xl">
                                     <CardContent className="p-4">
                                         <div className="flex items-start gap-4">
                                             {/* Class Image */}
@@ -123,6 +131,7 @@ export function StudentClassesModal({ isOpen, onClose, student }: StudentClasses
                             ))}
                         </div>
                     )}
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

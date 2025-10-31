@@ -74,7 +74,7 @@ function SortableTaskItem({
       ref={setNodeRef}
       style={style}
       className={`
-        flex items-center gap-3 p-3 bg-white rounded-lg transition-all
+        flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-2.5 sm:p-4 bg-white rounded-lg transition-all
         ${isDragging ? 'opacity-50 scale-105 shadow-2xl z-50' : 'shadow-sm'}
         ${hasChanged 
           ? 'border-2 border-amber-500' 
@@ -82,65 +82,71 @@ function SortableTaskItem({
         }
       `}
     >
-      {/* Drag Handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing flex-shrink-0 p-1 rounded text-gray-400 hover:text-blue-600"
-      >
-        <GripVertical className="h-5 w-5" />
-      </div>
-
-      {/* Conteúdo da Tarefa */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Número da Nova Posição */}
-          <div className={`
-            flex items-center justify-center w-7 h-7 rounded-full font-bold text-sm transition-colors
-            ${hasChanged 
-              ? 'bg-amber-500 text-white' 
-              : 'bg-blue-500 text-white'
-            }
-          `}>
-            {index + 1}
-          </div>
-
-          {/* Nome da Tarefa */}
-          <span className="font-medium text-gray-900 truncate">{task.name}</span>
-
-          {/* Badge de Ordem Original */}
-          <Badge 
-            variant="outline" 
-            className="text-xs bg-gray-100 border-gray-300 text-gray-600"
-          >
-            Original: #{originalOrder}
-          </Badge>
-
-          {/* Indicador de Alteração - Discreto */}
-          {hasChanged && (
-            <Badge 
-              variant="outline"
-              className="text-xs bg-blue-50 border-blue-300 text-blue-700"
-            >
-              <MoveVertical className="h-3 w-3 mr-1" />
-              Alterado
-            </Badge>
-          )}
+      <div className="flex items-start sm:items-center gap-2 sm:gap-3 w-full">
+        {/* Drag Handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing flex-shrink-0 p-1.5 sm:p-1 rounded-md bg-gray-100 text-gray-400 hover:text-blue-600"
+        >
+          <GripVertical className="h-5 w-5 sm:h-5 sm:w-5" />
         </div>
 
-        {task.description && (
-          <p className="text-xs text-gray-600 truncate mt-1">{task.description}</p>
-        )}
+        {/* Conteúdo da Tarefa */}
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {/* Número da Nova Posição */}
+            <div className={`
+              flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full font-bold text-[11px] sm:text-sm transition-colors
+              ${hasChanged 
+                ? 'bg-amber-500 text-white' 
+                : 'bg-blue-500 text-white'
+              }
+            `}>
+              {index + 1}
+            </div>
+
+            {/* Nome da Tarefa */}
+            <span className="font-medium text-gray-900 text-sm sm:text-base break-words min-w-0 flex-1 leading-snug">
+              {task.name}
+            </span>
+
+            {/* Badge de Ordem Original */}
+            <Badge 
+              variant="outline" 
+              className="text-[9px] sm:text-xs bg-gray-100 border-gray-300 text-gray-600"
+            >
+              Original: #{originalOrder}
+            </Badge>
+
+            {/* Indicador de Alteração - Discreto */}
+            {hasChanged && (
+              <Badge 
+                variant="outline"
+                className="text-[9px] sm:text-xs bg-blue-50 border-blue-300 text-blue-700 flex items-center"
+              >
+                <MoveVertical className="h-3 w-3 mr-1" />
+                Alterado
+              </Badge>
+            )}
+          </div>
+
+          {task.description && (
+            <p className="text-[11px] sm:text-sm text-gray-600 line-clamp-2 sm:line-clamp-3 leading-tight">
+              {task.description}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Botões de Seta (Opcional - mantido para acessibilidade) */}
-      <div className="flex gap-1 flex-shrink-0">
+      <div className="flex gap-1.5 sm:gap-1 w-full sm:w-auto justify-end sm:justify-center">
         <Button
           variant="outline"
           size="sm"
           onClick={onMoveUp}
           disabled={isFirst || isSubmitting}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 sm:h-8 sm:w-8 p-0"
           title="Mover para cima"
         >
           <ArrowUp className="h-4 w-4" />
@@ -150,7 +156,7 @@ function SortableTaskItem({
           size="sm"
           onClick={onMoveDown}
           disabled={isLast || isSubmitting}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 sm:h-8 sm:w-8 p-0"
           title="Mover para baixo"
         >
           <ArrowDown className="h-4 w-4" />
@@ -264,14 +270,14 @@ export default function ReorderTasksModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="pb-4 border-b">
-          <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <GripVertical className="h-5 w-5 text-blue-600" />
+      <DialogContent className="w-[95vw] max-w-[620px] max-h-[90vh] overflow-hidden flex flex-col p-3 sm:p-6">
+        <DialogHeader className="pb-3 sm:pb-4 border-b">
+          <DialogTitle className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+            <GripVertical className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             Reordenar Tarefas
           </DialogTitle>
           <div className="flex items-center justify-between mt-2">
-            <p className="text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-600">
               Trilha: <strong>{trailName}</strong>
             </p>
             {hasAnyChanges && (
@@ -283,9 +289,9 @@ export default function ReorderTasksModal({
         </DialogHeader>
 
         {/* Instruções */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mt-4">
-          <p className="text-xs text-gray-600 flex items-center gap-2">
-            <GripVertical className="h-4 w-4" />
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-2.5 sm:p-4 mt-3">
+          <p className="text-[11px] sm:text-sm text-gray-600 flex items-center gap-2">
+            <GripVertical className="h-3 w-3 sm:h-4 sm:w-4" />
             <span>
               Arraste e solte para reordenar ou use os botões de seta.
             </span>
@@ -293,7 +299,7 @@ export default function ReorderTasksModal({
         </div>
 
         {/* Lista de Tarefas com Drag and Drop */}
-        <div className="flex-1 overflow-y-auto mt-4 space-y-2 pr-2">
+        <div className="flex-1 overflow-y-auto mt-3 sm:mt-4 space-y-2 pr-1 sm:pr-2 pb-1">
           {orderedTasks.length === 0 ? (
             <p className="text-center text-gray-500 py-8">Nenhuma tarefa para reordenar</p>
           ) : (
@@ -326,13 +332,13 @@ export default function ReorderTasksModal({
         </div>
 
         {/* Footer com Botões */}
-        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100 mt-4">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-100 mt-4">
           <Button
             type="button"
             variant="outline"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto text-sm"
           >
             <X className="h-4 w-4 mr-2" />
             Cancelar
@@ -340,7 +346,7 @@ export default function ReorderTasksModal({
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || orderedTasks.length === 0}
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-sm"
           >
             {isSubmitting ? (
               <>
