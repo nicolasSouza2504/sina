@@ -18,7 +18,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { 
+import {
   BookOpen, 
   Plus, 
   Search,
@@ -38,7 +38,8 @@ import {
   Users,
   Trophy,
   Check,
-  ChevronsUpDown
+  ChevronsUpDown,
+  ArrowUpDown
 } from 'lucide-react';
 import { mockCourseService, Course, Trail, Task, Material } from '@/lib/services/mockCourseService';
 import { mockSubmissionService } from '@/lib/services/mockSubmissionService';
@@ -46,6 +47,11 @@ import { StudentSubmissionsModal } from '@/components/professor/StudentSubmissio
 import CreateKnowledgeTrailModal from '@/components/professor/CreateKnowledgeTrailModal';
 import EditKnowledgeTrailModal from '@/components/professor/EditKnowledgeTrailModal';
 import CreateTaskModal from '@/components/professor/CreateTaskModal';
+import ReorderTasksModal from '@/components/professor/ReorderTasksModal';
+import EditTaskModal from '@/components/professor/EditTaskModal';
+import UpdateTaskOrderService from '@/lib/api/task/updateTaskOrder';
+import UpdateTaskService, { UpdateTaskPayload } from '@/lib/api/task/updateTask';
+import type { DifficultyLevel } from '@/lib/interfaces/taskInterfaces';
 import CreateTaskContentModal from '@/components/KnowledgeTrail/CreateTaskContentModal';
 import TaskMaterialsModal from '@/components/KnowledgeTrail/TaskMaterialsModal';
 import ViewTaskContentModal from '@/components/KnowledgeTrail/ViewTaskContentModal';
@@ -57,12 +63,11 @@ import UpdateKnowledgeTrailService from '@/lib/api/knowledgetrail/updateKnowledg
 import CourseContentSummaryService from '@/lib/api/course/courseContentSummary';
 import CreateTaskService from '@/lib/api/task/createTask';
 import CreateTaskContentService from '@/lib/api/task-content/createTaskContent';
-import DeleteTaskContentService from '@/lib/api/task-content/deleteTaskContent';
 import type { Course as ApiCourse } from '@/lib/interfaces/courseInterfaces';
-import type { CourseContentSummary, TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces';
 import type { EditKnowledgeTrailFormData } from '@/lib/interfaces/knowledgeTrailInterfaces';
 import type { TaskFormData } from '@/lib/interfaces/taskInterfaces';
 import type { TaskContentFormData } from '@/lib/interfaces/taskContentInterfaces';
+import type { TaskSummary, CourseContentSummary, TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces';
 
 interface ContentItem {
   id: string;
@@ -99,16 +104,25 @@ export default function GerenciarConteudo() {
   const [courseContent, setCourseContent] = useState<CourseContentSummary | null>(null);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   
-  const [selectedTrail, setSelectedTrail] = useState<ContentItem | null>(null);
-  const [selectedTask, setSelectedTask] = useState<ContentItem | null>(null);
-  const [taskMaterials, setTaskMaterials] = useState<Material[]>([]);
   const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
   const [isEditTrailModalOpen, setIsEditTrailModalOpen] = useState(false);
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
   const [selectedTaskForSubmissions, setSelectedTaskForSubmissions] = useState<{ id: string; title: string } | null>(null);
+  
+  // Estado para edição de tarefa
+  const [editTask, setEditTask] = useState<{
+    id: number;
+    name: string;
+    description: string;
+    difficultyLevel: DifficultyLevel;
+    dueDate?: string;
+    courseId: number;
+    knowledgeTrailId: number;
+    taskOrder: number;
+    isRanked: boolean;
+  } | null>(null);
   
   const [editTrail, setEditTrail] = useState<EditKnowledgeTrailFormData | null>(null);
   
@@ -117,6 +131,14 @@ export default function GerenciarConteudo() {
     courseId?: string;
     sectionId?: string;
   }>({});
+  
+  // Estados para reordenação de tarefas
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+  const [selectedTrailForReorder, setSelectedTrailForReorder] = useState<{
+    id: number;
+    name: string;
+    tasks: TaskSummary[];
+  } | null>(null);
   
   // Estados para criação de tarefa
   const [selectedKnowledgeTrailForTask, setSelectedKnowledgeTrailForTask] = useState<{
@@ -146,34 +168,7 @@ export default function GerenciarConteudo() {
   const [selectedContentForView, setSelectedContentForView] = useState<TaskContentSummary | null>(null);
   const [isViewContentModalOpen, setIsViewContentModalOpen] = useState(false);
   
-  const [newTask, setNewTask] = useState({
-    title: '',
-    description: '',
-    type: 'teórica' as 'teórica' | 'prática' | 'projeto' | 'avaliação',
-    difficulty: 'Iniciante' as 'Iniciante' | 'Intermediário' | 'Avançado',
-    estimatedTime: ''
-  });
-  
-  const [editTask, setEditTask] = useState({
-    id: '',
-    title: '',
-    description: '',
-    type: 'teórica' as 'teórica' | 'prática' | 'projeto' | 'avaliação',
-    difficulty: 'Iniciante' as 'Iniciante' | 'Intermediário' | 'Avançado',
-    estimatedTime: ''
-  });
-  
-  const [newMaterial, setNewMaterial] = useState({
-    type: 'text' as 'text' | 'video' | 'link' | 'file',
-    title: '',
-    content: '',
-    url: '',
-    file: null as File | null
-  });
-
-  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
-  const [viewingMaterial, setViewingMaterial] = useState<Material | null>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  // Estados mock removidos - usando apenas componentes com API real
 
   // Carrega cursos da API real
   useEffect(() => {
@@ -318,6 +313,28 @@ export default function GerenciarConteudo() {
     }
   };
 
+  const handleReorderTasks = async (reorderedTasks: { taskId: number; newOrder: number }[]) => {
+    try {
+      await UpdateTaskOrderService(reorderedTasks);
+      
+      toast.success('✅ Ordem das tarefas atualizada', {
+        description: 'As tarefas foram reordenadas com sucesso.'
+      });
+
+      // Recarrega o conteúdo do curso
+      if (selectedCourseId) {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(content);
+      }
+    } catch (error) {
+      console.error('Erro ao reordenar tarefas:', error);
+      toast.error('❌ Erro ao reordenar tarefas', {
+        description: error instanceof Error ? error.message : 'Tente novamente'
+      });
+      throw error;
+    }
+  };
+
   const handleEditTrail = async (data: { id: number; name: string; sectionId: number; ranked: boolean }) => {
     try {
       await UpdateKnowledgeTrailService(data.id, {
@@ -347,46 +364,39 @@ export default function GerenciarConteudo() {
     }
   };
 
-  const handleDeleteTrail = (trailId: string) => {
-    const success = mockCourseService.deleteTrail(trailId);
-    if (success) {
-      loadContent();
-      toast.success('Trilha removida com sucesso', {
-        description: 'A trilha e todos os seus conteúdos foram excluídos permanentemente.'
-      });
-    } else {
-      toast.error('Erro ao excluir trilha', {
-        description: 'Não foi possível remover a trilha. Tente novamente.'
-      });
-    }
-  };
-
   const handleCreateTask = async (data: TaskFormData) => {
-    if (!selectedKnowledgeTrailForTask) {
-      toast.error('❌ Erro: Trilha de conhecimento não selecionada');
-      return;
-    }
+    if (!selectedKnowledgeTrailForTask) return;
 
     try {
-      // Prepare payload - difficultyLevel is always required, dueDate only for ranked trails
+      // Busca a trilha atual para calcular o próximo order
+      const currentTrail = courseContent?.sections
+        .flatMap(s => s.knowledgeTrails)
+        .find(kt => kt.id === selectedKnowledgeTrailForTask.id);
+      
+      // Calcula o próximo order (maior order atual + 1)
+      const nextOrder = currentTrail && currentTrail.tasks.length > 0
+        ? Math.max(...currentTrail.tasks.map(t => t.taskOrder)) + 1
+        : 1;
+
       const payload: any = {
         courseId: selectedKnowledgeTrailForTask.courseId,
         knowledgeTrailId: selectedKnowledgeTrailForTask.id,
         name: data.name,
         description: data.description,
-        difficultyLevel: data.difficultyLevel
+        difficultyLevel: data.difficultyLevel,
+        taskOrder: nextOrder // Adiciona o order automaticamente
       };
 
-      // Add dueDate only for ranked trails
+      // Adiciona dueDate apenas para trilhas ranqueadas
       if (selectedKnowledgeTrailForTask.isRanked && data.dueDate) {
         const dueDateISO = new Date(data.dueDate + 'T23:59:59.000Z').toISOString();
         payload.dueDate = dueDateISO;
       }
-      
-      await CreateTaskService(payload);
 
+      await CreateTaskService(payload);
+      
       toast.success('✅ Tarefa criada com sucesso', {
-        description: 'A tarefa foi adicionada à trilha e está disponível.'
+        description: 'A tarefa foi adicionada à trilha de conhecimento.'
       });
 
       // Recarrega o conteúdo do curso mantendo o curso selecionado
@@ -394,12 +404,10 @@ export default function GerenciarConteudo() {
         const content = await CourseContentSummaryService(parseInt(selectedCourseId));
         setCourseContent(content);
       }
-
-      setSelectedKnowledgeTrailForTask(null);
     } catch (error) {
       console.error('Erro ao criar tarefa:', error);
       toast.error('❌ Erro ao criar tarefa', {
-        description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
+        description: error instanceof Error ? error.message : 'Tente novamente'
       });
       throw error;
     }
@@ -460,294 +468,49 @@ export default function GerenciarConteudo() {
     }
   };
 
-  const handleDeleteTaskContent = async (contentId: number, contentName: string) => {
-    if (!confirm(`Tem certeza que deseja excluir o conteúdo "${contentName}"?`)) {
-      return;
-    }
+  // Função de deletar conteúdo removida conforme solicitado
 
+  const handleEditTask = async (data: {
+    id: number;
+    name: string;
+    description: string;
+    difficultyLevel: DifficultyLevel;
+    dueDate?: string;
+    courseId: number;
+    knowledgeTrailId: number;
+    taskOrder: number;
+  }) => {
     try {
-      await DeleteTaskContentService(contentId);
+      const payload: UpdateTaskPayload = {
+        courseId: data.courseId,
+        knowledgeTrailId: data.knowledgeTrailId,
+        name: data.name,
+        description: data.description,
+        difficultyLevel: data.difficultyLevel,
+        taskOrder: data.taskOrder
+      };
 
-      toast.success('✅ Conteúdo excluído com sucesso', {
-        description: `O material "${contentName}" foi removido.`
-      });
+      // Adiciona dueDate se existir (para trilhas ranqueadas)
+      if (data.dueDate) {
+        const dueDateISO = new Date(data.dueDate + 'T23:59:59.000Z').toISOString();
+        payload.dueDate = dueDateISO;
+      }
 
-      // Recarrega o conteúdo do curso mantendo o curso selecionado
+      await UpdateTaskService(data.id, payload);
+      
+      toast.success('✅ Tarefa atualizada com sucesso');
+      
+      // Recarrega o conteúdo do curso
       if (selectedCourseId) {
         const content = await CourseContentSummaryService(parseInt(selectedCourseId));
         setCourseContent(content);
       }
     } catch (error) {
-      console.error('Erro ao excluir conteúdo:', error);
-      toast.error('❌ Erro ao excluir material', {
+      console.error('Erro ao atualizar tarefa:', error);
+      toast.error('❌ Erro ao atualizar tarefa', {
         description: error instanceof Error ? error.message : 'Tente novamente mais tarde'
       });
-    }
-  };
-
-  const handleEditTask = () => {
-    if (!editTask.id) return;
-
-    const success = mockCourseService.updateTask(editTask.id, {
-      title: editTask.title,
-      description: editTask.description,
-      type: editTask.type,
-      difficulty: editTask.difficulty,
-      estimatedTime: editTask.estimatedTime
-    });
-
-    if (success) {
-      loadContent();
-      setIsEditTaskModalOpen(false);
-      toast.success('Tarefa atualizada com sucesso', {
-        description: 'As alterações foram salvas e aplicadas à tarefa.'
-      });
-    } else {
-      toast.error('Erro ao atualizar tarefa', {
-        description: 'Não foi possível salvar as alterações. Tente novamente.'
-      });
-    }
-  };
-
-  const handleDeleteTask = (taskId: string) => {
-    const success = mockCourseService.deleteTask(taskId);
-    if (success) {
-      loadContent();
-      toast.success('Tarefa removida com sucesso', {
-        description: 'A tarefa e todos os seus materiais foram excluídos permanentemente.'
-      });
-    } else {
-      toast.error('Erro ao excluir tarefa', {
-        description: 'Não foi possível remover a tarefa. Tente novamente.'
-      });
-    }
-  };
-
-  const loadTaskMaterials = (taskId: string) => {
-    const materials = mockCourseService.getMaterialsByTaskId(taskId);
-    setTaskMaterials(materials);
-  };
-
-  const handleCreateMaterial = () => {
-    if (!selectedTask) {
-      toast.error('❌ Selecione uma tarefa primeiro');
-      return;
-    }
-
-    if (!newMaterial.title.trim()) {
-      toast.error('❌ Título do material é obrigatório');
-      return;
-    }
-
-    let materialData: any = {
-      taskId: selectedTask.id,
-      type: newMaterial.type,
-      title: newMaterial.title
-    };
-
-    if (newMaterial.type === 'text') {
-      if (!newMaterial.content.trim()) {
-        toast.error('❌ Conteúdo é obrigatório para material de texto');
-        return;
-      }
-      materialData.content = newMaterial.content;
-    } else if (newMaterial.type === 'video' || newMaterial.type === 'link') {
-      if (!newMaterial.url.trim()) {
-        toast.error('❌ URL é obrigatória');
-        return;
-      }
-      materialData.url = newMaterial.url;
-    } else if (newMaterial.type === 'file') {
-      if (!newMaterial.file) {
-        toast.error('❌ Arquivo é obrigatório');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        materialData.fileData = reader.result;
-        materialData.fileName = newMaterial.file?.name;
-        mockCourseService.addMaterial(materialData);
-        resetMaterialForm();
-        loadContent();
-        if (selectedTask) {
-          loadTaskMaterials(selectedTask.id);
-        }
-        setIsMaterialModalOpen(false);
-        toast.success('Material adicionado com sucesso', {
-          description: 'O material foi vinculado à tarefa e está disponível para os alunos.'
-        });
-      };
-      reader.readAsDataURL(newMaterial.file);
-      return;
-    }
-
-    mockCourseService.addMaterial(materialData);
-    resetMaterialForm();
-    loadContent();
-    loadTaskMaterials(selectedTask.id);
-    setIsMaterialModalOpen(false);
-    toast.success('Material adicionado com sucesso', {
-      description: 'O material foi vinculado à tarefa e está disponível para os alunos.'
-    });
-  };
-
-  const handleDeleteMaterial = (materialId: string) => {
-    const success = mockCourseService.removeMaterial(materialId);
-    if (success) {
-      loadContent();
-      if (selectedTask) {
-        loadTaskMaterials(selectedTask.id);
-      }
-      toast.success('Material removido com sucesso', {
-        description: 'O material foi excluído permanentemente da tarefa.'
-      });
-    } else {
-      toast.error('Erro ao excluir material', {
-        description: 'Não foi possível remover o material. Tente novamente.'
-      });
-    }
-  };
-
-  const resetMaterialForm = () => {
-    setNewMaterial({
-      type: 'text',
-      title: '',
-      content: '',
-      url: '',
-      file: null
-    });
-    setEditingMaterial(null);
-  };
-
-  const startEditingMaterial = (material: Material) => {
-    setEditingMaterial(material);
-    setNewMaterial({
-      type: material.type,
-      title: material.title,
-      content: material.content || '',
-      url: material.url || '',
-      file: null
-    });
-  };
-
-  const saveEditedMaterial = () => {
-    if (!editingMaterial) return;
-
-    let updateData: any = {
-      type: newMaterial.type,
-      title: newMaterial.title
-    };
-    if (newMaterial.type === 'text') {
-      updateData.content = newMaterial.content;
-      updateData.url = undefined;
-      updateData.fileData = undefined;
-      updateData.fileName = undefined;
-    } else if (newMaterial.type === 'video' || newMaterial.type === 'link') {
-      updateData.url = newMaterial.url;
-      updateData.content = undefined;
-      updateData.fileData = undefined;
-      updateData.fileName = undefined;
-    } else if (newMaterial.type === 'file') {
-      if (newMaterial.file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          updateData.fileData = reader.result;
-          updateData.fileName = newMaterial.file?.name;
-          updateData.content = undefined;
-          updateData.url = undefined;
-          
-          const success = mockCourseService.updateMaterial(editingMaterial.id, updateData);
-          if (success) {
-            loadContent();
-            if (selectedTask) {
-              loadTaskMaterials(selectedTask.id);
-            }
-            setIsMaterialModalOpen(false);
-            resetMaterialForm();
-            toast.success('Material atualizado com sucesso', {
-              description: 'As alterações foram salvas e aplicadas ao material.'
-            });
-          } else {
-            toast.error('Erro ao atualizar material', {
-              description: 'Não foi possível salvar as alterações. Tente novamente.'
-            });
-          }
-        };
-        reader.readAsDataURL(newMaterial.file);
-        return;
-      } else {
-        updateData.content = undefined;
-        updateData.url = undefined;
-      }
-    }
-
-    const success = mockCourseService.updateMaterial(editingMaterial.id, updateData);
-
-    if (success) {
-      loadContent();
-      if (selectedTask) {
-        loadTaskMaterials(selectedTask.id);
-      }
-      setIsMaterialModalOpen(false);
-      resetMaterialForm();
-      toast.success('Material atualizado com sucesso', {
-        description: 'As alterações foram salvas e aplicadas ao material.'
-      });
-    } else {
-      toast.error('Erro ao atualizar material', {
-        description: 'Não foi possível salvar as alterações. Tente novamente.'
-      });
-    }
-  };
-
-  const viewMaterial = (material: Material) => {
-    setViewingMaterial(material);
-    setIsViewModalOpen(true);
-  };
-
-  const getYouTubeEmbedUrl = (url: string): string => {
-    try {
-      if (url.includes('embed/')) {
-        return url;
-      }
-      
-      let videoId = '';
-      
-      if (url.includes('youtube.com/watch?v=')) {
-        videoId = url.split('v=')[1]?.split('&')[0] || '';
-      } else if (url.includes('youtu.be/')) {
-        videoId = url.split('youtu.be/')[1]?.split('?')[0] || '';
-      } else if (url.includes('youtube.com/embed/')) {
-        videoId = url.split('embed/')[1]?.split('?')[0] || '';
-      }
-      
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
-      
-      return url;
-    } catch (error) {
-      console.error('Erro ao converter URL do YouTube:', error);
-      return url;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'locked': return <Lock className="h-4 w-4 text-red-500" />;
-      case 'unlocked': return <Unlock className="h-4 w-4 text-yellow-500" />;
-      case 'completed': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      default: return <Clock className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'text': return <FileText className="h-4 w-4" />;
-      case 'video': return <Video className="h-4 w-4" />;
-      case 'link': return <Link className="h-4 w-4" />;
-      case 'file': return <Upload className="h-4 w-4" />;
-      default: return <FileText className="h-4 w-4" />;
+      throw error;
     }
   };
 
@@ -1021,26 +784,33 @@ export default function GerenciarConteudo() {
                                   variant="outline" 
                                   size="sm"
                                   onClick={() => {
-                                    toast.info('Funcionalidade em desenvolvimento');
+                                    setSelectedTrailForReorder({
+                                      id: trail.id,
+                                      name: trail.name,
+                                      tasks: trail.tasks
+                                    });
+                                    setIsReorderModalOpen(true);
                                   }}
-                                  className="h-8 w-8 p-0"
+                                  className="h-8 px-2 text-xs"
+                                  title="Reordenar tarefas"
                                 >
-                                  <Trash2 className="h-3 w-3" />
+                                  <ArrowUpDown className="h-3 w-3 mr-1" />
+                                  <span className="hidden sm:inline">Ordem</span>
                                 </Button>
                               </div>
                             </div>
                             <AccordionContent className="px-3 pb-3">
                               {trail.tasks && trail.tasks.length > 0 ? (
                                 <Accordion type="multiple" className="space-y-2">
-                                  {trail.tasks.map(task => (
+                                  {[...trail.tasks].sort((a, b) => a.taskOrder - b.taskOrder).map(task => (
                                     <AccordionItem key={task.id} value={`task-${task.id}`} className="border rounded-lg bg-white">
                                       <div className="flex items-center justify-between gap-4 px-3 py-2">
                                         <AccordionTrigger className="py-0 hover:no-underline [&>svg]:ml-2">
                                           <div className="flex flex-wrap items-center gap-2">
+                                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex-shrink-0">
+                                              {task.taskOrder}
+                                            </span>
                                             <span className="font-medium text-sm">{task.name}</span>
-                                            <Badge variant="outline" className="text-xs">
-                                              Ordem: {task.taskOrder}
-                                            </Badge>
                                             {task.contents && task.contents.length > 0 && (
                                               <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
                                                 {task.contents.length} {task.contents.length === 1 ? 'material' : 'materiais'}
@@ -1085,22 +855,30 @@ export default function GerenciarConteudo() {
                                             variant="outline"
                                             size="sm"
                                             onClick={() => {
-                                              toast.info('Funcionalidade em desenvolvimento');
+                                              // Encontrar a trilha para pegar courseId e isRanked
+                                              const trailData = courseContent?.sections
+                                                .flatMap(s => s.knowledgeTrails)
+                                                .find(kt => kt.tasks.some(t => t.id === task.id));
+                                              
+                                              setEditTask({
+                                                id: task.id,
+                                                name: task.name,
+                                                description: task.description,
+                                                difficultyLevel: task.difficultyLevel || 'MEDIO',
+                                                dueDate: task.dueDate,
+                                                courseId: courseContent?.id || 0,
+                                                knowledgeTrailId: trailData?.id || 0,
+                                                taskOrder: task.taskOrder,
+                                                isRanked: trailData?.ranked || false
+                                              });
+                                              setIsEditTaskModalOpen(true);
                                             }}
-                                            className="h-8 w-8 p-0"
+                                            className="h-8 w-8 p-0 hover:bg-blue-50 hover:border-blue-300"
+                                            title="Editar tarefa"
                                           >
                                             <Edit className="h-3 w-3" />
                                           </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                              toast.info('Funcionalidade em desenvolvimento');
-                                            }}
-                                            className="h-8 w-8 p-0"
-                                          >
-                                            <Trash2 className="h-3 w-3" />
-                                          </Button>
+                                          {/* Botões de excluir tarefa e conteúdo ocultados temporariamente */}
                                         </div>
                                       </div>
                                       <AccordionContent className="px-3 pb-2">
@@ -1133,15 +911,7 @@ export default function GerenciarConteudo() {
                                                     >
                                                       <Eye className="h-3 w-3 text-purple-600" />
                                                     </Button>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="sm"
-                                                      onClick={() => handleDeleteTaskContent(content.id, content.name)}
-                                                      className="h-6 w-6 p-0 hover:bg-red-100"
-                                                      title="Excluir conteúdo"
-                                                    >
-                                                      <Trash2 className="h-3 w-3 text-red-600" />
-                                                    </Button>
+                                                    {/* Botão de excluir conteúdo ocultado temporariamente */}
                                                   </div>
                                                 </div>
                                               ))}
@@ -1298,552 +1068,37 @@ export default function GerenciarConteudo() {
         />
       )}
 
-      <Dialog open={isEditTaskModalOpen} onOpenChange={setIsEditTaskModalOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Editar Tarefa</DialogTitle>
-          </DialogHeader>
-          
-      <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-task-title">Título</Label>
-              <Input
-                id="edit-task-title"
-                value={editTask.title}
-                onChange={(e) => setEditTask(prev => ({ ...prev, title: e.target.value }))}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="edit-task-description">Descrição</Label>
-              <Textarea
-                id="edit-task-description"
-                value={editTask.description}
-                onChange={(e) => setEditTask(prev => ({ ...prev, description: e.target.value }))}
-                rows={3}
-              />
-                  </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-task-type">Tipo</Label>
-                <Select value={editTask.type} onValueChange={(value: any) => setEditTask(prev => ({ ...prev, type: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="teórica">Teórica</SelectItem>
-                    <SelectItem value="prática">Prática</SelectItem>
-                    <SelectItem value="projeto">Projeto</SelectItem>
-                    <SelectItem value="avaliação">Avaliação</SelectItem>
-                  </SelectContent>
-                </Select>
-                    </div>
-              
-              <div>
-                <Label htmlFor="edit-task-difficulty">Dificuldade</Label>
-                <Select value={editTask.difficulty} onValueChange={(value: any) => setEditTask(prev => ({ ...prev, difficulty: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Iniciante">Iniciante</SelectItem>
-                    <SelectItem value="Intermediário">Intermediário</SelectItem>
-                    <SelectItem value="Avançado">Avançado</SelectItem>
-                  </SelectContent>
-                </Select>
-                    </div>
-                  </div>
-            
-            <div>
-              <Label htmlFor="edit-task-time">Tempo Estimado</Label>
-              <Input
-                id="edit-task-time"
-                value={editTask.estimatedTime}
-                onChange={(e) => setEditTask(prev => ({ ...prev, estimatedTime: e.target.value }))}
-              />
-            </div>
-                </div>
-          
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setIsEditTaskModalOpen(false)}>
-              Cancelar
-                  </Button>
-            <Button onClick={handleEditTask}>
-              Salvar Alterações
-                  </Button>
-                </div>
-        </DialogContent>
-      </Dialog>
+      {selectedTrailForReorder && (
+        <ReorderTasksModal
+          open={isReorderModalOpen}
+          onOpenChange={(open) => {
+            setIsReorderModalOpen(open);
+            if (!open) {
+              setSelectedTrailForReorder(null);
+            }
+          }}
+          tasks={selectedTrailForReorder.tasks}
+          trailName={selectedTrailForReorder.name}
+          onSubmit={handleReorderTasks}
+        />
+      )}
 
-      <Dialog open={isMaterialModalOpen} onOpenChange={(open) => {
-        setIsMaterialModalOpen(open);
-        if (!open) resetMaterialForm();
-      }}>
-        <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
-          <DialogHeader className="pb-4 border-b">
-            <DialogTitle className="flex items-center gap-3 text-xl">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <FileText className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <span className="text-gray-900">Gerenciar Materiais</span>
-                <p className="text-sm font-normal text-gray-600 mt-1">
-                  {selectedTask?.title || 'Tarefa'} • Adicione materiais de aprendizagem
-                </p>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="flex gap-6 h-[75vh]">
-            <div className="w-2/5 space-y-4 overflow-y-auto">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Materiais de Aprendizagem</h3>
-                  <p className="text-sm text-gray-500">Gerencie todos os materiais desta tarefa</p>
-                </div>
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1">
-                  {taskMaterials.length} material(is)
-                      </Badge>
-                    </div>
-              
-              <div className="space-y-3">
-                {taskMaterials.map(material => (
-                  <Card key={material.id} className="group p-4 hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500 hover:border-l-blue-600">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 p-2 bg-blue-50 rounded-lg">
-                        {getTypeIcon(material.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm text-gray-900 truncate mb-1">{material.title}</h4>
-                        <div className="space-y-2">
-                          {material.type === 'text' && material.content && (
-                            <p className="text-xs text-gray-600 line-clamp-2 bg-gray-50 p-2 rounded">
-                              {material.content.substring(0, 100)}...
-                        </p>
-                      )}
-                          {material.type === 'video' && (
-                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">🎥 Vídeo</Badge>
-                          )}
-                          {material.type === 'link' && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">🔗 Link</Badge>
-                          )}
-                          {material.type === 'file' && material.fileName && (
-                            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">📄 {material.fileName}</Badge>
-                      )}
-                    </div>
-                  </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => viewMaterial(material)}
-                          className="h-8 w-8 p-0 hover:bg-blue-50"
-                          title="Visualizar"
-                        >
-                          <Eye className="h-4 w-4 text-blue-600" />
-                  </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEditingMaterial(material)}
-                          className="h-8 w-8 p-0 hover:bg-yellow-50"
-                          title="Editar"
-                        >
-                          <Edit className="h-4 w-4 text-yellow-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteMaterial(material.id)}
-                          className="h-8 w-8 p-0 hover:bg-red-50"
-                          title="Excluir"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                  </Button>
-                </div>
-              </div>
-          </Card>
-        ))}
+      {editTask && (
+        <EditTaskModal
+          open={isEditTaskModalOpen}
+          onOpenChange={(open) => {
+            setIsEditTaskModalOpen(open);
+            if (!open) {
+              setEditTask(null);
+            }
+          }}
+          task={editTask}
+          onSubmit={handleEditTask}
+        />
+      )}
 
-                {(!taskMaterials.length) && (
-                  <Card className="p-8 text-center bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300">
-                    <div className="p-4 bg-white rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                      <FileText className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Nenhum material adicionado</h4>
-                    <p className="text-sm text-gray-500 mb-4">Use o formulário ao lado para adicionar o primeiro material</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-blue-300 text-blue-600 hover:bg-blue-50"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Começar a adicionar
-                    </Button>
-                  </Card>
-                )}
-              </div>
-            </div>
-
-            <div className="w-3/5 space-y-6 overflow-y-auto">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {editingMaterial ? 'Editar Material' : 'Adicionar Novo Material'}
-              </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {editingMaterial ? 'Modifique as informações do material' : 'Preencha os dados do novo material'}
-                  </p>
-                </div>
-                {editingMaterial && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={resetMaterialForm}
-                    className="flex items-center gap-2 border-green-300 text-green-600 hover:bg-green-50"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Novo Material
-                  </Button>
-                )}
-              </div>
-
-              <Card className="p-6 border-2 border-gray-100">
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="material-type" className="text-sm font-semibold text-gray-700 mb-2 block">
-                        Tipo de Material
-                      </Label>
-                      <Select value={newMaterial.type} onValueChange={(value: any) => setNewMaterial(prev => ({ ...prev, type: value }))}>
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="text">📄 Texto</SelectItem>
-                          <SelectItem value="video">🎥 Vídeo</SelectItem>
-                          <SelectItem value="link">🔗 Link</SelectItem>
-                          <SelectItem value="file">📁 Arquivo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="material-title" className="text-sm font-semibold text-gray-700 mb-2 block">
-                        Título *
-                      </Label>
-                      <Input
-                        id="material-title"
-                        value={newMaterial.title}
-                        onChange={(e) => setNewMaterial(prev => ({ ...prev, title: e.target.value }))}
-                        placeholder="Digite o título do material"
-                        className={`h-11 ${!newMaterial.title.trim() ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'}`}
-                      />
-                      {!newMaterial.title.trim() && (
-                        <p className="text-xs text-red-500 mt-1">Título é obrigatório</p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {newMaterial.type === 'text' && (
-                    <div>
-                      <Label htmlFor="material-content" className="text-sm font-semibold text-gray-700 mb-2 block">
-                        Conteúdo *
-                      </Label>
-                      <Textarea
-                        id="material-content"
-                        value={newMaterial.content}
-                        onChange={(e) => setNewMaterial(prev => ({ ...prev, content: e.target.value }))}
-                        placeholder="Digite o conteúdo do material..."
-                        rows={8}
-                        className="resize-none border-gray-300 focus:border-blue-500"
-                      />
-                      {!newMaterial.content.trim() && (
-                        <p className="text-xs text-red-500 mt-1">Conteúdo é obrigatório</p>
-                      )}
-                    </div>
-                  )}
-                  
-                  {(newMaterial.type === 'video' || newMaterial.type === 'link') && (
-                    <div>
-                      <Label htmlFor="material-url" className="text-sm font-semibold text-gray-700 mb-2 block">
-                        URL *
-                      </Label>
-                      <Input
-                        id="material-url"
-                        value={newMaterial.url}
-                        onChange={(e) => setNewMaterial(prev => ({ ...prev, url: e.target.value }))}
-                        placeholder="https://exemplo.com"
-                        className="h-11 border-gray-300 focus:border-blue-500"
-                      />
-                      <p className="text-xs text-gray-500 mt-2 p-2 bg-blue-50 rounded">
-                        {newMaterial.type === 'video' ? '🎥 Cole o link do YouTube ou outro vídeo' : '🔗 Cole o link que deseja compartilhar'}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {newMaterial.type === 'file' && (
-                    <div>
-                      <Label htmlFor="material-file" className="text-sm font-semibold text-gray-700 mb-2 block">
-                        Arquivo *
-                      </Label>
-                      <Input
-                        id="material-file"
-                        type="file"
-                        onChange={(e) => setNewMaterial(prev => ({ ...prev, file: e.target.files?.[0] || null }))}
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                        className="cursor-pointer h-11 border-gray-300 focus:border-blue-500"
-                      />
-                      {newMaterial.file && (
-                        <div className="mt-3 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <Upload className="h-5 w-5 text-green-600" />
-                            <div>
-                              <span className="text-sm font-semibold text-green-800">{newMaterial.file.name}</span>
-                              <p className="text-xs text-green-600 mt-1">
-                                Arquivo selecionado com sucesso
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {(newMaterial.title || newMaterial.content || newMaterial.url) && (
-                    <div>
-                      <Label className="text-sm font-semibold text-gray-700 mb-3 block">Preview do Material</Label>
-                      <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200">
-                        <div className="flex items-start gap-4">
-                          <div className="p-3 bg-blue-100 rounded-lg">
-                            {getTypeIcon(newMaterial.type)}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-2">{newMaterial.title || 'Sem título'}</h4>
-                            {newMaterial.type === 'text' && newMaterial.content && (
-                              <p className="text-sm text-gray-600 line-clamp-3 bg-white p-3 rounded border">
-                                {newMaterial.content}
-                              </p>
-                            )}
-                            {newMaterial.type === 'video' && newMaterial.url && (
-                              <div className="flex items-center gap-2 bg-white p-3 rounded border">
-                                <span className="text-lg">🎥</span>
-                                <span className="text-sm text-blue-600 font-medium">{newMaterial.url}</span>
-                              </div>
-                            )}
-                            {newMaterial.type === 'link' && newMaterial.url && (
-                              <div className="flex items-center gap-2 bg-white p-3 rounded border">
-                                <span className="text-lg">🔗</span>
-                                <span className="text-sm text-green-600 font-medium">{newMaterial.url}</span>
-                              </div>
-                            )}
-                            {newMaterial.type === 'file' && newMaterial.file && (
-                              <div className="flex items-center gap-2 bg-white p-3 rounded border">
-                                <span className="text-lg">📁</span>
-                                <span className="text-sm text-purple-600 font-medium">{newMaterial.file.name}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-          </Card>
-                    </div>
-        )}
-      </div>
-              </Card>
-
-              <div className="flex justify-end gap-3 pt-6 border-t-2 border-gray-100">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsMaterialModalOpen(false)}
-                  className="px-6 h-11 border-gray-300 text-gray-700 hover:bg-gray-50"
-                >
-                  Cancelar
-                </Button>
-                {editingMaterial ? (
-                  <Button 
-                    onClick={saveEditedMaterial} 
-                    className="px-6 h-11 bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Salvar Alterações
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={handleCreateMaterial}
-                    disabled={!newMaterial.title.trim() || (newMaterial.type === 'text' && !newMaterial.content.trim()) || ((newMaterial.type === 'video' || newMaterial.type === 'link') && !newMaterial.url.trim()) || (newMaterial.type === 'file' && !newMaterial.file)}
-                    className="px-6 h-11 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Material
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {viewingMaterial && getTypeIcon(viewingMaterial.type)}
-              {viewingMaterial?.title || 'Visualizar Material'}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="flex-1 overflow-y-auto">
-            {viewingMaterial && (
-              <div className="space-y-4">
-                <Card className="p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="text-blue-600">
-                      {getTypeIcon(viewingMaterial.type)}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{viewingMaterial.title}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        {viewingMaterial.type === 'text' && (
-                          <Badge variant="outline">📄 Texto</Badge>
-                        )}
-                        {viewingMaterial.type === 'video' && (
-                          <Badge variant="outline">🎥 Vídeo</Badge>
-                        )}
-                        {viewingMaterial.type === 'link' && (
-                          <Badge variant="outline">🔗 Link</Badge>
-                        )}
-                        {viewingMaterial.type === 'file' && (
-                          <Badge variant="outline">📁 Arquivo</Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="p-6">
-                  {viewingMaterial.type === 'text' && (
-                    <div className="prose max-w-none">
-                      <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                        {viewingMaterial.content}
-                      </div>
-                    </div>
-                  )}
-
-                  {viewingMaterial.type === 'video' && viewingMaterial.url && (
-                    <div className="space-y-4">
-                      <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                        <iframe
-                          src={getYouTubeEmbedUrl(viewingMaterial.url)}
-                          title={viewingMaterial.title}
-                          className="absolute top-0 left-0 w-full h-full rounded-lg"
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          onError={(e) => {
-                            console.error('Erro ao carregar vídeo:', e);
-                          }}
-                        />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-2">
-                          Se o vídeo não carregar, você pode assistir diretamente no YouTube:
-                        </p>
-                        <Button
-                          variant="outline"
-                          onClick={() => window.open(viewingMaterial.url, '_blank')}
-                          className="flex items-center gap-2"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          Abrir no YouTube
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {viewingMaterial.type === 'link' && viewingMaterial.url && (
-                    <div className="space-y-4">
-                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Link className="h-6 w-6 text-blue-600" />
-                          <div>
-                            <p className="font-medium">Link Externo</p>
-                            <p className="text-sm text-gray-600 break-all">{viewingMaterial.url}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <Button
-                          onClick={() => window.open(viewingMaterial.url, '_blank')}
-                          className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          Abrir Link
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {viewingMaterial.type === 'file' && (
-                    <div className="space-y-4">
-                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-6 w-6 text-gray-600" />
-                          <div>
-                            <p className="font-medium">{viewingMaterial.fileName || 'Arquivo'}</p>
-                            <p className="text-sm text-gray-600">Arquivo anexado</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {viewingMaterial.fileData && viewingMaterial.fileName?.toLowerCase().endsWith('.pdf') && (
-                        <div className="border rounded-lg overflow-hidden">
-                          <iframe
-                            src={viewingMaterial.fileData}
-                            title={viewingMaterial.title}
-                            className="w-full h-96"
-                          />
-                        </div>
-                      )}
-                      
-                      <div className="flex gap-3 justify-center">
-                        <Button
-                          onClick={() => {
-                            if (viewingMaterial.fileData) {
-                              const link = document.createElement('a');
-                              link.href = viewingMaterial.fileData;
-                              link.download = viewingMaterial.fileName || 'arquivo';
-                              link.click();
-                            }
-                          }}
-                          variant="outline"
-                          className="flex items-center gap-2"
-                        >
-                          <Download className="h-4 w-4" />
-                          Baixar Arquivo
-                        </Button>
-                        <Button
-                          onClick={() => window.open(viewingMaterial.fileData || viewingMaterial.url, '_blank')}
-                          className="flex items-center gap-2"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          Abrir em Nova Aba
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </Card>
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-end pt-4 border-t">
-            <Button variant="outline" onClick={() => setIsViewModalOpen(false)}>
-              Fechar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* MODAIS INLINE REMOVIDOS - USANDO COMPONENTES */}
+      {/* EditTaskModal, MaterialModal e ViewModal agora são componentes */}
 
       {/* Modal de Entregas dos Alunos */}
       {selectedTaskForSubmissions && (

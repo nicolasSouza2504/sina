@@ -97,7 +97,7 @@ export default function CreateTaskModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="relative">
           <DialogHeader className="pb-6">
             <div className="flex items-center gap-3 mb-2">
