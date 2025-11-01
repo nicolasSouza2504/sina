@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, User, Mail, Phone, GraduationCap } from "lucide-react";
+import { Plus, User, Copy, Phone, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
 interface RegisterModalProps {
@@ -109,15 +109,28 @@ export default function RegisterModal({ onStudentAdded }: RegisterModalProps) {
                 <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
                   Email *
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="exemplo@email.com"
-                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                  required
-                />
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-0 flex-shrink-0"
+                    onClick={() => {
+                      navigator.clipboard.writeText(formData.email);
+                      toast.success('Email copiado para a área de transferência');
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="exemplo@email.com"
+                    className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl flex-1"
+                    required
+                  />
+                </div>
               </div>
             </div>
 

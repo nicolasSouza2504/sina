@@ -12,6 +12,7 @@ import senai.com.ava_senai.domain.course.institution.Institution;
 import senai.com.ava_senai.domain.user.*;
 import senai.com.ava_senai.domain.user.userclass.UserClass;
 import senai.com.ava_senai.exception.*;
+import senai.com.ava_senai.repository.ClassRepository;
 import senai.com.ava_senai.repository.InstitutionRepository;
 import senai.com.ava_senai.repository.UserClassRepository;
 import senai.com.ava_senai.repository.UserRepository;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +34,7 @@ public class UserService implements IUserService {
     private final PasswordEncoder passwordEncoder;
     private final UserClassRepository userClassRepository;
     private final InstitutionRepository institutionRepository;
+    private final ClassRepository classRepository;
 
     @Override
     public UserResponseDTO getUserByid(Long id) {
@@ -82,19 +85,6 @@ public class UserService implements IUserService {
 
     }
 
-
-    public void saveClasses(UserRegisterDTO userRegisterDTO, User userDb) {
-
-        if (userRegisterDTO.getClassesId() != null && !userRegisterDTO.getClassesId().isEmpty()) {
-
-            userRegisterDTO.getClassesId().forEach(classId -> {
-                userClassRepository.save(new UserClass(userDb.getId(), classId));
-            });
-
-        }
-
-    }
-
     @Override
     @Transactional
     public UserResponseDTO updateUser(UserRegisterDTO request, Long id) {
@@ -111,10 +101,36 @@ public class UserService implements IUserService {
 
                     userRepository.save(userDb);
 
+                    updateRelationedClasses(request, userDb);
+
                     return new UserResponseDTO(userDb);
 
                 })
                 .orElseThrow(() -> new UserNotFoundException("Usuario não existe!"));
+
+    }
+
+    public void updateRelationedClasses(UserRegisterDTO request, User userDb) {
+
+        removeOldRelatedData(userDb);
+
+        saveClasses(request, userDb);
+
+    }
+
+    private void removeOldRelatedData(User userDb) {
+
+        List<UserClass> userClasses = userClassRepository.findUserClassByUserId(userDb.getId());
+
+        if(!userClasses.isEmpty()){
+
+            userClasses.forEach(userClass -> {
+                userClassRepository.deleteById(userClass.getId());
+            });
+
+        }
+
+        userDb.getUserClasses().removeAll(userClasses);
 
     }
 
@@ -160,6 +176,7 @@ public class UserService implements IUserService {
         if (StringUtils.isBlank(user.getEmail())) {
             validation.add("Email", "Informe o email");
         }
+
         if(action == 1){
             if (StringUtils.isBlank(user.getPassword())) {
                 validation.add("Senha", "Informe a senha");
@@ -175,6 +192,18 @@ public class UserService implements IUserService {
             if (!isAdm(user)) {
                 validation.add("CPF", "Informe um CPF válido");
             }
+
+        }
+
+        if (user.getClassesId() != null && !user.getClassesId().isEmpty()) {
+
+            user.getClassesId().forEach(classId -> {
+
+                if (!classRepository.existsById(classId))  {
+                    validation.add("Classe", "A classe com ID " + classId + " não existe");
+                }
+
+            });
 
         }
 
@@ -251,9 +280,30 @@ public class UserService implements IUserService {
         return userRegisterDTO.getRole() != null && userRegisterDTO.getRole().getName().equalsIgnoreCase("ADMIN");
     }
 
-    public User getUserEntityById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuario não encontrado!"));
+    public void saveClasses(UserRegisterDTO userRegisterDTO, User userDb) {
+
+        if (userRegisterDTO.getClassesId() != null && !userRegisterDTO.getClassesId().isEmpty()) {
+
+            userRegisterDTO.getClassesId().forEach(classId -> {
+
+                UserClass userClass = userClassRepository.save(new UserClass(userDb, classRepository.findById(classId).get()));
+
+                if (userDb.getUserClasses() != null) {
+                    userDb.getUserClasses().add(userClass);
+                } else {
+
+                    List<UserClass> userClasses = new ArrayList<>();
+
+                    userClasses.add(userClass);
+
+                    userDb.setUserClasses(userClasses);
+
+                }
+
+            });
+
+        }
+
     }
 
 }

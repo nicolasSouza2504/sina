@@ -24,6 +24,8 @@ interface CreateKnowledgeTrailModalProps {
   courses: Course[];
   isLoadingCourses: boolean;
   onSubmit: (data: { name: string; sectionId: number; ranked: boolean }) => Promise<void>;
+  prefilledCourseId?: string; // ID do curso pré-selecionado
+  prefilledSectionId?: string; // ID da section pré-selecionada
 }
 
 export default function CreateKnowledgeTrailModal({
@@ -31,7 +33,9 @@ export default function CreateKnowledgeTrailModal({
   onOpenChange,
   courses,
   isLoadingCourses,
-  onSubmit
+  onSubmit,
+  prefilledCourseId,
+  prefilledSectionId
 }: CreateKnowledgeTrailModalProps) {
   const [formData, setFormData] = useState<KnowledgeTrailFormData>({
     name: '',
@@ -44,19 +48,32 @@ export default function CreateKnowledgeTrailModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Preenche automaticamente os campos quando o modal abre com contexto
+  useEffect(() => {
+    if (open && prefilledCourseId) {
+      setFormData(prev => ({
+        ...prev,
+        courseId: prefilledCourseId,
+        sectionId: prefilledSectionId || ''
+      }));
+    }
+  }, [open, prefilledCourseId, prefilledSectionId]);
+
   // Atualiza as seções quando o curso é selecionado
   useEffect(() => {
     if (formData.courseId) {
       const course = courses.find(c => c.id.toString() === formData.courseId);
       setSelectedCourse(course || null);
       setAvailableSections(course?.sections || []);
-      // Limpa a seção selecionada quando o curso muda
-      setFormData(prev => ({ ...prev, sectionId: '', ranked: false }));
+      // Limpa a seção selecionada quando o curso muda (exceto se vier pré-preenchida)
+      if (!prefilledSectionId || formData.courseId !== prefilledCourseId) {
+        setFormData(prev => ({ ...prev, sectionId: '', ranked: false }));
+      }
     } else {
       setSelectedCourse(null);
       setAvailableSections([]);
     }
-  }, [formData.courseId, courses]);
+  }, [formData.courseId, courses, prefilledCourseId, prefilledSectionId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

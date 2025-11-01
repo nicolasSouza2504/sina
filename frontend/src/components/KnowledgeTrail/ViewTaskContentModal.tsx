@@ -19,7 +19,7 @@ import {
   AlertCircle,
   ExternalLink
 } from 'lucide-react';
-import fetchTaskContent from '@/lib/api/task-content/fetchTaskContent';
+import fetchTaskContentClient from '@/lib/api/task-content/fetchTaskContent.client';
 
 interface ViewTaskContentModalProps {
   open: boolean;
@@ -90,7 +90,7 @@ export default function ViewTaskContentModal({
       }
 
       // Para outros tipos, buscar o arquivo da API
-      const { data, mimeType } = await fetchTaskContent(contentUrl);
+      const { data, mimeType } = await fetchTaskContentClient(contentUrl);
       
       // Converter ArrayBuffer para Blob e criar URL
       const blob = new Blob([data], { type: mimeType });
@@ -147,14 +147,7 @@ export default function ViewTaskContentModal({
               <Download className="h-4 w-4 mr-2" />
               Baixar Arquivo
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.open(contentUrl, '_blank')}
-              className="w-full"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Abrir em Nova Aba
-            </Button>
+            
           </div>
         </div>
       );

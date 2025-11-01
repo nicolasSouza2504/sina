@@ -67,7 +67,7 @@ public class UserController {
 
     @Secured({"ADMIN", "TEACHER"})
     @PutMapping("update/{userId}")
-    public ResponseEntity<ApiResponse> addUser(@PathVariable("userId") Long userId,
+    public ResponseEntity<ApiResponse> editUser(@PathVariable("userId") Long userId,
                                                @Valid @RequestParam String user,
                                                @RequestParam(value = "image", required = false) MultipartFile image) {
 

@@ -8,7 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
-import senai.com.ava_senai.domain.user.UserResponseDTO;
+
+import senai.com.ava_senai.domain.user.UserJWTDTO;
 import senai.com.ava_senai.handler.requesthandler.security.user.AuthyUserDetails;
 import senai.com.ava_senai.services.user.UserService;
 
@@ -41,15 +42,14 @@ public class JwtUtils {
                 .claim("role", userPrincipal.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining("")))
-                 .claim("user", new UserResponseDTO(
+                .claim("user", new UserJWTDTO(
                         userPrincipal.getId(),
                         userPrincipal.getEmail(),
                         userPrincipal.getName(),
                         userPrincipal.getStatus(),
                         userPrincipal.getRole(),
                         userPrincipal.getInstitution().getInstitutionName(),
-                        userPrincipal.getCpf()
-                ))
+                        userPrincipal.getCpf()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + expirationTime))
                 .signWith(key(), SignatureAlgorithm.HS256).compact();
@@ -77,7 +77,6 @@ public class JwtUtils {
                 .get("idInstitution", Long.class);
     }
 
-
     public boolean validateToken(String token) {
 
         try {
@@ -89,8 +88,8 @@ public class JwtUtils {
 
             return true;
 
-        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException |
-                 IllegalArgumentException e) {
+        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException
+                | IllegalArgumentException e) {
             throw new JwtException(e.getMessage());
         }
 

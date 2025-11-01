@@ -6,6 +6,7 @@ export interface UserRegister {
     password: string;
     cpf: number|string
     idInstitution: number
+    classesId?: number[]
 }
 
 export interface UserRegisterForm {
@@ -33,6 +34,19 @@ export interface UserData {
     institutionName: string;
     cpf: string
     status?: string
+    classes?: Array<{
+        Id: number;
+        nome: string;
+        startDate: string;
+        finalDate: string;
+        imgClass: string;
+        semester: number;
+        code: string;
+        course: {
+            id: number;
+            name: string;
+        };
+    }>
 }
 
 export interface UserLoginData {

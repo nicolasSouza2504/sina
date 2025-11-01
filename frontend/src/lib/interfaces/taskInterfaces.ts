@@ -7,6 +7,7 @@ export interface CreateTask {
     description: string;
     difficultyLevel: DifficultyLevel;
     dueDate?: string; // ISO 8601 format - Optional, only for ranked trails
+    taskOrder: number; // Order of the task in the trail
 }
 
 export interface Task {

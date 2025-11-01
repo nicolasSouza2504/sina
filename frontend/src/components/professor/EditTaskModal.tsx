@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -7,19 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Calendar } from 'lucide-react';
-import type { DifficultyLevel, TaskFormData } from '@/lib/interfaces/taskInterfaces';
+import { Save, X, AlertCircle, Edit, Calendar } from 'lucide-react';
 
-interface CreateTaskModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  courseId: number;
-  courseName: string;
-  knowledgeTrailId: number;
-  knowledgeTrailName: string;
-  isRanked: boolean;
-  onSubmit: (data: TaskFormData) => Promise<void>;
-}
+type DifficultyLevel = 'FACIL' | 'MEDIO' | 'DIFICIL';
 
 const difficultyLevelMap: Record<string, DifficultyLevel> = {
   'Fácil': 'FACIL',
@@ -33,141 +23,142 @@ const difficultyLevelDisplay: Record<DifficultyLevel, string> = {
   'DIFICIL': 'Difícil'
 };
 
-export default function CreateTaskModal({
+interface EditTaskModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  task: {
+    id: number;
+    name: string;
+    description: string;
+    difficultyLevel: DifficultyLevel;
+    dueDate?: string;
+    courseId: number;
+    knowledgeTrailId: number;
+    taskOrder: number;
+    isRanked: boolean;
+  } | null;
+  onSubmit: (data: {
+    id: number;
+    name: string;
+    description: string;
+    difficultyLevel: DifficultyLevel;
+    dueDate?: string;
+    courseId: number;
+    knowledgeTrailId: number;
+    taskOrder: number;
+  }) => Promise<void>;
+}
+
+export default function EditTaskModal({
   open,
   onOpenChange,
-  courseId,
-  courseName,
-  knowledgeTrailId,
-  knowledgeTrailName,
-  isRanked,
+  task,
   onSubmit
-}: CreateTaskModalProps) {
-  const [formData, setFormData] = useState<TaskFormData>({
+}: EditTaskModalProps) {
+  const [formData, setFormData] = useState({
+    id: 0,
     name: '',
     description: '',
-    difficultyLevel: 'FACIL',
-    dueDate: undefined
+    difficultyLevel: 'MEDIO' as DifficultyLevel,
+    dueDate: '',
+    courseId: 0,
+    knowledgeTrailId: 0,
+    taskOrder: 0
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  // Reset form when modal opens
   useEffect(() => {
-    if (open) {
+    if (open && task) {
+      // Converter dueDate de ISO para formato de input date (YYYY-MM-DD)
+      let dueDateForInput = '';
+      if (task.dueDate) {
+        try {
+          const date = new Date(task.dueDate);
+          dueDateForInput = date.toISOString().split('T')[0];
+        } catch (e) {
+          console.error('Erro ao converter data:', e);
+        }
+      }
+
       setFormData({
-        name: '',
-        description: '',
-        difficultyLevel: 'FACIL',
-        dueDate: undefined
+        id: task.id,
+        name: task.name,
+        description: task.description,
+        difficultyLevel: task.difficultyLevel,
+        dueDate: dueDateForInput,
+        courseId: task.courseId,
+        knowledgeTrailId: task.knowledgeTrailId,
+        taskOrder: task.taskOrder
       });
+      setError('');
     }
-  }, [open]);
+  }, [open, task]);
 
   const handleSubmit = async () => {
     // Validações
     if (!formData.name.trim()) {
+      setError('O nome é obrigatório');
       return;
     }
 
     if (!formData.description.trim()) {
+      setError('A descrição é obrigatória');
       return;
     }
 
-    // Validar dueDate apenas para trilhas ranqueadas
-    if (isRanked && !formData.dueDate) {
+    // Se a trilha for ranqueada, data é obrigatória
+    if (task?.isRanked && !formData.dueDate) {
+      setError('A data de entrega é obrigatória para trilhas ranqueadas');
       return;
     }
 
-    setIsSubmitting(true);
     try {
+      setIsSubmitting(true);
+      setError('');
       await onSubmit(formData);
       onOpenChange(false);
-    } catch (error) {
-      console.error('Erro ao criar tarefa:', error);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao salvar tarefa');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Get minimum date (today)
-  const getMinDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+  const handleClose = () => {
+    if (!isSubmitting) {
+      onOpenChange(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="relative">
           <DialogHeader className="pb-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-3 bg-blue-600 rounded-xl">
-                <Plus className="h-6 w-6 text-white" />
+                <Edit className="h-6 w-6 text-white" />
               </div>
               <div>
                 <DialogTitle className="text-2xl font-bold text-gray-900">
-                  Nova Tarefa
+                  Editar Tarefa
                 </DialogTitle>
-                <p className="text-sm text-gray-600 mt-1">Crie uma nova tarefa para a trilha de conhecimento</p>
+                <p className="text-sm text-gray-600 mt-1">Atualize as informações da tarefa</p>
               </div>
             </div>
           </DialogHeader>
-          
-          <div className="space-y-6">
-            {/* Informações de Contexto (Read-only) */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Contexto da Tarefa</span>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-xs text-blue-600 font-medium">Curso</Label>
-                  <div className="mt-1 px-3 py-2 bg-white border border-blue-200 rounded-lg">
-                    <p className="text-sm font-medium text-gray-900">{courseName}</p>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-xs text-blue-600 font-medium">Trilha de Conhecimento</Label>
-                  <div className="mt-1 px-3 py-2 bg-white border border-blue-200 rounded-lg">
-                    <p className="text-sm font-medium text-gray-900">{knowledgeTrailName}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Nome da Tarefa */}
-            <div className="space-y-2">
-              <Label htmlFor="task-name" className="text-sm font-semibold text-gray-700">
-                Nome da Tarefa <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="task-name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Ex: Introdução à Programação"
-                className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                disabled={isSubmitting}
-              />
-            </div>
-            
-            {/* Descrição */}
-            <div className="space-y-2">
-              <Label htmlFor="task-description" className="text-sm font-semibold text-gray-700">
-                Descrição <span className="text-red-500">*</span>
-              </Label>
-              <Textarea
-                id="task-description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Descreva os objetivos e requisitos desta tarefa..."
-                rows={4}
-                className="border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl resize-none"
-                disabled={isSubmitting}
-              />
-            </div>
-            
+          <div className="space-y-6">
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
             {/* Aviso informativo sobre dificuldade */}
-            {isRanked ? (
+            {task?.isRanked ? (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 mt-0.5">
@@ -215,10 +206,41 @@ export default function CreateTaskModal({
               </div>
             )}
 
+            {/* Nome da Tarefa */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-task-name" className="text-sm font-semibold text-gray-700">
+                Nome da Tarefa <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="edit-task-name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Ex: Introdução à Programação"
+                className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            {/* Descrição */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-task-description" className="text-sm font-semibold text-gray-700">
+                Descrição <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="edit-task-description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Descreva os objetivos e requisitos desta tarefa..."
+                rows={4}
+                className="border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl resize-none"
+                disabled={isSubmitting}
+              />
+            </div>
+
             {/* Dificuldade e Data de Entrega (condicional) */}
-            <div className={isRanked ? "grid grid-cols-2 gap-4" : "space-y-2"}>
+            <div className={task?.isRanked ? "grid grid-cols-2 gap-4" : "space-y-2"}>
               <div className="space-y-2">
-                <Label htmlFor="task-difficulty" className="text-sm font-semibold text-gray-700">
+                <Label htmlFor="edit-task-difficulty" className="text-sm font-semibold text-gray-700">
                   Nível de Dificuldade <span className="text-red-500">*</span>
                 </Label>
                 <Select 
@@ -254,19 +276,19 @@ export default function CreateTaskModal({
                   </SelectContent>
                 </Select>
               </div>
-              
-              {isRanked && (
+
+              {task?.isRanked && (
                 <div className="space-y-2">
-                  <Label htmlFor="task-duedate" className="text-sm font-semibold text-gray-700">
+                  <Label htmlFor="edit-task-duedate" className="text-sm font-semibold text-gray-700">
                     Data de Entrega <span className="text-red-500">*</span>
                   </Label>
                   <div className="relative">
                     <Input
-                      id="task-duedate"
+                      id="edit-task-duedate"
                       type="date"
-                      value={formData.dueDate || ''}
+                      value={formData.dueDate}
                       onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-                      min={getMinDate()}
+                      min={new Date().toISOString().split('T')[0]}
                       className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                       disabled={isSubmitting}
                     />
@@ -276,12 +298,12 @@ export default function CreateTaskModal({
               )}
             </div>
           </div>
-          
+
           {/* Footer com Botões */}
           <div className="flex justify-end gap-3 pt-8 border-t border-gray-100 mt-6">
             <Button 
               variant="outline" 
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
               className="h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
               disabled={isSubmitting}
             >
@@ -290,17 +312,17 @@ export default function CreateTaskModal({
             <Button 
               onClick={handleSubmit}
               className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              disabled={isSubmitting || !formData.name.trim() || !formData.description.trim() || !formData.difficultyLevel || (isRanked && !formData.dueDate)}
+              disabled={isSubmitting || !formData.name.trim() || !formData.description.trim() || !formData.difficultyLevel || (task?.isRanked && !formData.dueDate)}
             >
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Criando...
+                  Salvando...
                 </>
               ) : (
                 <>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Tarefa
+                  <Save className="h-4 w-4 mr-2" />
+                  Salvar Alterações
                 </>
               )}
             </Button>
