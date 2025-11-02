@@ -27,7 +27,7 @@ export default async function PrivateLayout({
   return (
     <SidebarProvider defaultOpen={false}>
       <AppSidebar />
-      <div className="h-full fixed md:peer-data-[state=collapsed]:pr-1 pt-4 md:peer-data-[state=expanded]:hidden md:peer-data-[state=collapsed]:pl-1 bg-sky-800 text-white">
+      <div className="h-full fixed md:peer-data-[state=collapsed]:pr-1 pt-4 md:peer-data-[state=expanded]:hidden md:peer-data-[state=collapsed]:pl-1 bg-sky-600 text-white">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

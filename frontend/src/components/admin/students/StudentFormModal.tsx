@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Upload, AlertCircle, Users, X, Plus } from "lucide-react"
+import { Upload, AlertCircle, Users, X, Plus, Calendar } from "lucide-react"
 import { z } from "zod"
 import createUser from "@/lib/api/user/userCreate";
 import {toast} from "sonner";
@@ -177,22 +177,34 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>Cadastrar Novo Aluno</DialogTitle>
-                    <DialogDescription>Preencha os dados do aluno para cadastro no sistema</DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+                <div className="relative">
+                    <DialogHeader className="pb-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-3 bg-blue-600 rounded-xl">
+                                <Plus className="h-6 w-6 text-white" />
+                            </div>
+                            <div>
+                                <DialogTitle className="text-2xl font-bold text-gray-900">
+                                    Cadastrar Novo Aluno
+                                </DialogTitle>
+                                <p className="text-sm text-gray-600 mt-1">Preencha os dados do aluno para cadastro no sistema</p>
+                            </div>
+                        </div>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Nome Completo</Label>
+                            <Label htmlFor="name" className="text-sm font-semibold text-gray-700">
+                                Nome Completo <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="name"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="Digite o nome completo"
-                                className={errors.name ? "border-red-500" : ""}
+                                placeholder="Ex: João Silva"
+                                className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                                 disabled={isSubmitting}
                             />
                             {errors.name && (
@@ -203,14 +215,16 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
+                                Email <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="email"
                                 type="email"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                placeholder="email@techuni.edu.br"
-                                className={errors.email ? "border-red-500" : ""}
+                                placeholder="aluno@senai.br"
+                                className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                                 disabled={isSubmitting}
                             />
                             {errors.email && (
@@ -220,18 +234,17 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
                                 </div>
                             )}
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="password">Senha</Label>
+                            <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
+                                Senha <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="password"
                                 type="password"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                placeholder="Digite a senha"
-                                className={errors.password ? "border-red-500" : ""}
+                                placeholder="Mínimo 6 caracteres"
+                                className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                                 disabled={isSubmitting}
                             />
                             {errors.password && (
@@ -242,14 +255,16 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="cpf">CPF</Label>
+                            <Label htmlFor="cpf" className="text-sm font-semibold text-gray-700">
+                                CPF <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="cpf"
                                 value={formData.cpf}
                                 onChange={(e) => setFormData({ ...formData, cpf: e.target.value.replace(/\D/g, "") })}
                                 placeholder="00000000000"
                                 maxLength={11}
-                                className={errors.cpf ? "border-red-500" : ""}
+                                className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                                 disabled={isSubmitting}
                             />
                             {errors.cpf && (
@@ -262,19 +277,21 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="institution">Instituição</Label>
+                        <Label htmlFor="institution" className="text-sm font-semibold text-gray-700">
+                            Instituição
+                        </Label>
                         <Input
                             id="institution"
                             value="SENAI Joinville"
                             disabled
-                            className="bg-muted cursor-not-allowed"
+                            className="h-12 bg-gray-100 border-2 border-gray-200 cursor-not-allowed rounded-xl"
                         />
-                        <p className="text-xs text-muted-foreground">Instituição padrão para novos alunos</p>
+                        <p className="text-xs text-gray-500">Instituição padrão para novos alunos</p>
                     </div>
 
                     {/* Class Selection */}
                     <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
+                        <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                             <Users className="h-4 w-4" />
                             Turmas do Aluno
                         </Label>
@@ -282,7 +299,7 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
                             type="button"
                             variant="outline"
                             onClick={() => setIsClassModalOpen(true)}
-                            className="w-full justify-start"
+                            className="w-full h-12 justify-start border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors rounded-xl"
                             disabled={isSubmitting || isLoadingClasses}
                         >
                             <Plus className="h-4 w-4 mr-2" />
@@ -322,16 +339,16 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
                     </div>
 
                     <div className="space-y-2">
-                        <Label>Foto do Aluno</Label>
+                        <Label className="text-sm font-semibold text-gray-700">Foto do Aluno</Label>
                         <div className="flex items-center gap-4">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-2"
+                                className="h-12 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors rounded-xl"
                                 disabled={isSubmitting}
                             >
-                                <Upload className="h-4 w-4" />
+                                <Upload className="h-4 w-4 mr-2" />
                                 Selecionar Imagem
                             </Button>
                             <input
@@ -350,27 +367,41 @@ export function StudentFormModal({ isOpen, onClose, onSuccess }: StudentFormModa
                             )}
                         </div>
                         {selectedImage && (
-                            <p className="text-xs text-muted-foreground">Arquivo selecionado: {selectedImage.name}</p>
+                            <p className="text-xs text-gray-500">Arquivo selecionado: {selectedImage.name}</p>
                         )}
                     </div>
 
-                    <DialogFooter>
+                    {/* Footer com Botões */}
+                    <div className="flex justify-end gap-3 pt-8 border-t border-gray-100 mt-6">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={handleClose}
                             disabled={isSubmitting}
+                            className="h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
                         >
                             Cancelar
                         </Button>
                         <Button
                             type="submit"
                             disabled={isSubmitting}
+                            className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                         >
-                            {isSubmitting ? "Cadastrando..." : "Cadastrar Aluno"}
+                            {isSubmitting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Cadastrando...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Cadastrar Aluno
+                                </>
+                            )}
                         </Button>
-                    </DialogFooter>
-                </form>
+                    </div>
+                    </form>
+                </div>
 
                 {/* Class Selector Modal */}
                 <ClassSelectorModal
