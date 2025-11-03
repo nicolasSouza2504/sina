@@ -51,4 +51,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     )
     List<User> findByCourseId(@Param("idCourse") Long idCourse);
 
+    @Query("SELECT u FROM User u " +
+            "LEFT JOIN FETCH u.taskUsers tu " +
+            "LEFT JOIN FETCH tu.task t " +
+            "WHERE u.id = :id")
+    Optional<User> findUserWithContentById(Long id);
+
 }

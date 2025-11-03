@@ -112,4 +112,14 @@ public class UserController {
 
     }
 
+    @GetMapping("/{id}/content-summary")
+    public ResponseEntity<ApiResponse> getUserContentSummary(@PathVariable @Valid Long id) {
+        try {
+            UserContentSummaryDTO userContentSummary = iUserService.getUserContentSummaryById(id);
+            return ResponseEntity.ok().body(new ApiResponse("Resumo do conteúdo do usuário", userContentSummary));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        }
+    }
+
 }

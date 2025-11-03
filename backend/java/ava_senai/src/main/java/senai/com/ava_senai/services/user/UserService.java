@@ -3,6 +3,7 @@ package senai.com.ava_senai.services.user;
 
 import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -110,6 +111,40 @@ public class UserService implements IUserService {
 
     }
 
+    @Override
+    public UserContentSummaryDTO getUserContentSummaryById(Long id) {
+        User user = userRepository.findUserWithContentById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado!"));
+
+        return new UserContentSummaryDTO(user);
+    }
+
+    @Override
+    public UserResponseDTO changeUserStatus(Long userId, UserStatus status) {
+
+        return Optional.ofNullable(userRepository.findById(userId))
+                .get()
+                .map((userDb) -> {
+
+                    userDb.setUserStatus(status);
+
+                    updateData(new UserRegisterDTO(userDb), userDb);
+
+                    userRepository.save(userDb);
+
+                    return new UserResponseDTO(userDb);
+
+                })
+                .orElseThrow(() -> new UserNotFoundException("Usuario não existe!"));
+
+
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+
+    }
+
     public void updateRelationedClasses(UserRegisterDTO request, User userDb) {
 
         removeOldRelatedData(userDb);
@@ -131,28 +166,6 @@ public class UserService implements IUserService {
         }
 
         userDb.getUserClasses().removeAll(userClasses);
-
-    }
-
-
-    @Override
-    public UserResponseDTO changeUserStatus(Long userId, UserStatus status) {
-
-        return Optional.ofNullable(userRepository.findById(userId))
-                .get()
-                .map((userDb) -> {
-
-                    userDb.setUserStatus(status);
-
-                    updateData(new UserRegisterDTO(userDb), userDb);
-
-                    userRepository.save(userDb);
-
-                    return new UserResponseDTO(userDb);
-
-                })
-                .orElseThrow(() -> new UserNotFoundException("Usuario não existe!"));
-
 
     }
 
@@ -208,11 +221,6 @@ public class UserService implements IUserService {
         }
 
         validation.throwIfHasErrors();
-
-    }
-
-    @Override
-    public void deleteUser(Long id) {
 
     }
 
