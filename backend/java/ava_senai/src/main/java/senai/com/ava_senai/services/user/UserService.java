@@ -3,20 +3,19 @@ package senai.com.ava_senai.services.user;
 
 import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import senai.com.ava_senai.domain.course.Course;
+import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.institution.Institution;
 import senai.com.ava_senai.domain.user.*;
 import senai.com.ava_senai.domain.user.userclass.UserClass;
 import senai.com.ava_senai.exception.*;
-import senai.com.ava_senai.repository.ClassRepository;
-import senai.com.ava_senai.repository.InstitutionRepository;
-import senai.com.ava_senai.repository.UserClassRepository;
-import senai.com.ava_senai.repository.UserRepository;
+import senai.com.ava_senai.repository.*;
+import senai.com.ava_senai.services.task.TaskService;
 import senai.com.ava_senai.util.CPFCNPJValidator;
 
 import java.io.IOException;
@@ -36,6 +35,8 @@ public class UserService implements IUserService {
     private final UserClassRepository userClassRepository;
     private final InstitutionRepository institutionRepository;
     private final ClassRepository classRepository;
+    private final TaskService taskService;
+    private final CourseRepository courseRepository;
 
     @Override
     public UserResponseDTO getUserByid(Long id) {
@@ -60,6 +61,11 @@ public class UserService implements IUserService {
 
     }
 
+    // na hora que eu vou salvar um usuário, caso ele esteja em uma class devo chamar a rotina de salvar tasks
+
+    // sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
+    
+    
     @Override
     @Transactional(rollbackOn = Exception.class)
     public UserResponseDTO createUser(UserRegisterDTO request) {
@@ -75,8 +81,11 @@ public class UserService implements IUserService {
                     user = userRepository.save(user);
 
                     String imageName = saveImage(request.getImage(), user);
+
                     user.setNameImage(imageName);
+
                     userRepository.updateNameImageById(imageName, user.getId());
+
                     saveClasses(request, user);
 
                     return new UserResponseDTO(user);
@@ -292,9 +301,23 @@ public class UserService implements IUserService {
 
         if (userRegisterDTO.getClassesId() != null && !userRegisterDTO.getClassesId().isEmpty()) {
 
+            List coursesOfUser = new ArrayList<Long>();
+
             userRegisterDTO.getClassesId().forEach(classId -> {
 
-                UserClass userClass = userClassRepository.save(new UserClass(userDb, classRepository.findById(classId).get()));
+                Class clazz = classRepository.findById(classId).get();
+
+                UserClass userClass = userClassRepository.save(new UserClass(userDb, clazz));
+
+                Long courseId = clazz.getCourseId();
+
+                if(!coursesOfUser.contains(courseId)){
+
+                    createContentCourseForUser(courseId);
+
+                    coursesOfUser.add(courseId);
+
+                }
 
                 if (userDb.getUserClasses() != null) {
                     userDb.getUserClasses().add(userClass);
@@ -308,6 +331,20 @@ public class UserService implements IUserService {
 
                 }
 
+            });
+
+        }
+
+    }
+
+    public void createContentCourseForUser(Long courseId) {
+
+        List<Long> taskIds = courseRepository.findAllTaskIdsByCourseId(courseId);
+
+        if (taskIds != null && !taskIds.isEmpty()) {
+
+            taskIds.forEach(taskId -> {
+                taskService.sendMessageCreateUsersTask(taskId, courseId);
             });
 
         }

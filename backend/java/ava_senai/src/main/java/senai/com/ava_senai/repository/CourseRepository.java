@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import senai.com.ava_senai.domain.course.Course;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
@@ -16,5 +17,15 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             "LEFT JOIN FETCH t.contents tc " +
             "WHERE c.id = :id")
     Optional<Course> findCourseWithContentById(Long id);
+
+    @Query(
+            nativeQuery = true,
+            value = " SELECT t.id FROM task t " +
+                    " JOIN knowledge_trail kt ON kt.id = t.knowledge_trail_id " +
+                    " JOIN section s ON s.id = kt.section_id " +
+                    " JOIN course c ON c.id = s.course_id " +
+                    " WHERE c.id = :courseId "
+    )
+    List<Long> findAllTaskIdsByCourseId(Long courseId);
 
 }
