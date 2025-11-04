@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +40,9 @@ import {
   Trophy,
   Check,
   ChevronsUpDown,
-  ArrowUpDown
+  ArrowUpDown,
+  RefreshCcw,
+  Loader2
 } from 'lucide-react';
 import { mockCourseService, Course, Trail, Task, Material } from '@/lib/services/mockCourseService';
 import { mockSubmissionService } from '@/lib/services/mockSubmissionService';
@@ -91,6 +94,7 @@ interface ContentItem {
 
 export default function GerenciarConteudo() {
   const router = useRouter();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [courses, setCourses] = useState<{ id: string; name: string }[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [content, setContent] = useState<ContentItem[]>([]);
@@ -103,6 +107,26 @@ export default function GerenciarConteudo() {
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
   const [courseContent, setCourseContent] = useState<CourseContentSummary | null>(null);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
+
+  const fetchCourseContent = useCallback(async (courseId: string, options: { resetFilters?: boolean } = {}) => {
+    const { resetFilters = false } = options;
+    setIsLoadingContent(true);
+
+    if (resetFilters) {
+      setSearchTerm('');
+    }
+
+    try {
+      const content = await CourseContentSummaryService(parseInt(courseId));
+      setCourseContent(content);
+    } catch (error) {
+      console.error('Erro ao carregar conteúdo do curso:', error);
+      toast.error('Erro ao carregar conteúdo do curso');
+      setCourseContent(null);
+    } finally {
+      setIsLoadingContent(false);
+    }
+  }, []);
   
   const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -195,26 +219,15 @@ export default function GerenciarConteudo() {
     const loadCourseContent = async () => {
       if (!selectedCourseId) {
         setCourseContent(null);
-        setSearchTerm(''); // Limpa o filtro quando não há curso selecionado
+        setSearchTerm('');
         return;
       }
 
-      setIsLoadingContent(true);
-      setSearchTerm(''); // Limpa o filtro ao trocar de curso
-      try {
-        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
-        setCourseContent(content);
-      } catch (error) {
-        console.error('Erro ao carregar conteúdo do curso:', error);
-        toast.error('Erro ao carregar conteúdo do curso');
-        setCourseContent(null);
-      } finally {
-        setIsLoadingContent(false);
-      }
+      await fetchCourseContent(selectedCourseId, { resetFilters: true });
     };
 
-    loadCourseContent();
-  }, [selectedCourseId]);
+    void loadCourseContent();
+  }, [selectedCourseId, fetchCourseContent]);
 
   useEffect(() => {
     const allTrails = mockCourseService.getAllTrails();
@@ -299,8 +312,7 @@ export default function GerenciarConteudo() {
       
       // Recarrega o conteúdo do curso
       if (selectedCourseId) {
-        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
-        setCourseContent(content);
+        await fetchCourseContent(selectedCourseId);
       }
       
       return response;
@@ -323,8 +335,7 @@ export default function GerenciarConteudo() {
 
       // Recarrega o conteúdo do curso
       if (selectedCourseId) {
-        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
-        setCourseContent(content);
+        await fetchCourseContent(selectedCourseId);
       }
     } catch (error) {
       console.error('Erro ao reordenar tarefas:', error);
@@ -349,8 +360,7 @@ export default function GerenciarConteudo() {
       
       // Recarrega o conteúdo do curso
       if (selectedCourseId) {
-        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
-        setCourseContent(content);
+        await fetchCourseContent(selectedCourseId);
       }
       
       setEditTrail(null);
@@ -401,8 +411,7 @@ export default function GerenciarConteudo() {
 
       // Recarrega o conteúdo do curso mantendo o curso selecionado
       if (selectedCourseId) {
-        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
-        setCourseContent(content);
+        await fetchCourseContent(selectedCourseId);
       }
     } catch (error) {
       console.error('Erro ao criar tarefa:', error);
@@ -628,6 +637,33 @@ export default function GerenciarConteudo() {
                 </Button>
               )}
             </div>
+          </div>
+        )}
+
+        {selectedCourseId && (
+          <div className="flex w-full sm:w-auto sm:self-end">
+            <Button
+              variant="outline"
+              disabled={isLoadingContent}
+              onClick={() => {
+                if (selectedCourseId) {
+                  void fetchCourseContent(selectedCourseId);
+                }
+              }}
+              className="h-12 w-full sm:w-auto border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold text-blue-700"
+            >
+              {isLoadingContent ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Atualizando...
+                </>
+              ) : (
+                <>
+                  <RefreshCcw className="h-4 w-4" />
+                  Atualizar conteúdo
+                </>
+              )}
+            </Button>
           </div>
         )}
       </div>
@@ -925,18 +961,52 @@ export default function GerenciarConteudo() {
                                                     {content.name}
                                                   </span>
                                                   <div className="flex items-center gap-1 flex-shrink-0">
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="sm"
-                                                      onClick={() => {
-                                                        setSelectedContentForView(content);
-                                                        setIsViewContentModalOpen(true);
-                                                      }}
-                                                      className="h-6 w-6 p-0 hover:bg-purple-100"
-                                                      title="Visualizar conteúdo"
-                                                    >
-                                                      <Eye className="h-3 w-3 text-purple-600" />
-                                                    </Button>
+                                                    {/* Em mobile, apenas LINK mostra botão visualizar */}
+                                                    {/* Em desktop, todos os tipos mostram visualizar */}
+                                                    {(!isMobile || content.contentType === 'LINK') && (
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                          setSelectedContentForView(content);
+                                                          setIsViewContentModalOpen(true);
+                                                        }}
+                                                        className="h-6 w-6 p-0 hover:bg-purple-100"
+                                                        title="Visualizar conteúdo"
+                                                      >
+                                                        <Eye className="h-3 w-3 text-purple-600" />
+                                                      </Button>
+                                                    )}
+                                                    
+                                                    {/* Botão de download para tipos não-LINK em mobile */}
+                                                    {isMobile && content.contentType !== 'LINK' && (
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={async () => {
+                                                          try {
+                                                            const response = await fetch(`/api/task-content/download?url=${encodeURIComponent(content.contentUrl)}`);
+                                                            if (!response.ok) throw new Error('Erro ao baixar');
+                                                            const blob = await response.blob();
+                                                            const url = window.URL.createObjectURL(blob);
+                                                            const a = document.createElement('a');
+                                                            a.href = url;
+                                                            a.download = content.name || 'download';
+                                                            document.body.appendChild(a);
+                                                            a.click();
+                                                            window.URL.revokeObjectURL(url);
+                                                            document.body.removeChild(a);
+                                                          } catch (error) {
+                                                            console.error('Erro ao baixar:', error);
+                                                            window.open(content.contentUrl, '_blank');
+                                                          }
+                                                        }}
+                                                        className="h-6 w-6 p-0 hover:bg-blue-100"
+                                                        title="Baixar conteúdo"
+                                                      >
+                                                        <Download className="h-3 w-3 text-blue-600" />
+                                                      </Button>
+                                                    )}
                                                     {/* Botão de excluir conteúdo ocultado temporariamente */}
                                                   </div>
                                                 </div>
