@@ -5,6 +5,7 @@ import senai.com.ava_senai.domain.task.Task;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -60,6 +61,7 @@ public record CourseContentSummaryDTO(String name, Integer quantitySemester, Lon
                 course.getSections() != null
                         ? course.getSections().stream()
                         .map(SectionSummaryDTO::new)
+                        .sorted(Comparator.comparing(SectionSummaryDTO::id))
                         .toList()
                         : List.of());
     }
