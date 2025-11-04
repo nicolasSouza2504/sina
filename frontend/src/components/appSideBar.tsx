@@ -28,10 +28,10 @@ import getUserFromToken from "@/lib/auth/userToken";
 import { Button } from "./ui/button";
 import signOut from "@/lib/api/auth/signout";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { UserFromToken } from "@/lib/interfaces/userInterfaces";
 import { NotificationsBell } from '@/components/ui/notifications-bell';
+import { useSidebar } from "@/components/ui/sidebar";
 
 // Sidebar personalizada para professores (inclui funcionalidades originais + criação de conteúdo)
 const teacherItems = [
@@ -100,14 +100,28 @@ export function AppSidebar() {
   const [user, setUser] = useState<UserFromToken | undefined | null>(null);
 
   const router = useRouter();
-  async function handleSignout() {
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const closeSidebarOnNavigate = useCallback(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [isMobile, setOpenMobile]);
+
+  const handleSignout = useCallback(async () => {
+    closeSidebarOnNavigate();
     const result = await signOut();
     if (result) {
       router.push("/login");
     } else {
       console.error("Failed to sign out");
     }
-  }
+  }, [closeSidebarOnNavigate, router]);
+
+  const handleProfileClick = useCallback(() => {
+    closeSidebarOnNavigate();
+    router.push("/user/profile");
+  }, [closeSidebarOnNavigate, router]);
 
   const userDecoded = async () => {
     const user = await getUserFromToken();
@@ -170,6 +184,7 @@ export function AppSidebar() {
                     >
                       <Link
                         href={item.url}
+                        onClick={closeSidebarOnNavigate}
                         className="flex items-center gap-2 p-2 hover:bg-sky-500 hover:text-white rounded-md text-xl text-center"
                       >
                         <item.icon className="size-2" />
@@ -202,7 +217,7 @@ export function AppSidebar() {
               {/* Sininho de notificações - apenas para professores */}
               {user?.role?.name === "TEACHER" && <NotificationsBell />}
               <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
-              onClick={() => router.push("/user/profile")}
+              onClick={handleProfileClick}
               >
                 <UserPen className=" size-6" />
               </Button>

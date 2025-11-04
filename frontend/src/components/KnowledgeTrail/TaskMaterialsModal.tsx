@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from 'react';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -75,6 +76,7 @@ export default function TaskMaterialsModal({
 }: TaskMaterialsModalProps) {
   const [selectedContent, setSelectedContent] = useState<TaskContentSummary | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
   const handleViewContent = (material: TaskContentSummary) => {
     setSelectedContent(material);
@@ -163,7 +165,9 @@ export default function TaskMaterialsModal({
                   </div>
 
                   <div className="flex gap-2 w-full sm:w-auto">
-                    {canPreview(material.contentType) && (
+                    {/* Em mobile, apenas LINK pode ser visualizado */}
+                    {/* Em desktop, todos os tipos com canPreview podem ser visualizados */}
+                    {(!isMobile && canPreview(material.contentType)) || (isMobile && material.contentType === 'LINK') ? (
                       <Button
                         variant="outline"
                         size="sm"
@@ -174,16 +178,28 @@ export default function TaskMaterialsModal({
                         <span className="hidden sm:inline">Visualizar</span>
                         <span className="sm:hidden">Ver</span>
                       </Button>
-                    )}
+                    ) : null}
+                    
+                    {/* Botão de download */}
                     {material.contentType !== 'LINK' && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleDownload(material)}
-                        className={`h-9 ${canPreview(material.contentType) ? 'w-9 sm:w-auto' : 'flex-1'} sm:px-4 border-2 hover:bg-blue-50 hover:border-blue-300 ${canPreview(material.contentType) ? 'p-0 sm:p-2' : ''}`}
+                        className={`h-9 ${
+                          // Em mobile, se não é LINK, ocupa largura total
+                          // Em desktop, se pode preview, fica pequeno, senão largura total
+                          isMobile && material.contentType !== 'LINK' 
+                            ? 'flex-1' 
+                            : canPreview(material.contentType) 
+                              ? 'w-9 sm:w-auto' 
+                              : 'flex-1'
+                        } sm:px-4 border-2 hover:bg-blue-50 hover:border-blue-300 ${
+                          !isMobile && canPreview(material.contentType) ? 'p-0 sm:p-2' : 'px-3'
+                        }`}
                       >
                         <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span className="hidden sm:inline sm:ml-2">Baixar</span>
+                        <span className={`${isMobile ? 'inline ml-2' : 'hidden sm:inline sm:ml-2'}`}>Baixar</span>
                       </Button>
                     )}
                   </div>
