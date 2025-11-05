@@ -1,10 +1,17 @@
 package senai.com.ava_senai.controller;
 
+import com.google.gson.Gson;
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContentUploadDTO;
+import senai.com.ava_senai.domain.task.TaskContentResponseDTO;
+import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
+import senai.com.ava_senai.dto.FileData;
+import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.task.TaskContentService;
 
 import java.io.IOException;
@@ -16,20 +23,31 @@ public class TaskContentController {
 
     private final TaskContentService taskContentService;
 
-    @PostMapping("/upload")
-    public ResponseEntity<Void> uploadContent(
-            @RequestParam("identifier") String identifier,
-            @RequestParam("file") MultipartFile file) throws IOException {
+    @PostMapping("/save")
+    public ResponseEntity uploadContent(
+            @RequestParam @Valid String taskContentStr,
+            @RequestParam("file") @Nullable MultipartFile file) throws IOException {
 
-        TaskContentUploadDTO uploadDTO = new TaskContentUploadDTO(
-                identifier,
-                file.getBytes(),
-                file.getContentType()
-        );
+        TaskContentResponseDTO taskContentResponesDTO = taskContentService.saveTaskContent(new Gson().fromJson(taskContentStr, TaskContentRegisterDTO.class), file);
 
-        taskContentService.uploadContent(uploadDTO);
+        return ResponseEntity.ok().body(new ApiResponse("Ok", taskContentResponesDTO));
 
-        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/find")
+    public ResponseEntity findContentByPath(@RequestParam String filePath) {
+
+        try {
+
+            FileData fileData = taskContentService.findContentByPathWithMetadata(filePath);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, fileData.getMimeType())
+                    .body(fileData.getBytes());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ApiResponse("Error", e.getMessage()));
+        }
 
     }
 

@@ -138,7 +138,7 @@ export function StudentSubmissionsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="pb-6">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-blue-600 rounded-xl">
@@ -358,7 +358,7 @@ export function StudentSubmissionsModal({
       {/* Modal de Preview do Material */}
       {selectedSubmission && (
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold flex items-center gap-2">
                 <Eye className="h-5 w-5 text-blue-600" />

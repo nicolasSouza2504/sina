@@ -12,7 +12,7 @@ import java.util.UUID;
 public class StorageService {
     private final MinioClient minioClient;
 
-    private static final String TASK_CONTENT_BUCKET = "task-contents";
+    public static final String TASK_CONTENT_BUCKET = "task-contents";
 
     private void createBucketIfNotExists(String bucketName) throws Exception {
 

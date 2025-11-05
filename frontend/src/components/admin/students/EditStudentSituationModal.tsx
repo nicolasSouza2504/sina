@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, CheckCircle2, XCircle } from "lucide-react"
+import { AlertCircle, CheckCircle2, XCircle, FileText } from "lucide-react"
 import { UserData } from "@/lib/interfaces/userInterfaces"
 import { toast } from "sonner"
 import UserUpdateStatusService from "@/lib/api/user/userUpdateStatus"
@@ -88,64 +88,78 @@ export function EditStudentSituationModal({ isOpen, onClose, onSuccess, user }: 
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>Alterar Situação do Aluno</DialogTitle>
-                    <DialogDescription>
-                        {user?.status === "ATIVO" 
-                            ? `Desativar o aluno ${user?.nome || ""}`
-                            : `Ativar o aluno ${user?.nome || ""}`
-                        }
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="space-y-4 py-4">
-                    {user?.status && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted p-3 rounded-md mb-4">
-                            <AlertCircle className="h-4 w-4" />
-                            <span>
-                                Status atual: <strong className="capitalize">
-                                    {user.status === "ATIVO" ? "Ativo" : "Inativo"}
-                                </strong>
-                            </span>
+            <DialogContent className="w-[95vw] sm:w-full max-w-md max-h-[95vh] sm:max-h-[90vh] p-4 sm:p-6">
+                <div className="relative">
+                    <DialogHeader className="pb-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-3 bg-blue-600 rounded-xl">
+                                <FileText className="h-6 w-6 text-white" />
+                            </div>
+                            <div>
+                                <DialogTitle className="text-2xl font-bold text-gray-900">
+                                    Alterar Situação
+                                </DialogTitle>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    {user?.status === "ATIVO" 
+                                        ? `Desativar ${user?.nome || "aluno"}`
+                                        : `Ativar ${user?.nome || "aluno"}`
+                                    }
+                                </p>
+                            </div>
                         </div>
-                    )}
+                    </DialogHeader>
 
-                    <div className="flex flex-col gap-3">
+                    <div className="space-y-6">
                         {user?.status && (
-                            <Button
-                                type="button"
-                                onClick={() => handleStatusSelect(user.status === "ATIVO" ? "INATIVO" : "ATIVO")}
-                                disabled={isSubmitting}
-                                className={`${
-                                    user.status === "ATIVO" 
-                                        ? STATUS_OPTIONS.inactive.colorClass 
-                                        : STATUS_OPTIONS.active.colorClass
-                                } h-16 flex items-center justify-center gap-3 text-white`}
-                            >
-                                {user.status === "ATIVO" ? (
-                                    <>
-                                        <XCircle className="h-5 w-5" />
-                                        <span className="font-medium">Desativar Aluno</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 className="h-5 w-5" />
-                                        <span className="font-medium">Ativar Aluno</span>
-                                    </>
-                                )}
-                            </Button>
+                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                <div className="flex items-center gap-3">
+                                    <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                                    <div>
+                                        <p className="text-sm text-blue-800 font-medium">Status Atual</p>
+                                        <p className="text-sm text-blue-700 capitalize">
+                                            {user.status === "ATIVO" ? "Ativo" : "Inativo"}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         )}
 
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClose}
-                            disabled={isSubmitting}
-                            className="w-full h-12"
-                        >
-                            Cancelar
-                        </Button>
+                        <div className="flex flex-col gap-3">
+                            {user?.status && (
+                                <Button
+                                    type="button"
+                                    onClick={() => handleStatusSelect(user.status === "ATIVO" ? "INATIVO" : "ATIVO")}
+                                    disabled={isSubmitting}
+                                    className={`${
+                                        user.status === "ATIVO" 
+                                            ? STATUS_OPTIONS.inactive.colorClass 
+                                            : STATUS_OPTIONS.active.colorClass
+                                    } h-12 flex items-center justify-center gap-2 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200`}
+                                >
+                                    {user.status === "ATIVO" ? (
+                                        <>
+                                            <XCircle className="h-5 w-5" />
+                                            <span>Desativar Aluno</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle2 className="h-5 w-5" />
+                                            <span>Ativar Aluno</span>
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleClose}
+                                disabled={isSubmitting}
+                                className="h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
+                            >
+                                Cancelar
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </DialogContent>

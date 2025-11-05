@@ -6,11 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Upload, AlertCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Upload, AlertCircle, Users, X, Plus, Edit, Calendar } from "lucide-react"
 import { UserData } from "@/lib/interfaces/userInterfaces"
+import { Class } from "@/lib/interfaces/classInterfaces"
 import { z } from "zod"
 import { toast } from "sonner"
 import UpdateUserService from "@/lib/api/user/userUpdate";
+import ClassList from "@/lib/api/class/classList"
+import { ClassSelectorModal } from "./ClassSelectorModal"
 
 interface EditUserModalProps {
     isOpen: boolean
@@ -45,6 +49,12 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
     const [isSubmitting, setIsSubmitting] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
+    // Class selection states
+    const [availableClasses, setAvailableClasses] = useState<Class[]>([])
+    const [isLoadingClasses, setIsLoadingClasses] = useState(false)
+    const [isClassModalOpen, setIsClassModalOpen] = useState(false)
+    const [selectedClassIds, setSelectedClassIds] = useState<number[]>([])
+
     useEffect(() => {
         if (user) {
             setFormData({
@@ -53,8 +63,30 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
                 cpf: user.cpf || "",
                 roleId: 3, // Always preset to STUDENT
             })
+            // Set selected classes from user data
+            const userClassIds = user.classes?.map(cls => cls.Id) || []
+            setSelectedClassIds(userClassIds)
         }
     }, [user])
+
+    // Load available classes
+    useEffect(() => {
+        const loadClasses = async () => {
+            setIsLoadingClasses(true)
+            try {
+                const classes = await ClassList()
+                setAvailableClasses(classes)
+            } catch (error) {
+                console.error("[EditStudentModal] Erro ao carregar turmas:", error)
+                toast.error("Erro ao carregar turmas disponíveis")
+            } finally {
+                setIsLoadingClasses(false)
+            }
+        }
+        if (isOpen) {
+            loadClasses()
+        }
+    }, [isOpen])
 
     const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -104,6 +136,7 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
                 email: formData.email,
                 cpf: formData.cpf,
                 roleId: 3, // Always STUDENT
+                classesId: selectedClassIds.length > 0 ? selectedClassIds : undefined,
             }
 
             await UpdateUserService(userData, user.id, selectedImage)
@@ -135,6 +168,19 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
         setSelectedImage(null)
         setImagePreview(null)
         setErrors({})
+        setSelectedClassIds([])
+    }
+
+    const handleClassesConfirm = (classIds: number[]) => {
+        setSelectedClassIds(classIds)
+    }
+
+    const handleRemoveClass = (classId: number) => {
+        setSelectedClassIds((prev) => prev.filter((id) => id !== classId))
+    }
+
+    const getSelectedClasses = () => {
+        return availableClasses.filter((cls) => selectedClassIds.includes(cls.id))
     }
 
     const handleClose = () => {
@@ -146,24 +192,34 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>Editar Usuário</DialogTitle>
-                    <DialogDescription>
-                        Atualize as informações do usuário abaixo
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+                <div className="relative">
+                    <DialogHeader className="pb-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-3 bg-blue-600 rounded-xl">
+                                <Edit className="h-6 w-6 text-white" />
+                            </div>
+                            <div>
+                                <DialogTitle className="text-2xl font-bold text-gray-900">
+                                    Editar Aluno
+                                </DialogTitle>
+                                <p className="text-sm text-gray-600 mt-1">Atualize as informações do aluno</p>
+                            </div>
+                        </div>
+                    </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Nome Completo</Label>
+                            <Label htmlFor="name" className="text-sm font-semibold text-gray-700">
+                                Nome Completo <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="name"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="Digite o nome completo"
-                                className={errors.name ? "border-red-500" : ""}
+                                placeholder="Ex: João Silva"
+                                className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                                 disabled={isSubmitting}
                             />
                             {errors.name && (
@@ -174,14 +230,16 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
+                                Email <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="email"
                                 type="email"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                placeholder="email@techuni.edu.br"
-                                className={errors.email ? "border-red-500" : ""}
+                                placeholder="aluno@senai.br"
+                                className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                                 disabled={isSubmitting}
                             />
                             {errors.email && (
@@ -193,16 +251,18 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="cpf">CPF</Label>
+                            <Label htmlFor="cpf" className="text-sm font-semibold text-gray-700">
+                                CPF <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                                 id="cpf"
                                 value={formatCPF(formData.cpf)}
                                 onChange={(e) => setFormData({ ...formData, cpf: e.target.value.replace(/\D/g, "") })}
                                 placeholder="000.000.000-00"
                                 maxLength={14}
-                                className={errors.cpf ? "border-red-500" : ""}
+                                className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                                 disabled={isSubmitting}
                             />
                             {errors.cpf && (
@@ -213,39 +273,92 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="role">Tipo de Usuário</Label>
+                            <Label htmlFor="role" className="text-sm font-semibold text-gray-700">
+                                Tipo de Usuário
+                            </Label>
                             <Input
                                 id="role"
                                 value="STUDENT"
                                 disabled
-                                className="bg-muted cursor-not-allowed"
+                                className="h-12 bg-gray-100 border-2 border-gray-200 cursor-not-allowed rounded-xl"
                             />
-                            <p className="text-xs text-muted-foreground">Tipo de usuário fixo</p>
+                            <p className="text-xs text-gray-500">Tipo de usuário fixo</p>
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="institution">Instituição</Label>
+                        <Label htmlFor="institution" className="text-sm font-semibold text-gray-700">
+                            Instituição
+                        </Label>
                         <Input
                             id="institution"
                             value="SENAI Joinville"
                             disabled
-                            className="bg-muted cursor-not-allowed"
+                            className="h-12 bg-gray-100 border-2 border-gray-200 cursor-not-allowed rounded-xl"
                         />
-                        <p className="text-xs text-muted-foreground">Instituição padrão</p>
+                        <p className="text-xs text-gray-500">Instituição padrão</p>
+                    </div>
+
+                    {/* Class Selection */}
+                    <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            Turmas do Aluno
+                        </Label>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsClassModalOpen(true)}
+                            className="w-full h-12 justify-start border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors rounded-xl"
+                            disabled={isSubmitting || isLoadingClasses}
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            {isLoadingClasses ? "Carregando turmas..." : "Gerenciar Turmas"}
+                        </Button>
+                        
+                        {selectedClassIds.length > 0 && (
+                            <div className="space-y-2 mt-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">
+                                        {selectedClassIds.length} {selectedClassIds.length === 1 ? "turma selecionada" : "turmas selecionadas"}
+                                    </span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {getSelectedClasses().map((cls) => (
+                                        <Badge
+                                            key={cls.id}
+                                            variant="secondary"
+                                            className="flex items-center gap-1 pr-1"
+                                        >
+                                            <span className="truncate max-w-[150px]">{cls.nome}</span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                                onClick={() => handleRemoveClass(cls.id)}
+                                                disabled={isSubmitting}
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-2">
-                        <Label>Foto do Usuário</Label>
+                        <Label className="text-sm font-semibold text-gray-700">Foto do Aluno</Label>
                         <div className="flex items-center gap-4">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-2"
+                                className="h-12 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors rounded-xl"
                                 disabled={isSubmitting}
                             >
-                                <Upload className="h-4 w-4" />
+                                <Upload className="h-4 w-4 mr-2" />
                                 Selecionar Imagem
                             </Button>
                             <input
@@ -264,24 +377,51 @@ export function EditStudentModal({ isOpen, onClose, onSuccess, user }: EditUserM
                             )}
                         </div>
                         {selectedImage && (
-                            <p className="text-xs text-muted-foreground">Arquivo selecionado: {selectedImage.name}</p>
+                            <p className="text-xs text-gray-500">Arquivo selecionado: {selectedImage.name}</p>
                         )}
                     </div>
 
-                    <DialogFooter>
+                    {/* Footer com Botões */}
+                    <div className="flex justify-end gap-3 pt-8 border-t border-gray-100 mt-6">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={handleClose}
                             disabled={isSubmitting}
+                            className="h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? "Atualizando..." : "Atualizar Usuário"}
+                        <Button 
+                            type="submit" 
+                            disabled={isSubmitting}
+                            className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Atualizando...
+                                </>
+                            ) : (
+                                <>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Atualizar Aluno
+                                </>
+                            )}
                         </Button>
-                    </DialogFooter>
-                </form>
+                    </div>
+                    </form>
+                </div>
+
+                {/* Class Selector Modal */}
+                <ClassSelectorModal
+                    isOpen={isClassModalOpen}
+                    onClose={() => setIsClassModalOpen(false)}
+                    availableClasses={availableClasses}
+                    selectedClassIds={selectedClassIds}
+                    onConfirm={handleClassesConfirm}
+                    isLoading={isLoadingClasses}
+                />
             </DialogContent>
         </Dialog>
     )

@@ -7,17 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.config.RabbitMQConfig;
 import senai.com.ava_senai.domain.task.*;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
+import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.user.User;
-import senai.com.ava_senai.repository.TaskContentRepository;
-import senai.com.ava_senai.repository.TaskRepository;
-import senai.com.ava_senai.repository.TaskUserRepository;
-import senai.com.ava_senai.repository.UserRepository;
+import senai.com.ava_senai.exception.NotFoundException;
+import senai.com.ava_senai.exception.Validation;
+import senai.com.ava_senai.repository.*;
 import senai.com.ava_senai.services.messaging.RabbitMQSender;
 import senai.com.ava_senai.taskuser.TaskUser;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -26,22 +23,22 @@ import java.util.List;
 public class TaskService implements ITaskService {
 
     private final UserRepository userRepository;
-    private final TaskContentRepository taskContentRepository;
     private final TaskRepository taskRepository;
     private final RabbitMQSender rabbitMQSender;
     private final TaskUserRepository taskUserRepository;
+    private final CourseRepository courseRepository;
+    private final KnowledgeTrailRepository knowledgeTrailRepository;
 
     @Override
-    public TaskResponseDTO createTasks(TaskRegisterDTO taskRegister) {
+    public TaskResponseDTO createTask(TaskRegisterDTO taskRegister) {
 
+        validateMandatoryFields(taskRegister);
 
-        Task task = createTask(taskRegister);
+        Task task = create(taskRegister);
 
         sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
 
-        List<TaskContentResponseDTO> taskContents = createTaskContents(task, taskRegister.contents());
-
-        return new TaskResponseDTO(task.getId(), taskContents);
+        return new TaskResponseDTO(task);
 
     }
 
@@ -73,13 +70,59 @@ public class TaskService implements ITaskService {
 
     }
 
-    private Task createTask(TaskRegisterDTO taskRegister) {
+    @Override
+    public TaskResponseDTO updateTask(Long id, TaskRegisterDTO taskRegisterDTO) {
+
+        Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+
+        validateMandatoryFields(taskRegisterDTO);
+
+        task = updateData(task, taskRegisterDTO);
+
+        taskRepository.save(task);
+
+        return new TaskResponseDTO(task);
+
+    }
+
+    @Override
+    public TaskResponseDTO getTaskById(Long id) {
+
+        Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+
+        return new TaskResponseDTO(task);
+
+    }
+
+    @Override
+    public void updateTaskOrder(List<TaskUpdateOrderDTO> taskUpdateOrderDTOS) {
+
+        if (!CollectionUtils.isEmpty(taskUpdateOrderDTOS)) {
+
+            taskUpdateOrderDTOS.forEach(taskUpdateOrderDTO -> {
+
+                Task task = taskRepository.findById(taskUpdateOrderDTO.taskId()).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+
+                task.setTaskOrder(taskUpdateOrderDTO.newOrder());
+
+                taskRepository.save(task);
+
+            });
+
+        }
+
+    }
+
+    private Task create(TaskRegisterDTO taskRegister) {
 
         Task task = new Task();
 
         task.setName(taskRegister.name());
         task.setDescription(taskRegister.description());
         task.setKnowledgeTrailId(taskRegister.knowledgeTrailId());
+        task.setDifficultyLevel(taskRegister.difficultyLevel());
+        task.setDueDate(taskRegister.dueDate());
+        task.setTaskOrder(taskRegister.taskOrder());
 
         return taskRepository.save(task);
 
@@ -97,27 +140,52 @@ public class TaskService implements ITaskService {
 
     }
 
-    private List<TaskContentResponseDTO> createTaskContents(Task task, List<TaskContentRegisterDTO> contents) {
+    public void validateMandatoryFields(TaskRegisterDTO taskRegister) {
 
-        List<TaskContentResponseDTO> taskContents = new ArrayList<>();
+        Validation validation = new Validation();
 
-        if (!CollectionUtils.isEmpty(contents)) {
+        if (taskRegister.courseId() == null) {
+            validation.add("courseId", "Curso é obrigatório");
+        } else if (!courseRepository.existsById(taskRegister.courseId())) {
+            validation.add("courseId", "Curso informado não existe");
+        }
 
-            contents.forEach(contentRegister -> {
+        if (taskRegister.knowledgeTrailId() == null) {
+            validation.add("knowledgeTrailId", "Trilha de conhecimento é obrigatória");
+        } else {
 
-                TaskContent taskContent = new TaskContent();
+            KnowledgeTrail knowledgeTrail = knowledgeTrailRepository.findById(taskRegister.knowledgeTrailId()).orElse(null);
 
-                taskContent.setTask(task);
-                taskContent.setContentType(contentRegister.taskContentType());
-                taskContent.setIdentifier(contentRegister.identifier());
+            if (knowledgeTrail == null) {
+                validation.add("knowledgeTrailId", "Trilha de conhecimento informada não existe");
+            } else if (BooleanUtils.isTrue(knowledgeTrail.getRanked())) {
 
-                taskContents.add(new TaskContentResponseDTO(taskContentRepository.save(taskContent)));
+                if (taskRegister.difficultyLevel() == null) {
+                    validation.add("difficultyLevel", "Nível de dificuldade é obrigatório para trilhas ranqueadas");
+                }
 
-            });
+                if (taskRegister.dueDate() == null) {
+                    validation.add("dueDate", "Data de entrega é obrigatória para trilhas ranqueadas");
+                }
+
+            }
 
         }
 
-        return taskContents;
+        validation.throwIfHasErrors();
+
+    }
+
+    private Task updateData(Task task, TaskRegisterDTO taskRegister) {
+
+        task.setName(taskRegister.name());
+        task.setDescription(taskRegister.description());
+        task.setKnowledgeTrailId(taskRegister.knowledgeTrailId());
+        task.setDifficultyLevel(taskRegister.difficultyLevel());
+        task.setDueDate(taskRegister.dueDate());
+        task.setTaskOrder(taskRegister.taskOrder());
+
+        return taskRepository.save(task);
 
     }
 

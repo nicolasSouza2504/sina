@@ -29,6 +29,23 @@ export default async function ClassList() {
 
     const responseData = await response.json();
 
-    const data: Class[] = responseData?.data;
-    return data;
+    const classData = responseData?.data;
+    
+    // Mapeia os dados da API para a interface Class
+    const mappedClasses = classData?.map((cls: any) => ({
+        id: cls.Id || cls.id,
+        code: cls.code || null,
+        nome: cls.nome || cls.name,
+        startDate: cls.startDate,
+        endDate: cls.finalDate || cls.endDate,
+        semester: cls.semester || null,
+        courseId: cls.course?.id || cls.courseId || null,
+        imgClass: cls.imgClass,
+        course: cls.course ? {
+            id: cls.course.id,
+            name: cls.course.name
+        } : null
+    })) || [];
+    
+    return mappedClasses;
 }

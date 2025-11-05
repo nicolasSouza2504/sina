@@ -15,7 +15,7 @@ public class TaskContent {
     private Long id;
 
     @Column(nullable = false)
-    private String identifier;
+    private String name;
 
     @Column(name = "content_url")
     private String contentUrl;
@@ -23,10 +23,6 @@ public class TaskContent {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TaskContentType contentType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TaskContentUploadStatus status;
 
     @ManyToOne
     @JoinColumn(name = "task_id", updatable = false, insertable = false)
@@ -38,10 +34,6 @@ public class TaskContent {
     @PrePersist
     @PreUpdate
     private void prePersist() {
-
-        if (status == null) {
-            status = TaskContentUploadStatus.PENDING;
-        }
 
         if (task != null) {
             this.taskId = task.getId();

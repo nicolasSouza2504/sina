@@ -135,6 +135,8 @@ export function AppSidebar() {
 
   const userDecoded = async () => {
     const user = await getUserFromToken();
+    console.log("User data from token:", user);
+    console.log("User role:", user?.role);
     if (user?.nome) {
       if (user.nome.length > 15) {
         const nameParts = user.nome.split(" ");
@@ -155,11 +157,11 @@ export function AppSidebar() {
   // Get navigation items based on user role
   const getNavigationItems = () => {
     if (!user?.role) return items;
-    
     // Alunos têm sidebar personalizada
     if (user.role.name === "STUDENT") {
       return studentItems;
     }
+
     
     // Professores têm sidebar personalizada
     if (user.role.name === "TEACHER") {

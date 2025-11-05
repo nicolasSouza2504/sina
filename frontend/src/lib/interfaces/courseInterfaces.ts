@@ -9,3 +9,13 @@ export interface Course {
     classes: Class[];
     sections: Section[];
 }
+
+export interface CreateCourse {
+    name: string;
+    quantitySemester: number;
+}
+
+export interface UpdateCourse {
+    name: string;
+    quantitySemester: number;
+}
