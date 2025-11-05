@@ -6,13 +6,14 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 import senai.com.ava_senai.config.RabbitMQConfig;
 import senai.com.ava_senai.domain.task.TaskUserCourseMessage;
+import senai.com.ava_senai.services.task.ITaskService;
 import senai.com.ava_senai.services.task.TaskService;
 
 @Service
 @RequiredArgsConstructor
 public class TaskUserConsumer {
 
-    private final TaskService taskService;
+    private final ITaskService taskService;
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_USER_TASKS)
     public void consumeMessage(String message) {

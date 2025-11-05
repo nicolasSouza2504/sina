@@ -45,26 +45,19 @@ public class TaskService implements ITaskService {
     @Override
     public void saveTaskUsersForCourse(TaskUserCourseMessage taskUserCourseMessage) {
 
-        // Get all users from the course
-        List<User> users = userRepository.findByCourseId(taskUserCourseMessage.getCourseId());
+        // Get all users from the course that does not have the task assigned
+        List<User> users = userRepository.findUsersByCourseIdWhereNotExistsUserTask(taskUserCourseMessage.getCourseId(), taskUserCourseMessage.getTaskId());
 
         // Create user tasks for each user in the course
         users.forEach(user -> {
 
-            //todo trazer somente os usuários que não existem para evitar consulta desnecessária
-            Boolean existsTaskUser = taskUserRepository.existsByTaskIdAndUserId(taskUserCourseMessage.getTaskId(), user.getId());
+            TaskUser userTask = new TaskUser();
 
-            if (BooleanUtils.isNotTrue(existsTaskUser)) {
+            userTask.setTaskId(taskUserCourseMessage.getTaskId());
+            userTask.setIdInstitution(user.getIdInstitution());
+            userTask.setUserId(user.getId());
 
-                TaskUser userTask = new TaskUser();
-
-                userTask.setTaskId(taskUserCourseMessage.getTaskId());
-                userTask.setIdInstitution(user.getIdInstitution());
-                userTask.setUserId(user.getId());
-
-                taskUserRepository.save(userTask);
-
-            }
+            taskUserRepository.save(userTask);
 
         });
 
@@ -128,7 +121,7 @@ public class TaskService implements ITaskService {
 
     }
 
-    private void sendMessageCreateUsersTask(Long taskID, Long courseID) {
+    public void sendMessageCreateUsersTask(Long taskID, Long courseID) {
 
         String jsonMessage = new Gson().toJson(new TaskUserCourseMessage(taskID, courseID));
 

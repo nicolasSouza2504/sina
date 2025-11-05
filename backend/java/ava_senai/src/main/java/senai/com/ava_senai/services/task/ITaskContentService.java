@@ -10,4 +10,6 @@ import java.io.IOException;
 public interface ITaskContentService {
     TaskContentResponseDTO saveTaskContent(TaskContentRegisterDTO taskContentRegisterDTO, MultipartFile file) throws IOException;
     void uploadContent(TaskContent taskContent, MultipartFile file) throws IOException;
+
+    void delete(Long id);
 }

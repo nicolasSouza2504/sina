@@ -5,6 +5,8 @@ import senai.com.ava_senai.domain.task.Task;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 public record CourseContentSummaryDTO(String name, Integer quantitySemester, Long id, List<SectionSummaryDTO> sections) {
@@ -20,11 +22,11 @@ public record CourseContentSummaryDTO(String name, Integer quantitySemester, Lon
                                 .toList() : List.of());
             }
 
-            record TaskSummaryDTO(Long id, String name, String description, Integer taskOrder, List<TaskContentSummaryDTO> contents) {
+            record TaskSummaryDTO(Long id, String name, String description, Integer taskOrder, Date dueDate, List<TaskContentSummaryDTO> contents) {
 
                 public TaskSummaryDTO(Task task) {
 
-                    this(task.getId(), task.getName(), task.getDescription(), task.getTaskOrder(),
+                    this(task.getId(), task.getName(), task.getDescription(), task.getTaskOrder(), task.getDueDate(),
                             task.getContents() != null ? task.getContents().stream()
                                     .map(content -> new TaskContentSummaryDTO(content))
                                     .toList() : List.of());
@@ -59,6 +61,7 @@ public record CourseContentSummaryDTO(String name, Integer quantitySemester, Lon
                 course.getSections() != null
                         ? course.getSections().stream()
                         .map(SectionSummaryDTO::new)
+                        .sorted(Comparator.comparing(SectionSummaryDTO::id))
                         .toList()
                         : List.of());
     }

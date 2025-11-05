@@ -42,7 +42,13 @@ import {
     Users,
     GraduationCap,
     X,
-    Hash, RefreshCcw,
+    Hash,
+    RefreshCcw,
+    CheckCircle2,
+    Clock3,
+    Flag,
+    CalendarX,
+    AlertTriangle,
 } from "lucide-react";
 import ModalAddClass from "@/components/admin/class/modalAddClass";
 import ModalEditClass from "@/components/admin/class/modalEditClass";
@@ -106,6 +112,63 @@ export default function ClassesManagement() {
             setLoading(false);
         }
     };
+
+const getClassStatusMeta = (status: string) => {
+    switch (status) {
+        case "Em Andamento":
+            return {
+                icon: CheckCircle2,
+                bgClass: "bg-green-50",
+                textClass: "text-green-700",
+                borderClass: "border-green-200",
+            };
+        case "Não Iniciada":
+            return {
+                icon: Clock3,
+                bgClass: "bg-yellow-50",
+                textClass: "text-yellow-700",
+                borderClass: "border-yellow-200",
+            };
+        case "Finalizada":
+            return {
+                icon: Flag,
+                bgClass: "bg-blue-50",
+                textClass: "text-blue-700",
+                borderClass: "border-blue-200",
+            };
+        case "Sem Data":
+            return {
+                icon: CalendarX,
+                bgClass: "bg-gray-50",
+                textClass: "text-gray-600",
+                borderClass: "border-gray-300",
+            };
+        case "Data inválida":
+            return {
+                icon: AlertTriangle,
+                bgClass: "bg-red-50",
+                textClass: "text-red-600",
+                borderClass: "border-red-200",
+            };
+        default:
+            return {
+                icon: Calendar,
+                bgClass: "bg-gray-50",
+                textClass: "text-gray-600",
+                borderClass: "border-gray-300",
+            };
+    }
+};
+
+const renderClassStatusChip = (status: string) => {
+    const { icon: StatusIcon, bgClass, textClass, borderClass } = getClassStatusMeta(status);
+    return (
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold ${bgClass} ${borderClass} ${textClass}`}>
+            <StatusIcon className="h-3.5 w-3.5" />
+            <span>{status}</span>
+        </div>
+    );
+};
 
     const filteredClasses =
         classes?.filter((cls) =>
@@ -230,7 +293,7 @@ export default function ClassesManagement() {
 
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background w-full">
             {error && (
                 <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 md:w-1/2 lg:w-1/3">
                     <Alert
@@ -252,134 +315,149 @@ export default function ClassesManagement() {
             )}
 
             {/* Header */}
-            <header className="border-b bg-card">
-                <div className="flex flex-col sm:flex-row sm:h-16 items-start sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
-                    <div className="flex-1 min-w-0">
-                        <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
-                            Gerenciamento de Turmas
-                        </h1>
-                        <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                            Gerencie as turmas da universidade de tecnologia
-                        </p>
+            <header className="border-b bg-white mb-8">
+                <div className="flex flex-col sm:flex-row h-auto sm:h-20 items-start sm:items-center justify-between px-4 md:px-2 lg:px-8 max-w-[95%] mx-auto w-full py-4 sm:py-0 gap-4 sm:gap-0">
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gerenciamento de Turmas</h1>
+                        <p className="text-sm text-gray-600 hidden sm:block mt-1">Universidade de Tecnologia - Sistema de Gestão</p>
                     </div>
-                    <Button 
-                        onClick={() => setIsCreateModalOpen(true)}
-                        className="w-full sm:w-auto"
-                        size="sm"
-                    >
-                        <Plus className="h-4 w-4 mr-2"/>
-                        <span className="sm:inline">Nova Turma</span>
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        <Badge className="flex items-center gap-2 bg-blue-100 text-blue-700 border-blue-300 px-3 py-1.5">
+                            <GraduationCap className="h-4 w-4" />
+                            <span className="hidden sm:inline font-semibold">{classes.length} Turmas Cadastradas</span>
+                            <span className="sm:hidden font-semibold">{classes.length}</span>
+                        </Badge>
+                    </div>
                 </div>
             </header>
 
             {/* Main Content */}
-            <main className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+            <main className="md:px-2 lg:px-8 pb-8 space-y-6 max-w-[95%] mx-auto w-full">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-                    <Card>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">
-                                Total de Turmas
-                            </CardTitle>
-                            <GraduationCap className="h-4 w-4 text-muted-foreground flex-shrink-0"/>
+                            <CardTitle className="text-sm font-semibold text-gray-700">Total de Turmas</CardTitle>
+                            <div className="p-2 bg-blue-50 rounded-lg">
+                                <GraduationCap className="h-5 w-5 text-blue-600" />
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-xl sm:text-2xl font-bold">{classes?.length || 0}</div>
-                            <p className="text-xs text-muted-foreground hidden sm:block">
-                                Turmas ativas no sistema
+                            <div className="text-3xl font-bold text-gray-900">{classes?.length || 0}</div>
+                            <p className="text-xs text-gray-600 mt-1">
+                                Cadastradas no sistema
                             </p>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">
-                                Em Andamento
-                            </CardTitle>
-                            <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0"/>
+                            <CardTitle className="text-sm font-semibold text-gray-700">Em Andamento</CardTitle>
+                            <div className="p-2 bg-green-50 rounded-lg">
+                                <Calendar className="h-5 w-5 text-green-600" />
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-xl sm:text-2xl font-bold">
+                            <div className="text-3xl font-bold text-gray-900">
                                 {getInProgressClasses().length}
                             </div>
-                            <p className="text-xs text-muted-foreground hidden sm:block">
-                                Turmas em andamento
+                            <p className="text-xs text-gray-600 mt-1">
+                                Turmas ativas
                             </p>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">
-                                Não Iniciadas
-                            </CardTitle>
-                            <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0"/>
+                            <CardTitle className="text-sm font-semibold text-gray-700">Não Iniciadas</CardTitle>
+                            <div className="p-2 bg-yellow-50 rounded-lg">
+                                <Calendar className="h-5 w-5 text-yellow-600" />
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-xl sm:text-2xl font-bold">
+                            <div className="text-3xl font-bold text-gray-900">
                                 {getUpcomingClasses().length}
                             </div>
-                            <p className="text-xs text-muted-foreground hidden sm:block">Turmas futuras</p>
+                            <p className="text-xs text-gray-600 mt-1">Turmas futuras</p>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">Finalizadas</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground flex-shrink-0"/>
+                            <CardTitle className="text-sm font-semibold text-gray-700">Finalizadas</CardTitle>
+                            <div className="p-2 bg-gray-50 rounded-lg">
+                                <Users className="h-5 w-5 text-gray-600" />
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-xl sm:text-2xl font-bold">
+                            <div className="text-3xl font-bold text-gray-900">
                                 {getFinishedClasses().length}
                             </div>
-                            <p className="text-xs text-muted-foreground hidden sm:block">Turmas concluídas</p>
+                            <p className="text-xs text-gray-600 mt-1">Turmas concluídas</p>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Search and Filters */}
-                <Card>
+                <Card className="border-2 border-gray-200 rounded-xl shadow-sm">
                     <CardHeader className="pb-3">
-                        <CardTitle className="text-base sm:text-lg">Buscar Turmas</CardTitle>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                            <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Buscar Turmas</CardTitle>
+                            <Button 
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl h-10 px-4"
+                            >
+                                <Plus className="h-4 w-4 mr-2"/>
+                                Nova Turma
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                             <div className="relative flex-1">
                                 <Search
-                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4"/>
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"/>
                                 <Input
                                     placeholder="Buscar por nome ou código..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10"
+                                    className="pl-10 h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                                 />
+                                {searchTerm && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setSearchTerm('')}
+                                        className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 px-2 text-xs hover:bg-gray-100"
+                                    >
+                                        Limpar
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Classes Table */}
-                <Card>
-                    <CardHeader>
+                <Card className="border-2 border-gray-200 rounded-xl shadow-sm">
+                    <CardHeader className="border-b border-gray-100">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-3 sm:gap-0">
                             <div>
-                                <CardTitle className="text-base sm:text-lg">Lista de Turmas</CardTitle>
-                                <CardDescription className="text-sm">
+                                <CardTitle className="text-lg font-bold text-gray-900">Lista de Turmas</CardTitle>
+                                <CardDescription className="text-sm text-gray-600 mt-1">
                                     {filteredClasses.length} turma(s) encontrada(s)
                                 </CardDescription>
                             </div>
-                            <div>
-                                <Button 
-                                    onClick={reloadClassList} 
-                                    className="flex items-center gap-2 bg-gray-500 w-full sm:w-auto"
-                                    size="sm"
-                                >
-                                    <RefreshCcw className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Recarregar</span>
-                                    <span className="sm:hidden">Atualizar</span>
-                                </Button>
-                            </div>
+                            <Button 
+                                onClick={reloadClassList} 
+                                variant="outline"
+                                className="flex items-center gap-2 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 rounded-xl h-10 w-full sm:w-auto"
+                                size="sm"
+                            >
+                                <RefreshCcw className="h-4 w-4" />
+                                <span className="hidden sm:inline">Recarregar</span>
+                                <span className="sm:hidden">Atualizar</span>
+                            </Button>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -422,7 +500,7 @@ export default function ClassesManagement() {
                                         {/* Mobile Cards View */}
                                         <div className="block lg:hidden space-y-3">
                                             {filteredClasses.map((cls) => {
-                                                const {status, variant} = getClassStatus(
+                                                const {status} = getClassStatus(
                                                     cls.startDate,
                                                     cls.endDate
                                                 );
@@ -451,9 +529,7 @@ export default function ClassesManagement() {
                                                                                     {cls.code}
                                                                                 </p>
                                                                             )}
-                                                                            <Badge variant={variant} className="text-xs px-2 py-1">
-                                                                                {status}
-                                                                            </Badge>
+                                                                            {renderClassStatusChip(status)}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -560,7 +636,7 @@ export default function ClassesManagement() {
                                                 </TableHeader>
                                                 <TableBody>
                                                     {filteredClasses.map((cls) => {
-                                                        const {status, variant} = getClassStatus(
+                                                        const {status} = getClassStatus(
                                                             cls.startDate,
                                                             cls.endDate
                                                         );
@@ -603,9 +679,7 @@ export default function ClassesManagement() {
                                                                 </TableCell>
                                                                 <TableCell>{formatDate(cls.startDate)}</TableCell>
                                                                 <TableCell>{formatDate(cls.endDate)}</TableCell>
-                                                                <TableCell>
-                                                                    <Badge variant={variant}>{status}</Badge>
-                                                                </TableCell>
+                                                                <TableCell>{renderClassStatusChip(status)}</TableCell>
                                                                 <TableCell>
                                                                     <div className="flex gap-2">
                                                                         <Button

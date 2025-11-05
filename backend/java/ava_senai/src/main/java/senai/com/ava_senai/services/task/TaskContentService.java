@@ -1,7 +1,6 @@
 package senai.com.ava_senai.services.task;
 
 import io.micrometer.common.util.StringUtils;
-import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.StatObjectArgs;
 import io.minio.errors.MinioException;
@@ -20,7 +19,7 @@ import senai.com.ava_senai.dto.FileData;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.TaskContentRepository;
 import senai.com.ava_senai.repository.TaskRepository;
-import senai.com.ava_senai.services.storage.StorageService;
+import senai.com.ava_senai.services.storage.TaskContentStorageService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,7 +31,7 @@ import java.util.Optional;
 public class TaskContentService implements ITaskContentService {
 
     private final TaskContentRepository taskContentRepository;
-    private final StorageService storageService;
+    private final TaskContentStorageService taskContentStorageService;
     private final TaskRepository taskRepository;
     private final MinioClient minioClient;
 
@@ -92,7 +91,7 @@ public class TaskContentService implements ITaskContentService {
     @Override
     public void uploadContent(TaskContent taskContent, MultipartFile file) throws IOException {
 
-        String objectKey = storageService.uploadTaskContent(
+        String objectKey = taskContentStorageService.uploadTaskContent(
                 file.getBytes(),
                 file.getContentType(),
                 taskContent.getTaskId().toString()
@@ -101,6 +100,21 @@ public class TaskContentService implements ITaskContentService {
         taskContent.setContentUrl(objectKey);
 
         taskContentRepository.save(taskContent);
+
+    }
+
+    @Override
+    public void delete(Long id) {
+
+        TaskContent taskContent = taskContentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Conteúdo da tarefa não encontrado"));
+
+        // Delete from storage
+        if (taskContent.getContentUrl() != null) {
+            taskContentStorageService.deleteTaskContent(taskContent.getContentUrl());
+        }
+
+        taskContentRepository.delete(taskContent);
 
     }
 
@@ -122,7 +136,7 @@ public class TaskContentService implements ITaskContentService {
 
     public FileData findContentByPathWithMetadata(String filePath) throws IOException {
 
-        logger.info("Fetching file from MinIO. Bucket: {}, Object: {}", StorageService.TASK_CONTENT_BUCKET, filePath);
+        logger.info("Fetching file from MinIO. Bucket: {}, Object: {}", TaskContentStorageService.TASK_CONTENT_BUCKET, filePath);
 
         if (filePath == null || filePath.isEmpty()) {
             throw new IllegalArgumentException("File path must not be empty");
@@ -130,12 +144,7 @@ public class TaskContentService implements ITaskContentService {
 
         try {
 
-            InputStream stream = minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(StorageService.TASK_CONTENT_BUCKET)
-                            .object(filePath)
-                            .build()
-            );
+            InputStream stream = taskContentStorageService.downloadTaskContent(filePath);
 
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
@@ -164,7 +173,7 @@ public class TaskContentService implements ITaskContentService {
 
                 var stat = minioClient.statObject(
                         StatObjectArgs.builder()
-                                .bucket(StorageService.TASK_CONTENT_BUCKET)
+                                .bucket(TaskContentStorageService.TASK_CONTENT_BUCKET)
                                 .object(filePath)
                                 .build()
                 );

@@ -4,6 +4,7 @@ import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 import senai.com.ava_senai.domain.course.section.Section;
 import senai.com.ava_senai.domain.course.section.SectionResponseDTO;
 
+import java.util.Comparator;
 import java.util.List;
 
 public record CourseResponseDTO(String name, Integer quantitySemester, Long id, List<ClassResponseDTO> classes, List<SectionResponseDTO> sections) {
@@ -11,7 +12,9 @@ public record CourseResponseDTO(String name, Integer quantitySemester, Long id, 
     public CourseResponseDTO(Course course) {
         this(course.getName(), course.getQuantitySemester(), course.getId(),
                 course.getClasses() != null ? course.getClasses().stream().map(ClassResponseDTO::new).toList() : null,
-                course.getSections() != null ? course.getSections().stream().map(SectionResponseDTO::new).toList() : null);
+                course.getSections() != null ? course.getSections().stream()
+                        .map(SectionResponseDTO::new)
+                        .sorted(Comparator.comparing(SectionResponseDTO::id)).toList() : null);
     }
 
     public CourseResponseDTO(Course course, List<Section> sections) {
