@@ -67,6 +67,30 @@ const teacherItems = [
   },
 ];
 
+// Sidebar para alunos
+const studentItems = [
+  {
+    title: "Dashboard",
+    url: "/aluno/dashboard",
+    icon: GraduationCap,
+  },
+  {
+    title: "Trilhas",
+    url: "/aluno/trilhas",
+    icon: BookOpen,
+  },
+  {
+    title: "EAD",
+    url: "/aluno/ead",
+    icon: School,
+  },
+  {
+    title: "Ranking EAD",
+    url: "/aluno/ranking",
+    icon: ChartBarDecreasing,
+  },
+];
+
 // Sidebar original (para ADMIN e USER)
 const items = [
   {
@@ -130,15 +154,20 @@ export function AppSidebar() {
 
   // Get navigation items based on user role
   const getNavigationItems = () => {
-    if (!user?.roles || user.roles.length === 0) return items;
+    if (!user?.role) return items;
+    
+    // Alunos têm sidebar personalizada
+    if (user.role.name === "STUDENT") {
+      return studentItems;
+    }
     
     // Professores têm sidebar personalizada
-    if (user.roles.includes("TEACHER")) {
+    if (user.role.name === "TEACHER") {
       return teacherItems;
     }
     
     // Admin tem dashboard específico
-    if (user.roles.includes("ADMIN")) {
+    if (user.role.name === "ADMIN") {
       const adminItems = [...items];
       adminItems[0].url = "/admin"; // Dashboard aponta para /admin
       return adminItems;
@@ -190,12 +219,15 @@ export function AppSidebar() {
             <div>
               <h2>{user?.nome}</h2>
               <p className="text-xs text-gray-300">
-                {user?.roles?.[0] === 'TEACHER' ? 'PROFESSOR' : user?.roles?.[0] || 'USER'}
+                {user?.role?.name === 'TEACHER' ? 'PROFESSOR' : 
+                 user?.role?.name === 'ADMIN' ? 'ADMIN' :
+                 user?.role?.name === 'STUDENT' ? 'ALUNO' :
+                 user?.role?.name || 'USER'}
               </p>
             </div>
             <div className="flex items-center gap-2">
               {/* Sininho de notificações - apenas para professores */}
-              {user?.roles?.includes("TEACHER") && <NotificationsBell />}
+              {user?.role?.name === "TEACHER" && <NotificationsBell />}
               <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
               onClick={() => router.push("/user/profile")}
               >

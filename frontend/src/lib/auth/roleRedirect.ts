@@ -7,6 +7,8 @@ export function getDashboardRoute(role: string): string {
       return '/admin';
     case 'TEACHER':
       return '/professor/dashboard';
+    case 'STUDENT':
+      return '/aluno/dashboard';
     case 'USER':
     default:
       return '/home';
@@ -31,6 +33,11 @@ export function hasRouteAccess(userRole: string, route: string): boolean {
   // Rotas de professor
   if (route.startsWith('/professor')) {
     return userRole === 'TEACHER';
+  }
+
+  // Rotas de aluno
+  if (route.startsWith('/aluno')) {
+    return userRole === 'STUDENT';
   }
 
   // Outras rotas autenticadas

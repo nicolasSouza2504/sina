@@ -1,6 +1,6 @@
 import { UserWelcome } from "@/components/KnowledgeTrail/user_welcome"
 import { LearningTrackCard } from "@/components/KnowledgeTrail/learning_track_card"
-import QuickActions from '@/components/admin/quickActions';
+import QuickActionsAluno from '@/components/admin/quickActionsAluno';
 import { Database, Code, BarChart3, BookOpen, Video, FileText } from "lucide-react"
 
 export default function TrilhasPage() {
@@ -129,7 +129,7 @@ export default function TrilhasPage() {
           ))}
         </main>
 
-        <QuickActions />
+        <QuickActionsAluno />
 
         <footer className="mt-12 text-center">
           <p className="text-muted-foreground">Continue aprendendo e desenvolvendo suas habilidades! 🚀</p>

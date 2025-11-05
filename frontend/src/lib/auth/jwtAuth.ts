@@ -3,7 +3,7 @@ import {UserFromToken} from "../interfaces/userInterfaces"
 export type AuthPayload = {
     sub: string
     id?: string
-    role?: string[]
+    role?: string | string[]
     user: UserFromToken
     exp?: number
     iat?: number
