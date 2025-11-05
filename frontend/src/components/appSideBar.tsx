@@ -67,6 +67,30 @@ const teacherItems = [
   },
 ];
 
+// Sidebar para alunos
+const studentItems = [
+  {
+    title: "Dashboard",
+    url: "/aluno/dashboard",
+    icon: GraduationCap,
+  },
+  {
+    title: "Trilhas",
+    url: "/aluno/trilhas",
+    icon: BookOpen,
+  },
+  {
+    title: "EAD",
+    url: "/aluno/ead",
+    icon: School,
+  },
+  {
+    title: "Ranking EAD",
+    url: "/aluno/ranking",
+    icon: ChartBarDecreasing,
+  },
+];
+
 // Sidebar original (para ADMIN e USER)
 const items = [
   {
@@ -133,6 +157,11 @@ export function AppSidebar() {
   // Get navigation items based on user role
   const getNavigationItems = () => {
     if (!user?.role) return items;
+    // Alunos têm sidebar personalizada
+    if (user.role.name === "STUDENT") {
+      return studentItems;
+    }
+
     
     // Professores têm sidebar personalizada
     if (user.role.name === "TEACHER") {
@@ -194,7 +223,7 @@ export function AppSidebar() {
               <p className="text-xs text-gray-300">
                 {user?.role?.name === 'TEACHER' ? 'PROFESSOR' : 
                  user?.role?.name === 'ADMIN' ? 'ADMIN' :
-                 user?.role?.name === 'STUDENT' ? 'ESTUDANTE' :
+                 user?.role?.name === 'STUDENT' ? 'ALUNO' :
                  user?.role?.name || 'USER'}
               </p>
             </div>

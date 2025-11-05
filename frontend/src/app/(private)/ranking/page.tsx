@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import QuickActions from '@/components/admin/quickActions';
+import QuickActionsAluno from '@/components/admin/quickActionsAluno';
 import { 
   Trophy,
   Medal,
@@ -216,17 +216,18 @@ export default function RankingPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Trophy className="h-8 w-8 text-yellow-500" />
-          Ranking de Atividades EAD
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Acompanhe o desempenho dos alunos nas atividades à distância
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Trophy className="h-8 w-8 text-yellow-500" />
+            Ranking de Atividades EAD
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Acompanhe o desempenho dos alunos nas atividades à distância
+          </p>
+        </div>
 
       {/* Estatísticas Gerais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -458,8 +459,9 @@ export default function RankingPage() {
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <QuickActions />
+        {/* Quick Actions */}
+        <QuickActionsAluno />
+      </div>
     </div>
   );
 }

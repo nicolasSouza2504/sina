@@ -25,6 +25,7 @@ import { PDFViewer } from "@/components/KnowledgeTrail/PDFViewer"
 import { FileUpload } from "@/components/KnowledgeTrail/FileUpload"
 import { useActivityProgress } from "@/hooks/useActivityProgress"
 import { cn } from "@/lib/utils"
+import QuickActionsAluno from '@/components/admin/quickActionsAluno'
 
 const getIcon = (type: string) => {
   switch (type) {
@@ -352,6 +353,9 @@ export default function ActivityPage({ params }: ActivityPageProps) {
             </TabsContent>
           )}
         </Tabs>
+
+        {/* Quick Actions */}
+        <QuickActionsAluno />
       </div>
     </div>
   )

@@ -21,32 +21,19 @@ export interface Course {
   createdAt: string;
 }
 
-export interface Task {
-  id: string;
-  trailId: string;
-  title: string;
-  description: string;
-  type: 'teórica' | 'prática' | 'projeto' | 'avaliação';
-  difficulty: 'Iniciante' | 'Intermediário' | 'Avançado';
-  estimatedTime: string;
-  status: 'locked' | 'unlocked' | 'completed';
-  materials: Material[];
-  createdAt: string;
-}
-
 export interface Trail {
   id: string;
   courseId: string;
   semesterNumber?: number;
   title: string;
   description: string;
-  tasks: Task[];
+  materials: Material[];
   createdAt: string;
 }
 
 export interface Material {
   id: string;
-  taskId: string;
+  trailId: string;
   type: 'text' | 'video' | 'link' | 'file';
   title: string;
   content?: string;
@@ -62,7 +49,6 @@ export type MockMaterial = Material;
 class MockCourseService {
   private courses: Course[] = [];
   private trails: Trail[] = [];
-  private tasks: Task[] = [];
   private materials: Material[] = [];
 
   constructor() {
@@ -73,20 +59,10 @@ class MockCourseService {
     try {
       const coursesData = localStorage.getItem('mockCourses');
       const trailsData = localStorage.getItem('mockTrails');
-      const tasksData = localStorage.getItem('mockTasks');
       const materialsData = localStorage.getItem('mockMaterials');
 
       if (coursesData) this.courses = JSON.parse(coursesData);
-      if (trailsData) {
-        this.trails = JSON.parse(trailsData);
-        // Garantir que todas as trilhas tenham o array tasks
-        this.trails.forEach(trail => {
-          if (!trail.tasks) {
-            trail.tasks = [];
-          }
-        });
-      }
-      if (tasksData) this.tasks = JSON.parse(tasksData);
+      if (trailsData) this.trails = JSON.parse(trailsData);
       if (materialsData) this.materials = JSON.parse(materialsData);
     } catch (error) {
       console.error('Erro ao carregar dados do localStorage:', error);
@@ -97,7 +73,6 @@ class MockCourseService {
     try {
       localStorage.setItem('mockCourses', JSON.stringify(this.courses));
       localStorage.setItem('mockTrails', JSON.stringify(this.trails));
-      localStorage.setItem('mockTasks', JSON.stringify(this.tasks));
       localStorage.setItem('mockMaterials', JSON.stringify(this.materials));
     } catch (error) {
       console.error('Erro ao salvar dados no localStorage:', error);
@@ -137,11 +112,11 @@ class MockCourseService {
     return this.courses.find(course => course.id === id);
   }
 
-  createTrail(trailData: Omit<Trail, 'id' | 'createdAt' | 'tasks'>): Trail {
+  createTrail(trailData: Omit<Trail, 'id' | 'createdAt' | 'materials'>): Trail {
     const newTrail: Trail = {
       ...trailData,
       id: `trail_${Date.now()}`,
-      tasks: [],
+      materials: [],
       createdAt: new Date().toISOString(),
     };
 
@@ -171,83 +146,11 @@ class MockCourseService {
     return true;
   }
 
-  // Métodos para Tarefas
-  createTask(taskData: Omit<Task, 'id' | 'createdAt' | 'materials'>): Task {
-    const newTask: Task = {
-      ...taskData,
-      id: `task_${Date.now()}`,
-      materials: [],
-      createdAt: new Date().toISOString(),
-    };
+  addMaterialToTrail(trailId: string, material: Material): boolean {
+    const trail = this.trails.find(t => t.id === trailId);
+    if (!trail) return false;
 
-    this.tasks.push(newTask);
-    
-    // Adicionar tarefa à trilha
-    const trail = this.trails.find(t => t.id === taskData.trailId);
-    if (trail) {
-      // Garantir que a trilha tenha o array tasks
-      if (!trail.tasks) {
-        trail.tasks = [];
-      }
-      trail.tasks.push(newTask);
-    }
-
-    this.saveToStorage();
-    return newTask;
-  }
-
-  getAllTasks(): Task[] {
-    return [...this.tasks];
-  }
-
-  getTasksByTrailId(trailId: string): Task[] {
-    return this.tasks.filter(task => task.trailId === trailId);
-  }
-
-  getTaskById(id: string): Task | undefined {
-    return this.tasks.find(task => task.id === id);
-  }
-
-  updateTask(taskId: string, updates: Partial<Task>): boolean {
-    const taskIndex = this.tasks.findIndex(t => t.id === taskId);
-    if (taskIndex === -1) return false;
-
-    this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...updates };
-    
-    // Atualizar na trilha também
-    this.trails.forEach(trail => {
-      const taskInTrailIndex = trail.tasks.findIndex(t => t.id === taskId);
-      if (taskInTrailIndex !== -1) {
-        trail.tasks[taskInTrailIndex] = { ...trail.tasks[taskInTrailIndex], ...updates };
-      }
-    });
-
-    this.saveToStorage();
-    return true;
-  }
-
-  deleteTask(taskId: string): boolean {
-    const taskIndex = this.tasks.findIndex(t => t.id === taskId);
-    if (taskIndex === -1) return false;
-
-    // Remover da trilha também
-    this.trails.forEach(trail => {
-      const taskInTrailIndex = trail.tasks.findIndex(t => t.id === taskId);
-      if (taskInTrailIndex !== -1) {
-        trail.tasks.splice(taskInTrailIndex, 1);
-      }
-    });
-
-    this.tasks.splice(taskIndex, 1);
-    this.saveToStorage();
-    return true;
-  }
-
-  addMaterialToTask(taskId: string, material: Material): boolean {
-    const task = this.tasks.find(t => t.id === taskId);
-    if (!task) return false;
-
-    task.materials.push(material);
+    trail.materials.push(material);
     this.saveToStorage();
     return true;
   }
@@ -261,10 +164,10 @@ class MockCourseService {
 
     this.materials.push(newMaterial);
     
-    // Adicionar material à tarefa
-    const task = this.tasks.find(t => t.id === materialData.taskId);
-    if (task) {
-      task.materials.push(newMaterial);
+    // Adicionar material à trilha
+    const trail = this.trails.find(t => t.id === materialData.trailId);
+    if (trail) {
+      trail.materials.push(newMaterial);
     }
 
     this.saveToStorage();
@@ -277,12 +180,12 @@ class MockCourseService {
 
     this.materials[materialIndex] = { ...this.materials[materialIndex], ...updates };
 
-    // Atualizar na tarefa também
-    const task = this.tasks.find(t => t.materials.some(m => m.id === materialId));
-    if (task) {
-      const taskMaterialIndex = task.materials.findIndex(m => m.id === materialId);
-      if (taskMaterialIndex !== -1) {
-        task.materials[taskMaterialIndex] = this.materials[materialIndex];
+    // Atualizar na trilha também
+    const trail = this.trails.find(t => t.materials.some(m => m.id === materialId));
+    if (trail) {
+      const trailMaterialIndex = trail.materials.findIndex(m => m.id === materialId);
+      if (trailMaterialIndex !== -1) {
+        trail.materials[trailMaterialIndex] = this.materials[materialIndex];
       }
     }
 
@@ -296,12 +199,12 @@ class MockCourseService {
 
     this.materials.splice(materialIndex, 1);
 
-    // Remover da tarefa também
-    const task = this.tasks.find(t => t.materials.some(m => m.id === materialId));
-    if (task) {
-      const taskMaterialIndex = task.materials.findIndex(m => m.id === materialId);
-      if (taskMaterialIndex !== -1) {
-        task.materials.splice(taskMaterialIndex, 1);
+    // Remover da trilha também
+    const trail = this.trails.find(t => t.materials.some(m => m.id === materialId));
+    if (trail) {
+      const trailMaterialIndex = trail.materials.findIndex(m => m.id === materialId);
+      if (trailMaterialIndex !== -1) {
+        trail.materials.splice(trailMaterialIndex, 1);
       }
     }
 
@@ -309,17 +212,12 @@ class MockCourseService {
     return true;
   }
 
-  getMaterialsByTaskId(taskId: string): Material[] {
-    return this.materials.filter(material => material.taskId === taskId);
+  getMaterialsByTrailId(trailId: string): Material[] {
+    return this.materials.filter(material => material.trailId === trailId);
   }
 
   getMaterialById(id: string): Material | undefined {
     return this.materials.find(material => material.id === id);
-  }
-
-  // Buscar todas as tarefas
-  getAllTasks(): Task[] {
-    return this.tasks;
   }
 
   // Métodos para controle de semestres
@@ -417,105 +315,7 @@ class MockCourseService {
     };
 
     this.courses.push(sampleCourse);
-
-    // Criar trilhas de exemplo
-    const trail1 = this.createTrail({
-      courseId: 'sample_course_1',
-      semesterNumber: 1,
-      title: 'Fundamentos de Programação',
-      description: 'Aprenda os conceitos básicos de programação e lógica de programação'
-    });
-
-    const trail2 = this.createTrail({
-      courseId: 'sample_course_1',
-      semesterNumber: 2,
-      title: 'Desenvolvimento Frontend',
-      description: 'HTML, CSS, JavaScript e frameworks modernos'
-    });
-
-    // Criar tarefas para a trilha 1
-    const task1 = this.createTask({
-      trailId: trail1.id,
-      title: 'Introdução à Programação',
-      description: 'Conceitos básicos de programação e algoritmos',
-      type: 'teórica',
-      difficulty: 'Iniciante',
-      estimatedTime: '8 horas',
-      status: 'unlocked'
-    });
-
-    const task2 = this.createTask({
-      trailId: trail1.id,
-      title: 'Estruturas de Dados',
-      description: 'Arrays, listas e estruturas básicas de dados',
-      type: 'prática',
-      difficulty: 'Iniciante',
-      estimatedTime: '12 horas',
-      status: 'unlocked'
-    });
-
-    // Criar tarefas para a trilha 2
-    const task3 = this.createTask({
-      trailId: trail2.id,
-      title: 'HTML e CSS Básico',
-      description: 'Estrutura e estilização de páginas web',
-      type: 'teórica',
-      difficulty: 'Iniciante',
-      estimatedTime: '10 horas',
-      status: 'locked'
-    });
-
-    const task4 = this.createTask({
-      trailId: trail2.id,
-      title: 'JavaScript Fundamentos',
-      description: 'Sintaxe básica e conceitos do JavaScript',
-      type: 'prática',
-      difficulty: 'Intermediário',
-      estimatedTime: '15 horas',
-      status: 'locked'
-    });
-
-    // Criar alguns materiais de exemplo
-    this.addMaterial({
-      taskId: task1.id,
-      type: 'text',
-      title: 'Introdução à Programação',
-      content: 'A programação é a arte de resolver problemas através de algoritmos...'
-    });
-
-    this.addMaterial({
-      taskId: task1.id,
-      type: 'video',
-      title: 'Vídeo: Primeiros Passos',
-      url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-    });
-
-    this.addMaterial({
-      taskId: task2.id,
-      type: 'text',
-      title: 'Arrays e Listas',
-      content: 'Arrays são estruturas de dados que permitem armazenar múltiplos valores...'
-    });
-
     this.saveToStorage();
-  }
-
-  // Método para limpar e recriar dados com estrutura correta
-  resetDataWithNewStructure(): void {
-    // Limpar localStorage
-    localStorage.removeItem('mockCourses');
-    localStorage.removeItem('mockTrails');
-    localStorage.removeItem('mockTasks');
-    localStorage.removeItem('mockMaterials');
-    
-    // Limpar arrays
-    this.courses = [];
-    this.trails = [];
-    this.tasks = [];
-    this.materials = [];
-    
-    // Recriar dados de exemplo
-    this.createSampleData();
   }
 }
 

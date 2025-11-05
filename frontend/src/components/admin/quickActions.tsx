@@ -78,35 +78,28 @@ export default function QuickActions() {
     const filteredActions = quickActions.quickActionsList;
 
     return (
-        <div>
-            <Card className="gap-0">
-                {quickActions.quickActionsTitle &&
-                    quickActions.quickActionsSubtitle && (
-                        <CardHeader>
-                            <CardTitle>{quickActions.quickActionsTitle}</CardTitle>
-                            <CardDescription>
-                                {quickActions.quickActionsSubtitle}
-                            </CardDescription>
-                        </CardHeader>
-                    )}
-                <CardContent className="p-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 w-full">
-                        {filteredActions.map((action) => (
-                            <Button
-                                onClick={() => handleRedirectRoute(action.link)}
-                                key={action.key}
-                                variant="outline"
-                                className="h-20 sm:h-24 flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-accent hover:cursor-pointer w-full p-2 overflow-hidden"
-                            >
-                                <div className="flex-shrink-0">
-                                    {action.icon}
-                                </div>
-                                <span className="text-[10px] sm:text-xs text-center leading-tight break-words w-full px-1 whitespace-normal">{action.title}</span>
-                            </Button>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
+        <div className="mt-8">
+            {quickActions.quickActionsTitle && quickActions.quickActionsSubtitle && (
+                <div className="mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">{quickActions.quickActionsTitle}</h2>
+                    <p className="text-sm text-gray-600">{quickActions.quickActionsSubtitle}</p>
+                </div>
+            )}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {filteredActions.map((action) => (
+                    <Button
+                        onClick={() => handleRedirectRoute(action.link)}
+                        key={action.key}
+                        variant="outline"
+                        className="h-24 flex-col border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-gray-700 shadow-lg hover:shadow-xl transition-all"
+                    >
+                        <div className="w-8 h-8 mb-2">
+                            {action.icon}
+                        </div>
+                        <span className="font-semibold text-xs text-center">{action.title}</span>
+                    </Button>
+                ))}
+            </div>
         </div>
     );
 }
