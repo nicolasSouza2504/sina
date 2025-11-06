@@ -28,4 +28,17 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     )
     List<Long> findAllTaskIdsByCourseId(Long courseId);
 
+    @Query("SELECT c FROM Course c " +
+            "LEFT JOIN FETCH c.sections s " +
+            "LEFT JOIN FETCH s.knowledgeTrails kt " +
+            "LEFT JOIN FETCH kt.tasks t " +
+            "LEFT JOIN FETCH t.contents tc " +
+            "WHERE c.id = :courseId" +
+            " AND EXISTS ( " +
+            "     SELECT 1 FROM TaskUser tu " +
+            "     WHERE tu.userId = :userId " +
+            "     AND tu.taskId = t.id " +
+            " ) ")
+    Optional<Course> findCourseWithContentOfUserById(Long userId, Long courseId);
+
 }
