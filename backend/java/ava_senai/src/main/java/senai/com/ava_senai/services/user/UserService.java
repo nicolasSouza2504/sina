@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import senai.com.ava_senai.domain.course.Course;
+import senai.com.ava_senai.domain.course.CourseContentSummaryDTO;
 import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.institution.Institution;
 import senai.com.ava_senai.domain.user.*;
@@ -121,11 +122,13 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserContentSummaryDTO getUserContentSummaryById(Long id) {
-        User user = userRepository.findUserWithContentById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado!"));
+    public CourseContentSummaryDTO getUserContentSummaryById(Long userId, Long courseId) {
 
-        return new UserContentSummaryDTO(user);
+        Course course = courseRepository.findCourseWithContentOfUserById(userId, courseId)
+                .orElseThrow(() -> new NotFoundException("Usuário sem acesso ao conteúdo deste curso ou curso não existe!"));
+
+        return new CourseContentSummaryDTO(course);
+
     }
 
     @Override

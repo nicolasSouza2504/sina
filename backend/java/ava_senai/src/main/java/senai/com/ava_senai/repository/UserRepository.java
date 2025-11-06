@@ -55,10 +55,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
     )
     List<User> findUsersByCourseIdWhereNotExistsUserTask(@Param("idCourse") Long idCourse, @Param("taskId") Long taskId);
 
-    @Query("SELECT u FROM User u " +
+    @Query("SELECT DISTINCT u FROM User u " +
             "LEFT JOIN FETCH u.taskUsers tu " +
             "LEFT JOIN FETCH tu.task t " +
-            "WHERE u.id = :id")
-    Optional<User> findUserWithContentById(Long id);
+            "LEFT JOIN FETCH t.knowledgeTrail kt " +
+            "LEFT JOIN FETCH kt.section s " +
+            "LEFT JOIN FETCH t.contents tc " +
+            "WHERE u.id = :userId " +
+            "AND s.courseId = :courseId " +
+            "ORDER BY s.semester, kt.name, t.taskOrder")
+    Optional<User> findUserWithContentById(@Param("userId")Long userId, @Param("courseId") Long courseId);
 
 }
+

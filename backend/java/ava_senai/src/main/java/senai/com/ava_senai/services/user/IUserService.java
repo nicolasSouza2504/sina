@@ -1,6 +1,7 @@
 package senai.com.ava_senai.services.user;
 
 import jakarta.validation.Valid;
+import senai.com.ava_senai.domain.course.CourseContentSummaryDTO;
 import senai.com.ava_senai.domain.user.*;
 
 import java.util.List;
@@ -20,5 +21,6 @@ public interface IUserService {
 
     UserResponseDTO changeUserStatus(Long userId, UserStatus status);
 
-    UserContentSummaryDTO getUserContentSummaryById(@Valid Long id);
+    CourseContentSummaryDTO getUserContentSummaryById(@Valid Long userId, @Valid Long courseId);
+
 }
