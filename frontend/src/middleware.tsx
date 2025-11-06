@@ -18,16 +18,38 @@ const AUTH_PROTECTED: RegExp[] = [
 ];
 
 const ROLE_RULES: Array<{ pattern: RegExp; roles: string[] }> = [
-  // Regras específicas primeiro (mais específicas)
-  { pattern: /^\/admin\/class(\/.*)?$/, roles: ["ADMIN", "TEACHER"] },
-  { pattern: /^\/admin\/students(\/.*)?$/, roles: ["ADMIN", "TEACHER"] },
-  { pattern: /^\/professor(\/.*)?$/, roles: ["TEACHER"] },
-  { pattern: /^\/professores(\/.*)?$/, roles: ["ADMIN", "TEACHER"] },
-  { pattern: /^\/ranking(\/.*)?$/, roles: ["ADMIN", "TEACHER", "USER"] },
-  // Regras gerais depois (menos específicas)
-  { pattern: /^\/admin(\/.*)?$/, roles: ["ADMIN"] },
-  { pattern: /^\/dashboard(\/.*)?$/, roles: ["ADMIN"] },
-  { pattern: /^\/reports(\/.*)?$/, roles: ["MANAGER", "ADMIN"] },
+  // ========================================
+  // TELAS EXCLUSIVAS DO ADMIN (role=1)
+  // ========================================
+  { pattern: /^\/admin$/, roles: ["ADMIN"] }, // Dashboard Admin
+  { pattern: /^\/admin\/teachers(\/.*)?$/, roles: ["ADMIN"] }, // Gerenciamento de Professores
+  { pattern: /^\/admin\/students(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Gerenciamento de Alunos
+  { pattern: /^\/admin\/class(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Gerenciamento de Turmas
+  
+  // ========================================
+  // TELAS EXCLUSIVAS DO PROFESSOR (role=2)
+  // ADMIN também tem acesso a estas telas
+  // ========================================
+  { pattern: /^\/professor\/dashboard(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Dashboard Professor
+  { pattern: /^\/professor\/cursos(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Cursos do Professor
+  { pattern: /^\/professor\/conteudo(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Conteúdo/Tarefas
+  
+  // ========================================
+  // TELAS COMPARTILHADAS (ADMIN + TEACHER + STUDENT)
+  // ========================================
+  { pattern: /^\/cursos(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT"] }, // Visualização de Cursos
+  { pattern: /^\/ranking(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT"] }, // Ranking
+  { pattern: /^\/trilhas(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT"] }, // Trilhas de Conhecimento
+  
+  // ========================================
+  // TELAS DO ESTUDANTE (role=3)
+  // ========================================
+  { pattern: /^\/home(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT"] }, // Dashboard Estudante
+  
+  // ========================================
+  // TELAS DE PERFIL (todos os roles autenticados)
+  // ========================================
+  { pattern: /^\/user\/profile(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT", "USER"] }, // Perfil do Usuário
 ];
 
 function matches(path: string, patterns: RegExp[]) {

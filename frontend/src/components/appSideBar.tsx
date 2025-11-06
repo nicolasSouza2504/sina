@@ -33,7 +33,46 @@ import { UserFromToken } from "@/lib/interfaces/userInterfaces";
 import { NotificationsBell } from '@/components/ui/notifications-bell';
 import { useSidebar } from "@/components/ui/sidebar";
 
-// Sidebar personalizada para professores (inclui funcionalidades originais + criação de conteúdo)
+// Telas exclusivas do ADMIN (gerenciamento)
+const adminItems = [
+  {
+    title: "Dashboard Admin",
+    url: "/admin",
+    icon: SettingsIcon,
+  },
+  {
+    title: "Admins",
+    url: "/admin/admin",
+    icon: SettingsIcon,
+  },
+  {
+    title: "Turmas",
+    url: "/admin/class",
+    icon: School,
+  },
+  {
+    title: "Cursos",
+    url: "/cursos",
+    icon: FolderOpen,
+  },
+  {
+    title: "Alunos",
+    url: "/admin/students",
+    icon: Users,
+  },
+  {
+    title: "Professores",
+    url: "/admin/teachers",
+    icon: GraduationCap,
+  },
+  {
+    title: "Ranking",
+    url: "/ranking",
+    icon: ChartBarDecreasing,
+  },
+];
+
+// Telas exclusivas do PROFESSOR
 const teacherItems = [
   {
     title: "Dashboard",
@@ -99,19 +138,9 @@ const items = [
     icon: SettingsIcon,
   },
   {
-    title: "Turmas",
-    url: "/admin/class",
-    icon: School,
-  },
-  {
     title: "Cursos",
     url: "/cursos",
     icon: FolderOpen,
-  },
-  {
-    title: "Alunos",
-    url: "/admin/students",
-    icon: Users,
   },
   {
     title: "Ranking",
@@ -170,27 +199,46 @@ export function AppSidebar() {
 
   // Get navigation items based on user role
   const getNavigationItems = () => {
+<<<<<<< HEAD
     if (!user?.role) return items;
     // Alunos têm sidebar personalizada
     if (user.role.name === "STUDENT") {
       return studentItems;
     }
 
+=======
+    if (!user?.role) return studentItems; // Fallback para student
+>>>>>>> 405a1c0 (feat:telas de gerecimaneto de professor e admin)
     
-    // Professores têm sidebar personalizada
-    if (user.role.name === "TEACHER") {
-      return teacherItems;
+    switch (user.role.name) {
+      case "ADMIN":
+        // ADMIN tem acesso a TODAS as telas (admin + professor)
+        return [
+          ...adminItems,
+          {
+            title: "Dashboard Professor",
+            url: "/professor/dashboard",
+            icon: GraduationCap,
+          },
+          {
+            title: "Conteúdo Professor",
+            url: "/professor/conteudo",
+            icon: BookOpen,
+          },
+        ];
+      
+      case "TEACHER":
+        // PROFESSOR tem apenas suas telas específicas
+        return teacherItems;
+      
+      case "STUDENT":
+        // ESTUDANTE tem acesso limitado
+        return studentItems;
+      
+      default:
+        // USER ou outros roles não utilizados
+        return studentItems;
     }
-    
-    // Admin tem dashboard específico
-    if (user.role.name === "ADMIN") {
-      const adminItems = [...items];
-      adminItems[0].url = "/admin"; // Dashboard aponta para /admin
-      return adminItems;
-    }
-    
-    // Usuários comuns mantêm sidebar original
-    return items;
   };
 
   const navigationItems = getNavigationItems();
