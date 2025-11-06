@@ -199,33 +199,12 @@ export function AppSidebar() {
 
   // Get navigation items based on user role
   const getNavigationItems = () => {
-<<<<<<< HEAD
-    if (!user?.role) return items;
-    // Alunos têm sidebar personalizada
-    if (user.role.name === "STUDENT") {
-      return studentItems;
-    }
-
-=======
     if (!user?.role) return studentItems; // Fallback para student
->>>>>>> 405a1c0 (feat:telas de gerecimaneto de professor e admin)
     
     switch (user.role.name) {
       case "ADMIN":
         // ADMIN tem acesso a TODAS as telas (admin + professor)
-        return [
-          ...adminItems,
-          {
-            title: "Dashboard Professor",
-            url: "/professor/dashboard",
-            icon: GraduationCap,
-          },
-          {
-            title: "Conteúdo Professor",
-            url: "/professor/conteudo",
-            icon: BookOpen,
-          },
-        ];
+        return adminItems;
       
       case "TEACHER":
         // PROFESSOR tem apenas suas telas específicas
