@@ -1,21 +1,112 @@
 'use client'
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { BookOpen, Play, Lock, CheckCircle, Clock, ArrowRight, Video, FileText, Code, Upload } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { BookOpen, Play, Trophy, Loader2, GraduationCap, ChevronRight, FileText } from "lucide-react"
 import { useRouter } from "next/navigation"
 import QuickActions from '@/components/admin/quickActions'
+import getUserFromToken from '@/lib/auth/userToken'
+import GetUserByIdService from '@/lib/api/user/getUserById'
+import CourseContentSummaryService from '@/lib/api/course/courseContentSummary'
+import { toast } from 'sonner'
+import type { UserData } from '@/lib/interfaces/userInterfaces'
+import type { CourseContentSummary } from '@/lib/interfaces/courseContentInterfaces'
 
 export default function AlunoTrilhasPage() {
   const router = useRouter()
-  const [selectedTrail, setSelectedTrail] = useState<any>(null)
-  const [isTrailModalOpen, setIsTrailModalOpen] = useState(false)
-  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false)
-  const [selectedActivity, setSelectedActivity] = useState<any>(null)
+  
+  // Estados principais
+  const [userData, setUserData] = useState<UserData | null>(null)
+  const [isLoadingUser, setIsLoadingUser] = useState(true)
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
+  const [courseContent, setCourseContent] = useState<CourseContentSummary | null>(null)
+  const [isLoadingContent, setIsLoadingContent] = useState(false)
+  
+  // Cursos únicos extraídos das turmas do aluno
+  const [availableCourses, setAvailableCourses] = useState<Array<{ id: number; name: string }>>([])  
+
+  // Carrega dados do usuário ao montar o componente
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        setIsLoadingUser(true)
+        const userFromToken = await getUserFromToken()
+        
+        if (!userFromToken?.id) {
+          toast.error('Erro ao obter dados do usuário')
+          return
+        }
+
+        const user = await GetUserByIdService(userFromToken.id)
+        setUserData(user)
+        
+        // Extrai cursos únicos das turmas do aluno
+        if (user.classes && user.classes.length > 0) {
+          const coursesMap = new Map<number, string>()
+          
+          user.classes.forEach(classItem => {
+            if (classItem.course && classItem.course.id && classItem.course.name) {
+              coursesMap.set(classItem.course.id, classItem.course.name)
+            }
+          })
+          
+          const uniqueCourses = Array.from(coursesMap.entries()).map(([id, name]) => ({
+            id,
+            name
+          }))
+          
+          setAvailableCourses(uniqueCourses)
+          
+          // Seleciona automaticamente o primeiro curso
+          if (uniqueCourses.length > 0) {
+            setSelectedCourseId(uniqueCourses[0].id.toString())
+          }
+        } else {
+          toast.info('Você não está vinculado a nenhuma turma ainda')
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error)
+        toast.error('Erro ao carregar seus dados')
+      } finally {
+        setIsLoadingUser(false)
+      }
+    }
+
+    loadUserData()
+  }, [])
+
+  // Carrega conteúdo do curso quando selecionado
+  useEffect(() => {
+    const loadCourseContent = async () => {
+      if (!selectedCourseId) {
+        setCourseContent(null)
+        return
+      }
+
+      setIsLoadingContent(true)
+      try {
+        const content = await CourseContentSummaryService(parseInt(selectedCourseId))
+        setCourseContent(content)
+      } catch (error) {
+        console.error('Erro ao carregar conteúdo do curso:', error)
+        toast.error('Erro ao carregar trilhas do curso')
+        setCourseContent(null)
+      } finally {
+        setIsLoadingContent(false)
+      }
+    }
+
+    loadCourseContent()
+  }, [selectedCourseId])
+
+  const handleEnterTask = (taskId: number) => {
+    // Redireciona para a tela de material passando o ID da tarefa
+    router.push(`/aluno/material/${taskId}`)
+  }
 
   const mockTrilhas = [
     {
@@ -78,198 +169,182 @@ export default function AlunoTrilhasPage() {
     }
   ]
 
-  const handleEnterTrail = (trilha: any) => {
-    setSelectedTrail(trilha)
-    setIsTrailModalOpen(true)
+  // Loading inicial
+  if (isLoadingUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Carregando seus dados...</p>
+        </div>
+      </div>
+    )
   }
 
-  const handleViewActivity = (activity: any) => {
-    setSelectedActivity(activity)
-    setIsActivityModalOpen(true)
-  }
-
-  const handleSubmitMaterial = () => {
-    router.push(`/aluno/material/${selectedActivity?.id}`)
+  // Sem turmas vinculadas
+  if (!userData?.classes || userData.classes.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-16">
+            <GraduationCap className="h-24 w-24 mx-auto mb-4 text-gray-300" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Nenhuma turma encontrada</h2>
+            <p className="text-gray-600">Você ainda não está vinculado a nenhuma turma. Entre em contato com a coordenação.</p>
+          </div>
+          <QuickActions />
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-6 shadow-lg">
-            <h1 className="text-3xl font-bold mb-2">Suas Trilhas de Aprendizado</h1>
-            <p className="text-blue-100">Continue sua jornada de desenvolvimento profissional</p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-500/30 rounded-lg p-4">
-                <p className="text-sm text-blue-200">Trilhas Concluídas</p>
-                <p className="text-2xl font-bold">{mockTrilhas.filter(t => t.status === 'concluida').length}</p>
-              </div>
-              <div className="bg-blue-500/30 rounded-lg p-4">
-                <p className="text-sm text-blue-200">Em Andamento</p>
-                <p className="text-2xl font-bold">{mockTrilhas.filter(t => t.status === 'em-andamento').length}</p>
-              </div>
-              <div className="bg-blue-500/30 rounded-lg p-4">
-                <p className="text-sm text-blue-200">Progresso Médio</p>
-                <p className="text-2xl font-bold">
-                  {Math.round(mockTrilhas.reduce((acc, t) => acc + t.progresso, 0) / mockTrilhas.length)}%
-                </p>
-              </div>
-            </div>
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Minhas Trilhas de Conhecimento</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Explore e acompanhe seu progresso nas trilhas de aprendizado</p>
+        </div>
+
+        {/* Select de Curso */}
+        <div className="mb-6">
+          <Label className="text-sm font-medium text-gray-700 mb-2 block">Selecionar Curso</Label>
+          <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+            <SelectTrigger className="w-full sm:max-w-md h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
+              <SelectValue placeholder="Selecione um curso" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableCourses.map((course) => (
+                <SelectItem key={course.id} value={course.id.toString()}>
+                  {course.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Conteúdo */}
+        {!selectedCourseId ? (
+          <div className="text-center py-16 bg-white rounded-lg border-2 border-dashed border-gray-300">
+            <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Selecione um curso</h3>
+            <p className="text-gray-600">Escolha um curso acima para visualizar as trilhas de conhecimento</p>
           </div>
-        </div>
-
-        <div className="space-y-6 mb-8">
-          {mockTrilhas.map((trilha) => (
-            <Card key={trilha.id} className="bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h2 className="text-2xl font-bold text-gray-900">{trilha.titulo}</h2>
-                      {trilha.status === 'concluida' && (
-                        <Badge className="bg-gray-600 text-white">Trilha Concluída</Badge>
-                      )}
-                      {trilha.status === 'em-andamento' && (
-                        <Badge className="bg-blue-600 text-white">Em Andamento</Badge>
-                      )}
-                    </div>
-                    <p className="text-gray-600 mb-4">{trilha.descricao}</p>
-                    
-                    <div className="flex items-center gap-4 mb-4">
-                      <Badge className="bg-gray-100 text-gray-800 border-gray-200">{trilha.nivel}</Badge>
-                      <span className="text-sm text-gray-600">{trilha.duracao}</span>
-                      <span className="text-sm text-gray-600">
-                        {trilha.atividadesCompletas} de {trilha.totalAtividades} atividades
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Progresso</span>
-                        <span className="text-sm font-bold text-gray-800">{trilha.progresso}%</span>
-                      </div>
-                      <Progress value={trilha.progresso} className="h-2" />
-                    </div>
-
-                    {trilha.proximaAtividade && (
-                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 mb-4">
-                        <div className="flex items-center gap-2 mb-1">
-                          <ArrowRight className="w-4 h-4 text-gray-600" />
-                          <span className="text-sm font-medium text-gray-800">Próxima Atividade:</span>
-                        </div>
-                        <p className="text-sm text-gray-600">{trilha.proximaAtividade.titulo}</p>
-                      </div>
-                    )}
-                  </div>
+        ) : isLoadingContent ? (
+          <div className="text-center py-16">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+            <p className="text-gray-600">Carregando trilhas...</p>
+          </div>
+        ) : courseContent && courseContent.sections && courseContent.sections.length > 0 ? (
+          <div className="space-y-6 mb-8">
+            {courseContent.sections.map((section) => (
+              <div key={section.id}>
+                {/* Header do Semestre */}
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-blue-600" />
+                    {section.name}
+                  </h2>
                 </div>
 
-                <div className="flex gap-3">
-                  {trilha.status === 'concluida' ? (
-                    <Button className="bg-gray-600 hover:bg-gray-700 text-white" disabled>
-                      Trilha Concluída
-                    </Button>
+                {/* Trilhas do Semestre */}
+                <div className="grid grid-cols-1 gap-4">
+                  {section.knowledgeTrails && section.knowledgeTrails.length > 0 ? (
+                    section.knowledgeTrails.map((trail) => (
+                      <Card key={trail.id} className="bg-white border-2 border-gray-200 hover:border-blue-300 transition-all">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <CardTitle className="text-xl font-bold text-gray-900 mb-2">
+                                {trail.name}
+                              </CardTitle>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  {trail.tasks?.length || 0} {trail.tasks?.length === 1 ? 'tarefa' : 'tarefas'}
+                                </Badge>
+                                {trail.ranked && (
+                                  <Badge className="bg-yellow-500 text-white">
+                                    <Trophy className="h-3 w-3 mr-1" />
+                                    Ranqueada
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {/* Lista de Tarefas */}
+                          {trail.tasks && trail.tasks.length > 0 ? (
+                            <div className="space-y-2">
+                              {trail.tasks.map((task) => (
+                                <button
+                                  key={task.id}
+                                  onClick={() => handleEnterTask(task.id)}
+                                  className="w-full flex items-center justify-between p-3 sm:p-4 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group"
+                                >
+                                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <div className="p-2 bg-white rounded-lg border border-gray-200 group-hover:border-blue-300 transition-colors flex-shrink-0">
+                                      <FileText className="h-4 w-4 text-blue-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0 text-left">
+                                      <p className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors truncate">
+                                        {task.name}
+                                      </p>
+                                      {task.description && (
+                                        <p className="text-sm text-gray-600 truncate">
+                                          {task.description}
+                                        </p>
+                                      )}
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <Badge variant="outline" className="text-xs bg-white">
+                                          {task.contents?.length || 0} {task.contents?.length === 1 ? 'material' : 'materiais'}
+                                        </Badge>
+                                        {task.difficultyLevel && (
+                                          <Badge 
+                                            variant="outline" 
+                                            className={`text-xs ${
+                                              task.difficultyLevel === 'FACIL' ? 'bg-green-50 text-green-700 border-green-200' :
+                                              task.difficultyLevel === 'MEDIO' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                              'bg-red-50 text-red-700 border-red-200'
+                                            }`}
+                                          >
+                                            {task.difficultyLevel === 'FACIL' ? 'Fácil' : task.difficultyLevel === 'MEDIO' ? 'Médio' : 'Difícil'}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0" />
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
+                              <p className="text-sm text-gray-600">Nenhuma tarefa disponível nesta trilha</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))
                   ) : (
-                    <Button 
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => handleEnterTrail(trilha)}
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      Entrar na Trilha
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <QuickActions />
-      </div>
-
-      {/* Modal de Trilha */}
-      <Dialog open={isTrailModalOpen} onOpenChange={setIsTrailModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedTrail?.titulo}</DialogTitle>
-            <DialogDescription>{selectedTrail?.descricao}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            {selectedTrail?.atividades.map((atividade: any) => (
-              <div
-                key={atividade.id}
-                className={`p-4 border rounded-lg ${
-                  atividade.status === 'concluida' 
-                    ? 'bg-green-50 border-green-200' 
-                    : atividade.status === 'bloqueada'
-                    ? 'bg-gray-100 border-gray-200 opacity-60'
-                    : 'bg-white border-gray-200 hover:border-blue-300 cursor-pointer'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3 flex-1">
-                    {atividade.status === 'concluida' ? (
-                      <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                    ) : atividade.status === 'bloqueada' ? (
-                      <Lock className="w-5 h-5 text-gray-400 mt-0.5" />
-                    ) : (
-                      <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
-                    )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{atividade.titulo}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        {atividade.tipo === 'video' && <Video className="w-4 h-4 text-gray-500" />}
-                        {atividade.tipo === 'projeto' && <Code className="w-4 h-4 text-gray-500" />}
-                        {atividade.tipo === 'material' && <FileText className="w-4 h-4 text-gray-500" />}
-                        <span className="text-sm text-gray-500 capitalize">{atividade.tipo}</span>
-                      </div>
+                    <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-gray-600">Nenhuma trilha disponível neste semestre</p>
                     </div>
-                  </div>
-                  {atividade.status === 'pendente' && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleViewActivity(atividade)}
-                    >
-                      Ver Material
-                    </Button>
                   )}
                 </div>
               </div>
             ))}
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Atividade */}
-      <Dialog open={isActivityModalOpen} onOpenChange={setIsActivityModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedActivity?.titulo}</DialogTitle>
-            <DialogDescription>Visualize o material e faça sua entrega</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">
-                Clique no botão abaixo para visualizar o material completo e fazer sua entrega.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                className="flex-1"
-                onClick={handleSubmitMaterial}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Ver Material e Entregar
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setIsActivityModalOpen(false)}
-              >
-                Cancelar
-              </Button>
-            </div>
+        ) : (
+          <div className="text-center py-16 bg-white rounded-lg border-2 border-dashed border-gray-300">
+            <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma trilha encontrada</h3>
+            <p className="text-gray-600">Este curso ainda não possui trilhas de conhecimento cadastradas</p>
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+
+        <QuickActions />
+      </div>
     </div>
   )
 }

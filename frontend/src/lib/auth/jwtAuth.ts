@@ -46,7 +46,11 @@ export function hasAnyRole(payload: AuthPayload | null, required: string | strin
 export function getTokenFromLocalStorage(): string | null {
     if (typeof window === 'undefined') return null;
     const token = localStorage.getItem('token');
-    return token ? `Bearer ${token}` : null;
+    if (!token) return null;
+    
+    // Normaliza o token para evitar duplicação do prefixo Bearer
+    const normalized = normalizeToken(token);
+    return normalized ? `Bearer ${normalized}` : null;
 }
 
 function normalizeToken(raw?: string | null): string | null {

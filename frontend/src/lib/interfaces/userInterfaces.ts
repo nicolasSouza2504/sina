@@ -35,13 +35,14 @@ export interface UserData {
     cpf: string
     status?: string
     classes?: Array<{
-        Id: number;
+        id: number;
         nome: string;
         startDate: string;
-        finalDate: string;
+        endDate: string;
         imgClass: string;
         semester: number;
         code: string;
+        courseId: number;
         course: {
             id: number;
             name: string;

@@ -33,7 +33,7 @@ import { UserFromToken } from "@/lib/interfaces/userInterfaces";
 import { NotificationsBell } from '@/components/ui/notifications-bell';
 import { useSidebar } from "@/components/ui/sidebar";
 
-// Telas exclusivas do ADMIN (gerenciamento)
+// Telas exclusivas do ADMIN (gerenciamento + professor)
 const adminItems = [
   {
     title: "Dashboard Admin",
@@ -54,6 +54,11 @@ const adminItems = [
     title: "Cursos",
     url: "/cursos",
     icon: FolderOpen,
+  },
+  {
+    title: "Conteúdo",
+    url: "/professor/conteudo",
+    icon: BookOpen,
   },
   {
     title: "Alunos",

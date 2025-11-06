@@ -25,19 +25,19 @@ public class TaskContentController {
 
     private final TaskContentService taskContentService;
 
-    @Secured({"ADMIN", "TEACHER"})
+    @Secured({ "ADMIN", "TEACHER" })
     @PostMapping("/save")
     public ResponseEntity uploadContent(
             @RequestParam @Valid String taskContentStr,
             @RequestParam("file") @Nullable MultipartFile file) throws IOException {
 
-        TaskContentResponseDTO taskContentResponesDTO = taskContentService.saveTaskContent(new Gson().fromJson(taskContentStr, TaskContentRegisterDTO.class), file);
+        TaskContentResponseDTO taskContentResponesDTO = taskContentService
+                .saveTaskContent(new Gson().fromJson(taskContentStr, TaskContentRegisterDTO.class), file);
 
         return ResponseEntity.ok().body(new ApiResponse("Ok", taskContentResponesDTO));
 
     }
 
-    @Secured({"ADMIN", "TEACHER"})
     @GetMapping("/find")
     public ResponseEntity findContentByPath(@RequestParam String filePath) {
 
@@ -55,8 +55,7 @@ public class TaskContentController {
 
     }
 
-
-    @Secured({"ADMIN", "TEACHER"})
+    @Secured({ "ADMIN", "TEACHER" })
     @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable("id") Long id) {
 
