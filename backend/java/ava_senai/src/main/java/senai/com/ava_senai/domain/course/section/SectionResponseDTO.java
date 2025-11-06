@@ -5,4 +5,5 @@ public record SectionResponseDTO(Long id, String name, Integer semester, Long co
     public SectionResponseDTO(Section section) {
         this(section.getId(), section.getName(), section.getSemester(), section.getCourseId());
     }
+
 }

@@ -153,6 +153,23 @@ public class CourseService implements ICourseService {
 
     }
 
+    @Override
+    public List<CourseResponseDTO> getAllCoursesByClasses(List<Long> classesIds) {
+
+        if (classesIds.isEmpty()) {
+            throw new NullListException("Lista de classes está vazia");
+        }
+
+        List<CourseResponseDTO> courseList = courseRepository.findAllByClassesIds(classesIds);
+
+        if (courseList.isEmpty()) {
+            throw new NullListException("Lista de cursos Vazia");
+        }
+
+        return courseList;
+
+    }
+
 
     private Course updateData(Course courseDB, CourseRegisterDTO courseRegisterDTO) {
 

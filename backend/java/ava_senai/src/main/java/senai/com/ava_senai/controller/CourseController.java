@@ -13,6 +13,8 @@ import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.course.ICourseService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("${api.prefix}/course")
 @RequiredArgsConstructor
@@ -88,6 +90,11 @@ public class CourseController {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }
 
+    }
+
+    @GetMapping("/by-classes")
+    public ResponseEntity<ApiResponse> listAllByClassesId(@RequestParam List<Long> classIds) {
+        return ResponseEntity.ok().body(new ApiResponse("Cursos", courseService.getAllCoursesByClasses(classIds)));
     }
 
 }
