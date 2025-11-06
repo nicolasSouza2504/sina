@@ -22,7 +22,13 @@ export default function AlunoTrilhasPage() {
   // Estados principais
   const [userData, setUserData] = useState<UserData | null>(null)
   const [isLoadingUser, setIsLoadingUser] = useState(true)
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(() => {
+    // Recupera o curso selecionado do sessionStorage ao montar o componente
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('aluno_selected_course_id') || ''
+    }
+    return ''
+  })
   const [courseContent, setCourseContent] = useState<CourseContentSummary | null>(null)
   const [isLoadingContent, setIsLoadingContent] = useState(false)
   
@@ -61,9 +67,16 @@ export default function AlunoTrilhasPage() {
           
           setAvailableCourses(uniqueCourses)
           
-          // Seleciona automaticamente o primeiro curso
-          if (uniqueCourses.length > 0) {
-            setSelectedCourseId(uniqueCourses[0].id.toString())
+          // Recupera o curso salvo no sessionStorage ou seleciona o primeiro
+          const savedCourseId = sessionStorage.getItem('aluno_selected_course_id')
+          if (savedCourseId && uniqueCourses.some(c => c.id.toString() === savedCourseId)) {
+            // Se o curso salvo ainda existe na lista, mantém a seleção
+            setSelectedCourseId(savedCourseId)
+          } else if (uniqueCourses.length > 0) {
+            // Caso contrário, seleciona o primeiro curso
+            const firstCourseId = uniqueCourses[0].id.toString()
+            setSelectedCourseId(firstCourseId)
+            sessionStorage.setItem('aluno_selected_course_id', firstCourseId)
           }
         } else {
           toast.info('Você não está vinculado a nenhuma turma ainda')
@@ -78,6 +91,13 @@ export default function AlunoTrilhasPage() {
 
     loadUserData()
   }, [])
+
+  // Salva o curso selecionado no sessionStorage sempre que mudar
+  useEffect(() => {
+    if (selectedCourseId) {
+      sessionStorage.setItem('aluno_selected_course_id', selectedCourseId)
+    }
+  }, [selectedCourseId])
 
   // Carrega conteúdo do curso quando selecionado
   useEffect(() => {
