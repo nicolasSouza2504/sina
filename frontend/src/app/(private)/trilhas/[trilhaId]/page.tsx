@@ -8,6 +8,7 @@ import { ArrowLeft, Play, CheckCircle, Clock, BookOpen, Code, FileText, Database
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import React, { use } from "react"
+import QuickActionsAluno from '@/components/admin/quickActionsAluno'
 
 // Dados mocados das trilhas
 const mockTrilhas = {
@@ -267,11 +268,20 @@ export default function TrilhaPage({ params }: TrilhaPageProps) {
                         </div>
                       )}
                       
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/trilhas/${resolvedParams.trilhaId}/atividade/${activity.id}`}>
-                          {activity.completed ? "Revisar" : "Iniciar"}
-                        </Link>
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/trilhas/${resolvedParams.trilhaId}/atividade/${activity.id}`}>
+                            {activity.completed ? "Ver Material" : "Ver Material"}
+                          </Link>
+                        </Button>
+                        {!activity.completed && (
+                          <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
+                            <Link href={`/trilhas/${resolvedParams.trilhaId}/atividade/${activity.id}#entregar`}>
+                              Entregar
+                            </Link>
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -279,6 +289,9 @@ export default function TrilhaPage({ params }: TrilhaPageProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Quick Actions */}
+        <QuickActionsAluno />
       </div>
     </div>
   )

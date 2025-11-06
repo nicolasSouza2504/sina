@@ -40,7 +40,7 @@ export default function LoginPage() {
       
       // Decodificar o token para obter o role do usuário
       const decodedToken = decodeJwt(response.data.token);
-      const userRole = decodedToken?.role || 'USER';
+      const userRole = Array.isArray(decodedToken?.role) ? decodedToken.role[0] : decodedToken?.role || 'USER';
       
       // Redirecionar para o dashboard apropriado baseado no role
       const dashboardRoute = getDashboardRoute(userRole);

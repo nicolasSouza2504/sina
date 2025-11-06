@@ -87,6 +87,14 @@ public class DataInitializer implements CommandLineRunner {
         } catch (Exception e) {
             System.out.println("Usuário professor já existe ou erro ao criar: " + e.getMessage());
         }
+        
+        try {
+            UserRegisterDTO studentUser = buildDefaultStudent();
+            iUserService.createUser(studentUser);
+            System.out.println("Usuário aluno criado com sucesso!");
+        } catch (Exception e) {
+            System.out.println("Usuário aluno já existe ou erro ao criar: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -120,6 +128,17 @@ public class DataInitializer implements CommandLineRunner {
                 "12345678909",
                 null,
                 rolesRepository.findById(Long.valueOf(2)).get(),
+                null,
+                Long.valueOf(1));
+    }
+
+    private UserRegisterDTO buildDefaultStudent() {
+        return new UserRegisterDTO("aluno",
+                "aluno@gmail.com",
+                "aluno",
+                "98765432100",
+                null,
+                rolesRepository.findById(Long.valueOf(3)).get(),
                 null,
                 Long.valueOf(1));
     }
