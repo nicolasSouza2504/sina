@@ -45,6 +45,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     Optional<Course> findCourseWithContentOfUserById(Long userId, Long courseId);
 
     @Query("SELECT new senai.com.ava_senai.domain.course.CourseResponseDTO(c) FROM Course c " +
-            "WHERE c.id IN :classesIds")
+            " JOIN c.classes cls" +
+            " WHERE cls.id IN :classesIds")
     List<CourseResponseDTO> findAllByClassesIds(List<Long> classesIds);
 }
