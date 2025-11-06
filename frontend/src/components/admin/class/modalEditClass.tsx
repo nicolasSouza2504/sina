@@ -3,7 +3,6 @@ import {Button} from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -24,6 +23,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
 import {Class, ClassFormData} from "@/lib/interfaces/classInterfaces";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useEffect, useState} from "react";
@@ -31,6 +31,7 @@ import {useForm} from "react-hook-form";
 import {z} from "zod";
 import EditClassService from "@/lib/api/class/classEdit";
 import CourseListService from "@/lib/api/course/courseList";
+import {Edit, Hash, Image as ImageIcon} from "lucide-react";
 
 interface ModalEditClassProps {
     isOpen: boolean;
@@ -227,30 +228,41 @@ export default function ModalEditClass({
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="w-[95vw] max-w-[500px] sm:max-w-[600px] lg:max-w-[700px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Editar Turma</DialogTitle>
-                    <DialogDescription>
-                        Atualize os dados da turma selecionada.
-                    </DialogDescription>
+                <DialogHeader className="pb-6">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="p-3 bg-green-600 rounded-xl">
+                            <Edit className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                            <DialogTitle className="text-2xl font-bold text-gray-900">
+                                Editar Turma
+                            </DialogTitle>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Atualize os dados da turma selecionada
+                            </p>
+                        </div>
+                    </div>
                 </DialogHeader>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid gap-3 py-2">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
+                        <div className="grid gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {/* Code Field */}
                                 <FormField
                                     control={form.control}
                                     name="code"
                                     render={({field}) => (
                                         <FormItem>
-                                            <FormLabel>Código da Turma</FormLabel>
+                                            <FormLabel className="text-sm font-semibold text-gray-700">
+                                                Código da Turma <span className="text-red-500">*</span>
+                                            </FormLabel>
                                             <div className="flex gap-2">
                                                 <FormControl>
                                                     <Input
                                                         placeholder="Ex: TUR001"
                                                         {...field}
-                                                        className="text-sm"
+                                                        className="h-12 border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors rounded-xl"
                                                     />
                                                 </FormControl>
                                                 <Button
@@ -258,9 +270,9 @@ export default function ModalEditClass({
                                                     variant="outline"
                                                     onClick={createNewClassCode}
                                                     disabled={generatingCode}
-                                                    size="sm"
-                                                    className="flex-shrink-0"
+                                                    className="h-12 px-4 border-2 border-gray-200 hover:border-green-300 hover:bg-green-50 rounded-xl flex-shrink-0"
                                                 >
+                                                    <Hash className="h-4 w-4 mr-2" />
                                                     {generatingCode ? "Gerando..." : "Gerar"}
                                                 </Button>
                                             </div>
@@ -274,18 +286,20 @@ export default function ModalEditClass({
                                     name="semester"
                                     render={({field}) => (
                                         <FormItem>
-                                            <FormLabel>Qtd Semestres</FormLabel>
+                                            <FormLabel className="text-sm font-semibold text-gray-700">
+                                                Quantidade de Semestres <span className="text-red-500">*</span>
+                                            </FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="number"
-                                                    placeholder="Ex: 1"
+                                                    placeholder="Ex: 8"
                                                     {...field}
                                                     value={field.value || ""}
                                                     onChange={(e) => {
                                                         const value = e.target.value;
                                                         field.onChange(value ? parseInt(value) : 1);
                                                     }}
-                                                    className="text-sm"
+                                                    className="h-12 border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors rounded-xl"
                                                 />
                                             </FormControl>
                                             <FormMessage/>
@@ -298,15 +312,21 @@ export default function ModalEditClass({
 
 
                             {/* Date Fields */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
                                     name="startDate"
                                     render={({field}) => (
                                         <FormItem>
-                                            <FormLabel>Data de Início</FormLabel>
+                                            <FormLabel className="text-sm font-semibold text-gray-700">
+                                                Data de Início <span className="text-red-500">*</span>
+                                            </FormLabel>
                                             <FormControl>
-                                                <Input type="date" {...field} className="text-sm" />
+                                                <Input 
+                                                    type="date" 
+                                                    {...field} 
+                                                    className="h-12 border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors rounded-xl" 
+                                                />
                                             </FormControl>
                                             <FormMessage/>
                                         </FormItem>
@@ -318,80 +338,90 @@ export default function ModalEditClass({
                                     name="endDate"
                                     render={({field}) => (
                                         <FormItem>
-                                            <FormLabel>Data de Término</FormLabel>
+                                            <FormLabel className="text-sm font-semibold text-gray-700">
+                                                Data de Término <span className="text-red-500">*</span>
+                                            </FormLabel>
                                             <FormControl>
-                                                <Input type="date" {...field} className="text-sm" />
-                                            </FormControl>
-                                            <FormMessage/>
-                                        </FormItem>
-                                    )}
-                                />
-
-                            </div>
-
-                            {/* Semester and Course Fields */}
-                            <div className="grid grid-cols-1 gap-3">
-                                {/* Name Field */}
-                                <FormField
-                                    control={form.control}
-                                    name="name"
-                                    render={({field}) => (
-                                        <FormItem>
-                                            <FormLabel>Nome da Turma</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="Ex: Desenvolvimento Web Full-Stack 2024.1"
-                                                    {...field}
-                                                    className="text-sm"
+                                                <Input 
+                                                    type="date" 
+                                                    {...field} 
+                                                    className="h-12 border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors rounded-xl" 
                                                 />
                                             </FormControl>
                                             <FormMessage/>
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
-                                    control={form.control}
-                                    name="courseId"
-                                    render={({field}) => (
-                                        <FormItem>
-                                            <FormLabel>Curso</FormLabel>
-                                            <FormControl>
-                                                <Select
-                                                    onValueChange={(value) => {
-                                                        field.onChange(parseInt(value));
-                                                    }}
-                                                    value={field.value?.toString() || ""}
-                                                    disabled={loadingCourses}
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder={
-                                                            loadingCourses
-                                                                ? "Carregando cursos..."
-                                                                : "Selecione um curso"
-                                                        } />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {courses.map((course) => (
-                                                            <SelectItem
-                                                                key={course.id}
-                                                                value={course.id.toString()}
-                                                            >
-                                                                {course.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                        {courses.length === 0 && !loadingCourses && (
-                                                            <SelectItem value="no-courses" disabled>
-                                                                Nenhum curso encontrado
-                                                            </SelectItem>
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormControl>
-                                            <FormMessage/>
-                                        </FormItem>
-                                    )}
-                                /> 
+
                             </div>
+
+                            {/* Name Field */}
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-semibold text-gray-700">
+                                            Nome da Turma <span className="text-red-500">*</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Ex: Desenvolvimento Web Full-Stack 2024.1"
+                                                {...field}
+                                                className="h-12 border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors rounded-xl"
+                                            />
+                                        </FormControl>
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+                            
+                            {/* Course Field */}
+                            <FormField
+                                control={form.control}
+                                name="courseId"
+                                render={({field}) => (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-semibold text-gray-700">
+                                            Curso Vinculado <span className="text-red-500">*</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Select
+                                                onValueChange={(value) => {
+                                                    field.onChange(parseInt(value));
+                                                }}
+                                                value={field.value?.toString() || ""}
+                                                disabled={loadingCourses}
+                                            >
+                                                <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors rounded-xl">
+                                                    <SelectValue placeholder={
+                                                        loadingCourses
+                                                            ? "Carregando cursos..."
+                                                            : "Selecione um curso"
+                                                    } />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {courses.map((course) => (
+                                                        <SelectItem
+                                                            key={course.id}
+                                                            value={course.id.toString()}
+                                                            className="py-3"
+                                                        >
+                                                            {course.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                    {courses.length === 0 && !loadingCourses && (
+                                                        <SelectItem value="no-courses" disabled>
+                                                            Nenhum curso encontrado
+                                                        </SelectItem>
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
 
                             {/* Image Field */}
                             <FormField
@@ -399,7 +429,9 @@ export default function ModalEditClass({
                                 name="imgClass"
                                 render={({field}) => (
                                     <FormItem>
-                                        <FormLabel>Imagem da Turma</FormLabel>
+                                        <FormLabel className="text-sm font-semibold text-gray-700">
+                                            Imagem da Turma
+                                        </FormLabel>
                                         <FormControl>
                                             <div className="space-y-4">
                                                 <Select
@@ -408,13 +440,13 @@ export default function ModalEditClass({
                                                     }}
                                                     value={field.value || "none"}
                                                 >
-                                                    <SelectTrigger>
+                                                    <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-colors rounded-xl">
                                                         <SelectValue placeholder="Selecione uma imagem"/>
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="none">Nenhuma imagem</SelectItem>
+                                                        <SelectItem value="none" className="py-3">Nenhuma imagem</SelectItem>
                                                         {imageNames.map((imageName) => (
-                                                            <SelectItem key={imageName} value={imageName}>
+                                                            <SelectItem key={imageName} value={imageName} className="py-3">
                                                                 {imageName}
                                                             </SelectItem>
                                                         ))}
@@ -423,11 +455,16 @@ export default function ModalEditClass({
 
                                                 {/* Image Preview */}
                                                 {watchedImage && watchedImage !== "none" && (
-                                                    <div className="w-20 h-20 sm:w-24 sm:h-24">
+                                                    <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+                                                        <ImageIcon className="h-5 w-5 text-green-600" />
+                                                        <div className="flex-1">
+                                                            <p className="text-sm font-medium text-green-900">Preview da Imagem</p>
+                                                            <p className="text-xs text-green-700">{watchedImage}</p>
+                                                        </div>
                                                         <img
                                                             src={`/img/${watchedImage}`}
                                                             alt="Preview"
-                                                            className="w-full h-full object-cover rounded-md border"
+                                                            className="w-16 h-16 object-cover rounded-lg border-2 border-green-300"
                                                         />
                                                     </div>
                                                 )}
@@ -440,26 +477,24 @@ export default function ModalEditClass({
                         </div>
 
                         {editionError && (
-                            <div className="text-red-500 text-xs sm:text-sm p-2 sm:p-3 bg-red-50 rounded-md border border-red-200">
-                                {editionError}
+                            <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                                <p className="text-sm font-medium text-red-900">{editionError}</p>
                             </div>
                         )}
 
-                        <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+                        <DialogFooter className="flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
                             <Button 
                                 type="button" 
                                 variant="outline" 
                                 onClick={handleCancel}
-                                className="w-full sm:w-auto order-2 sm:order-1"
-                                size="sm"
+                                className="w-full sm:w-auto order-2 sm:order-1 h-11 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl font-semibold"
                             >
                                 Cancelar
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={form.formState.isSubmitting || loadingCourses}
-                                className="w-full sm:w-auto order-1 sm:order-2"
-                                size="sm"
+                                className="w-full sm:w-auto order-1 sm:order-2 h-11 bg-green-600 hover:bg-green-700 rounded-xl font-semibold"
                             >
                                 {form.formState.isSubmitting
                                     ? "Salvando..."

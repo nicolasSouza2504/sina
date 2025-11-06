@@ -58,6 +58,7 @@ import type { DifficultyLevel } from '@/lib/interfaces/taskInterfaces';
 import CreateTaskContentModal from '@/components/KnowledgeTrail/CreateTaskContentModal';
 import TaskMaterialsModal from '@/components/KnowledgeTrail/TaskMaterialsModal';
 import ViewTaskContentModal from '@/components/KnowledgeTrail/ViewTaskContentModal';
+import DeleteTaskContentModal from '@/components/professor/DeleteTaskContentModal';
 import QuickActions from '@/components/admin/quickActions';
 import { toast } from 'sonner';
 import CourseList from '@/lib/api/course/courseList';
@@ -66,6 +67,7 @@ import UpdateKnowledgeTrailService from '@/lib/api/knowledgetrail/updateKnowledg
 import CourseContentSummaryService from '@/lib/api/course/courseContentSummary';
 import CreateTaskService from '@/lib/api/task/createTask';
 import CreateTaskContentService from '@/lib/api/task-content/createTaskContent';
+import DeleteTaskContentService from '@/lib/api/task-content/deleteTaskContent';
 import type { Course as ApiCourse } from '@/lib/interfaces/courseInterfaces';
 import type { EditKnowledgeTrailFormData } from '@/lib/interfaces/knowledgeTrailInterfaces';
 import type { TaskFormData } from '@/lib/interfaces/taskInterfaces';
@@ -134,6 +136,11 @@ export default function GerenciarConteudo() {
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
   const [selectedTaskForSubmissions, setSelectedTaskForSubmissions] = useState<{ id: string; title: string } | null>(null);
+  
+  // Estados para modal de exclusão de conteúdo
+  const [isDeleteContentModalOpen, setIsDeleteContentModalOpen] = useState(false);
+  const [contentToDelete, setContentToDelete] = useState<{ id: number; name: string } | null>(null);
+  const [isDeletingContent, setIsDeletingContent] = useState(false);
   
   // Estado para edição de tarefa
   const [editTask, setEditTask] = useState<{
@@ -477,7 +484,33 @@ export default function GerenciarConteudo() {
     }
   };
 
-  // Função de deletar conteúdo removida conforme solicitado
+  const handleDeleteContent = async () => {
+    if (!contentToDelete) return;
+
+    setIsDeletingContent(true);
+    try {
+      await DeleteTaskContentService(contentToDelete.id);
+      toast.success('✅ Conteúdo excluído com sucesso', {
+        description: 'O material foi removido da tarefa.'
+      });
+      
+      // Recarrega o conteúdo do curso
+      if (selectedCourseId) {
+        await fetchCourseContent(selectedCourseId);
+      }
+      
+      // Fecha o modal e limpa o estado
+      setIsDeleteContentModalOpen(false);
+      setContentToDelete(null);
+    } catch (error) {
+      console.error('Erro ao excluir conteúdo:', error);
+      toast.error('❌ Erro ao excluir conteúdo', {
+        description: error instanceof Error ? error.message : 'Tente novamente'
+      });
+    } finally {
+      setIsDeletingContent(false);
+    }
+  };
 
   const handleEditTask = async (data: {
     id: number;
@@ -1007,7 +1040,23 @@ export default function GerenciarConteudo() {
                                                         <Download className="h-3 w-3 text-blue-600" />
                                                       </Button>
                                                     )}
-                                                    {/* Botão de excluir conteúdo ocultado temporariamente */}
+                                                    
+                                                    {/* Botão de excluir conteúdo */}
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        setContentToDelete({
+                                                          id: content.id,
+                                                          name: content.name
+                                                        });
+                                                        setIsDeleteContentModalOpen(true);
+                                                      }}
+                                                      className="h-6 w-6 p-0 hover:bg-red-100"
+                                                      title="Excluir conteúdo"
+                                                    >
+                                                      <Trash2 className="h-3 w-3 text-red-600" />
+                                                    </Button>
                                                   </div>
                                                 </div>
                                               ))}
@@ -1208,6 +1257,15 @@ export default function GerenciarConteudo() {
           taskTitle={selectedTaskForSubmissions.title}
         />
       )}
+
+      {/* Modal de Confirmação de Exclusão de Conteúdo */}
+      <DeleteTaskContentModal
+        open={isDeleteContentModalOpen}
+        onOpenChange={setIsDeleteContentModalOpen}
+        contentName={contentToDelete?.name || ''}
+        onConfirm={handleDeleteContent}
+        isDeleting={isDeletingContent}
+      />
 
       {/* Quick Actions */}
       <QuickActions />
