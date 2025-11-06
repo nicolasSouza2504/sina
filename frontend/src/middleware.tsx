@@ -1,20 +1,20 @@
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { decodeJwt, hasAnyRole, type AuthPayload } from "./lib/auth/jwtAuth";
-import { getTokenFromSession } from "./lib/auth/jwtAuth.server";
+import getTokenFromSession from "./lib/auth/jwtAuth.server";
 
 const TOKEN_COOKIE = "token";
 
 const AUTH_PROTECTED: RegExp[] = [
   /^\/$/,
   /^\/home(\/.*)?$/,
-  /^\/turmas(\/.*)?$/,
-  /^\/professores(\/.*)?$/,
+  /^\/aluno(\/.*)?$/,
   /^\/professor(\/.*)?$/,
   /^\/cursos(\/.*)?$/,
   /^\/trilhas(\/.*)?$/,
   /^\/ranking(\/.*)?$/,
   /^\/admin(\/.*)?$/,
+  /^\/user(\/.*)?$/,
 ];
 
 const ROLE_RULES: Array<{ pattern: RegExp; roles: string[] }> = [
@@ -22,6 +22,7 @@ const ROLE_RULES: Array<{ pattern: RegExp; roles: string[] }> = [
   // TELAS EXCLUSIVAS DO ADMIN (role=1)
   // ========================================
   { pattern: /^\/admin$/, roles: ["ADMIN"] }, // Dashboard Admin
+  { pattern: /^\/admin\/admin(\/.*)?$/, roles: ["ADMIN"] }, // Gerenciamento de Administradores
   { pattern: /^\/admin\/teachers(\/.*)?$/, roles: ["ADMIN"] }, // Gerenciamento de Professores
   { pattern: /^\/admin\/students(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Gerenciamento de Alunos
   { pattern: /^\/admin\/class(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Gerenciamento de Turmas
@@ -44,7 +45,11 @@ const ROLE_RULES: Array<{ pattern: RegExp; roles: string[] }> = [
   // ========================================
   // TELAS DO ESTUDANTE (role=3)
   // ========================================
-  { pattern: /^\/home(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT"] }, // Dashboard Estudante
+  { pattern: /^\/aluno\/dashboard(\/.*)?$/, roles: ["STUDENT"] }, // Dashboard Aluno
+  { pattern: /^\/aluno\/trilhas(\/.*)?$/, roles: ["STUDENT"] }, // Trilhas do Aluno
+  { pattern: /^\/aluno\/ead(\/.*)?$/, roles: ["STUDENT"] }, // EAD do Aluno
+  { pattern: /^\/aluno\/ranking(\/.*)?$/, roles: ["STUDENT"] }, // Ranking EAD
+  { pattern: /^\/home(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT"] }, // Dashboard Geral (fallback)
   
   // ========================================
   // TELAS DE PERFIL (todos os roles autenticados)
@@ -134,13 +139,12 @@ export const config = {
   matcher: [
     "/",
     "/home/:path*",
-    "/turmas/:path*",
-    "/alunos/:path*",
+    "/aluno/:path*",
     "/professor/:path*",
+    "/admin/:path*",
     "/cursos/:path*",
     "/trilhas/:path*",
-    "/admin/:path*",
     "/ranking/:path*",
-    "/professores/:path*",
+    "/user/:path*",
   ],
 };
