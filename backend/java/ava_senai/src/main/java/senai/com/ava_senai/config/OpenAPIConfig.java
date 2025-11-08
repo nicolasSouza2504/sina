@@ -16,7 +16,7 @@ public class OpenAPIConfig {
                 .info(new Info()
                         .title("Documentação API AVA SENAI")
                         .version("v1")
-                        .description("Documentação API AVA SENAI - Ambiente Virtual de Aprendizagem do SENAI")
+                        .description("Documentação API AVA SENAI - Sistema de Controle de Conteúdo do SENAI")
                         .license(new License().name("Apache 2.0")));
     }
 

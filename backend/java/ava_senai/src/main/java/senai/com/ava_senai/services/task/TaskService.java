@@ -13,7 +13,7 @@ import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.*;
 import senai.com.ava_senai.services.messaging.RabbitMQSender;
-import senai.com.ava_senai.taskuser.TaskUser;
+import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 
 import java.util.List;
 

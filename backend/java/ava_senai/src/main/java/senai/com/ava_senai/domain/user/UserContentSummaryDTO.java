@@ -3,7 +3,7 @@ package senai.com.ava_senai.domain.user;
 import senai.com.ava_senai.domain.course.section.Section;
 import senai.com.ava_senai.domain.task.Task;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
-import senai.com.ava_senai.taskuser.TaskUser;
+import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 
 import java.util.*;
 

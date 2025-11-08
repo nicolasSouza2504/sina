@@ -1,5 +1,6 @@
 package senai.com.ava_senai.controller;
 
+
 import com.google.gson.Gson;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
@@ -9,30 +10,30 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContentResponseDTO;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
+import senai.com.ava_senai.domain.task.userresponsecontent.UserResponseContentRegisterDTO;
+import senai.com.ava_senai.domain.task.userresponsecontent.UserResponseContentResponseDTO;
 import senai.com.ava_senai.dto.FileData;
 import senai.com.ava_senai.response.ApiResponse;
-import senai.com.ava_senai.services.task.TaskContentService;
+import senai.com.ava_senai.services.task.IUserResponseContentService;
 
 import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("${api.prefix}/task-content")
-public class TaskContentController {
+@RequestMapping("${api.prefix}/user-response-content")
+public class UserResponseContentController {
 
-    private final TaskContentService taskContentService;
+    private final IUserResponseContentService userResponseContentService;
 
     @Secured({"ADMIN", "TEACHER"})
     @PostMapping("/save")
     public ResponseEntity uploadContent(
-            @RequestParam @Valid String taskContentStr,
+            @RequestParam @Valid String userContentStr,
             @RequestParam("file") @Nullable MultipartFile file) throws IOException {
 
-        TaskContentResponseDTO taskContentResponesDTO = taskContentService.saveTaskContent(new Gson().fromJson(taskContentStr, TaskContentRegisterDTO.class), file);
+        UserResponseContentResponseDTO userResponseContent = userResponseContentService.saveUserResponseContent(new Gson().fromJson(userContentStr, UserResponseContentRegisterDTO.class), file);
 
-        return ResponseEntity.ok().body(new ApiResponse("Ok", taskContentResponesDTO));
+        return ResponseEntity.ok().body(new ApiResponse("Ok", userResponseContent));
 
     }
 
@@ -42,7 +43,8 @@ public class TaskContentController {
 
         try {
 
-            FileData fileData = taskContentService.findContentByPath(filePath);
+
+            FileData fileData = userResponseContentService.findContentByPath(filePath);
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, fileData.getMimeType())
@@ -61,7 +63,7 @@ public class TaskContentController {
 
         try {
 
-            taskContentService.delete(id);
+            userResponseContentService.delete(id);
 
             return ResponseEntity.ok().body(new ApiResponse("Conteúdo da tarefa deletado com sucesso", id));
 

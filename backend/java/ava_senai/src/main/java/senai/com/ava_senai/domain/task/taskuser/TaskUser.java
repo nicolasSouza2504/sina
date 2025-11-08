@@ -1,4 +1,4 @@
-package senai.com.ava_senai.taskuser;
+package senai.com.ava_senai.domain.task.taskuser;
 
 
 import jakarta.persistence.*;

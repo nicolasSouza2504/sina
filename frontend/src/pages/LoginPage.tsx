@@ -83,7 +83,7 @@ export default function LoginPage() {
         <div className="max-w-5xl max-h-full">
           <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg text-center pb-5 stroke-3 ">
             {" "}
-            Ambiente Virtual de aprendizagem{" "}
+            Sistema de Controle de Conteúdo{" "}
           </h1>{" "}
           <img
             src="/img/Alunos-senai.png"
