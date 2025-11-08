@@ -62,5 +62,5 @@ O sistema busca:
 
 ## Agradecimentos
 
-Agradecimento à instituição UniSenai Joinville, aos docentes do curso de ADS, ao orientador e aos colegas envolvidos na elicitação de requisitos e validação do sistema[attached_file:1].
+Agradecimento à instituição UniSenai Joinville, aos docentes do curso de ADS, ao orientador e aos colegas envolvidos na elicitação de requisitos e validação do sistema.
 
