@@ -5,10 +5,14 @@ import org.springframework.stereotype.Service;
 import senai.com.ava_senai.domain.task.userresponse.UserResponse;
 import senai.com.ava_senai.domain.task.userresponse.UserResponseRegisterDTO;
 import senai.com.ava_senai.domain.task.userresponse.UserResponseResponseDTO;
+import senai.com.ava_senai.domain.task.userresponsecontent.UserResponseContent;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.Validation;
-import senai.com.ava_senai.repository.UserResponseRepository;
 import senai.com.ava_senai.repository.TaskUserRepository;
+import senai.com.ava_senai.repository.UserResponseContentRepository;
+import senai.com.ava_senai.repository.UserResponseRepository;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +20,8 @@ public class UserResponseService implements IUserResponseService {
 
     private final TaskUserRepository taskUserRepository;
     private final UserResponseRepository userResponseRepository;
+    private final UserResponseContentRepository userResponseContentRepository;
+    private final UserResponseContentService userResponseContentService;
 
     @Override
     public UserResponseResponseDTO createUserResponse(UserResponseRegisterDTO userResponseRegisterDTO) {
@@ -40,8 +46,12 @@ public class UserResponseService implements IUserResponseService {
     }
 
     @Override
-    public void deleteUserResponse(Long id) {
-        userResponseRepository.deleteById(id);
+    public void deleteUserResponse(Long idUserResponse) {
+
+        deleteUserResponseContents(idUserResponse);
+
+        userResponseRepository.deleteById(idUserResponse);
+
     }
 
     private void validateMandatoryFields(UserResponseRegisterDTO userResponseRegisterDTO) {
@@ -64,6 +74,20 @@ public class UserResponseService implements IUserResponseService {
 
     private UserResponse create(UserResponseRegisterDTO userResponseRegisterDTO) {
         return new UserResponse(userResponseRegisterDTO.taskUserId(), userResponseRegisterDTO.commentary());
+    }
+
+    public void deleteUserResponseContents(Long idUserResponse) {
+
+        List<UserResponseContent> lsContents = userResponseContentRepository.findByUserResponseId(idUserResponse);
+
+        if (!lsContents.isEmpty()) {
+
+            lsContents.forEach(content -> {
+                userResponseContentService.delete(content.getId());
+            });
+
+        }
+
     }
 
 }
