@@ -52,7 +52,7 @@ const adminItems = [
   },
   {
     title: "Cursos",
-    url: "/cursos",
+    url: "/professor/cursos",
     icon: FolderOpen,
   },
   {
