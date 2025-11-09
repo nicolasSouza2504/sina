@@ -1,10 +1,10 @@
 package senai.com.ava_senai.domain.task.userresponse;
 
-
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import senai.com.ava_senai.domain.DefaultEntity;
+import senai.com.ava_senai.domain.task.feedback.Feedback;
 import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 import senai.com.ava_senai.domain.task.userresponsecontent.UserResponseContent;
 
@@ -28,6 +28,9 @@ public class UserResponse extends DefaultEntity {
 
     @Column(name = "task_user_id", nullable = false)
     private Long taskUserId;
+
+    @OneToOne(mappedBy = "userResponse")
+    private Feedback feedback;
 
     public UserResponse() {
     }

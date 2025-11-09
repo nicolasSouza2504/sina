@@ -23,6 +23,22 @@ export interface UserResponseSummary {
   comment: string;
   taskUser: TaskUserResponseDTO;
   contents: UserResponseContent[];
+  feedback?: {
+    id: number;
+    teacher: {
+      id: number;
+      name: string;
+      email: string;
+    };
+    response: {
+      id: number;
+      comment: string;
+      taskUserId: number;
+    };
+    comment: string;
+    grade: number;
+  };
+  createdAt?: string;
 }
 
 export interface TaskUserResponse {

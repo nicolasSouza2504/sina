@@ -16,10 +16,14 @@ import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.ClassRepository;
 import senai.com.ava_senai.repository.CourseRepository;
 import senai.com.ava_senai.repository.UserClassRepository;
+import senai.com.ava_senai.repository.UserResponseRepository;
+import senai.com.ava_senai.domain.course.clazz.ClassResponseSummaryDTO;
+import senai.com.ava_senai.domain.task.userresponse.UserResponse;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +33,7 @@ public class ClassService implements IClassService {
 
     private final UserClassRepository userClassRepository;
     private final CourseRepository courseRepository;
+    private final UserResponseRepository userResponseRepository;
 
     @Override
     public ClassResponseDTO createClass(ClassRegisterDTO classRegisterDTO) {
@@ -69,8 +74,8 @@ public class ClassService implements IClassService {
     public List<ClassResponseDTO> getTurmas() {
 
         return Optional.of(classRepository.findAll()
-                        .stream()
-                        .map(ClassResponseDTO::new).toList())
+                .stream()
+                .map(ClassResponseDTO::new).toList())
                 .filter(list -> !list.isEmpty())
                 .orElseThrow(() -> new NullListException("Lista de Turmas esta Vazia!"));
 
@@ -82,6 +87,34 @@ public class ClassService implements IClassService {
         return Optional.of(turmaId)
                 .filter(turma -> classRepository.existsById(turmaId))
                 .map(turma -> new ClassResponseDTO(classRepository.getReferenceById(turmaId)))
+                .orElseThrow(() -> new NotFoundException("Turma não econtrada pelo id:" + turmaId + "!"));
+
+    }
+
+    @Override
+    public ClassResponseSummaryDTO getTurmaSummaryById(Long turmaId) {
+
+        return Optional.of(turmaId)
+                .filter(turma -> classRepository.existsById(turmaId))
+                .map(turma -> {
+                    Class clazz = classRepository.getReferenceById(turmaId);
+                    
+                    // Busca todos os TaskUser IDs dos alunos da turma
+                    List<Long> taskUserIds = clazz.getUserClasses().stream()
+                            .filter(userClass -> userClass.getUser() != null && userClass.getUser().getTaskUsers() != null)
+                            .flatMap(userClass -> userClass.getUser().getTaskUsers().stream())
+                            .map(taskUser -> taskUser.getId())
+                            .collect(Collectors.toList());
+                    
+                    // Busca todos os UserResponse correspondentes
+                    List<UserResponse> userResponses = taskUserIds.stream()
+                            .map(taskUserId -> userResponseRepository.findUserResponseByTaskUserId(taskUserId))
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .collect(Collectors.toList());
+                    
+                    return new ClassResponseSummaryDTO(clazz, userResponses);
+                })
                 .orElseThrow(() -> new NotFoundException("Turma não econtrada pelo id:" + turmaId + "!"));
 
     }

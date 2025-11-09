@@ -24,7 +24,42 @@ export interface UserResponseResponse {
   id: number;
   comment: string;
   taskUserId: number;
-  contents?: UserResponseContentResponse[];
+  feedback?: FeedbackResponse | null;
+  createdAt?: string;
+  contents?: Array<{
+    taskContentType: string;
+    name: string;
+    url: string;
+  }>;
+}
+
+// Interface para Feedback (avaliação do professor)
+export interface FeedbackResponse {
+  id: number;
+  teacher: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  response: {
+    id: number;
+    comment: string;
+    taskUserId: number;
+  };
+  comment: string;
+  grade: number;
+}
+
+// Interface para criar/editar feedback
+export interface FeedbackRegister {
+  userResponseId: number;
+  comment: string;
+  grade: number;
+}
+
+export interface FeedbackFormData {
+  comment: string;
+  grade: number;
 }
 
 // Interface para o payload completo de submissão

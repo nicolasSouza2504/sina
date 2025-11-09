@@ -18,11 +18,12 @@ import CreateTaskUserService from '@/lib/api/task-user/createTaskUser'
 import { toast } from 'sonner'
 import type { TaskSummary, TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces'
 import type { TaskUserResponse } from '@/lib/interfaces/taskUserInterfaces'
+import type { FeedbackResponse } from '@/lib/interfaces/userResponseInterfaces'
 
 export default function AlunoMaterialPage() {
   const params = useParams()
   const router = useRouter()
-  const taskId = params.id as string
+  const taskId = (params?.id as string) || ''
 
   // Estados
   const [task, setTask] = useState<TaskSummary | null>(null)
@@ -431,20 +432,42 @@ export default function AlunoMaterialPage() {
                     <div className="flex items-start gap-2">
                       {taskUserData.userResponse ? (
                         <>
-                          <div className="p-1 bg-green-600 rounded-full flex-shrink-0 mt-0.5">
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
+                          <div className={`p-1 rounded-full flex-shrink-0 mt-0.5 ${
+                            taskUserData.userResponse.feedback ? 'bg-yellow-500' : 'bg-green-600'
+                          }`}>
+                            {taskUserData.userResponse.feedback ? (
+                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ) : (
+                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-semibold text-green-900">
-                              Atividade já enviada
+                            <p className={`text-sm font-semibold ${
+                              taskUserData.userResponse.feedback ? 'text-yellow-900' : 'text-green-900'
+                            }`}>
+                              {taskUserData.userResponse.feedback ? 'Atividade avaliada' : 'Atividade já enviada'}
                             </p>
-                            <p className="text-xs text-green-700 mt-1">
+                            <p className={`text-xs mt-1 ${
+                              taskUserData.userResponse.feedback ? 'text-yellow-700' : 'text-green-700'
+                            }`}>
                               TaskUser ID: {taskUserId}
+                              {taskUserData.userResponse.feedback && (
+                                <>
+                                  {' • Nota: '}
+                                  <span className="font-bold">
+                                    {taskUserData.userResponse.feedback.grade.toFixed(1)}
+                                  </span>
+                                </>
+                              )}
                             </p>
                             {taskUserData.userResponse.comment && (
-                              <p className="text-xs text-green-700 mt-1">
+                              <p className={`text-xs mt-1 ${
+                                taskUserData.userResponse.feedback ? 'text-yellow-600' : 'text-green-600'
+                              }`}>
                                 Comentário: {taskUserData.userResponse.comment}
                               </p>
                             )}
@@ -508,6 +531,52 @@ export default function AlunoMaterialPage() {
                       <div className="p-3 bg-gray-50 rounded-lg border-2 border-gray-200">
                         <p className="text-xs font-semibold text-gray-700 mb-1">Seu comentário:</p>
                         <p className="text-sm text-gray-800">{taskUserData.userResponse.comment}</p>
+                      </div>
+                    )}
+
+                    {/* Feedback do Professor */}
+                    {taskUserData.userResponse.feedback && (
+                      <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="p-2 bg-green-600 rounded-lg">
+                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold text-green-900">
+                              Avaliação do Professor
+                            </h4>
+                            <p className="text-xs text-green-700">
+                              por {taskUserData.userResponse.feedback.teacher.name}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1">
+                              <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                              <span className="text-lg font-bold text-green-900">
+                                {taskUserData.userResponse.feedback.grade.toFixed(1)}
+                              </span>
+                            </div>
+                            <Badge className="bg-green-100 text-green-700 border-green-200">
+                              Nota Final
+                            </Badge>
+                          </div>
+                          
+                          {taskUserData.userResponse.feedback.comment && (
+                            <div>
+                              <p className="text-xs font-semibold text-green-800 mb-1">Comentário do professor:</p>
+                              <p className="text-sm text-green-900 bg-white p-3 rounded-lg border border-green-200">
+                                {taskUserData.userResponse.feedback.comment}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                     

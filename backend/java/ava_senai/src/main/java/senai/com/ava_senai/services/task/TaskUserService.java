@@ -2,8 +2,6 @@ package senai.com.ava_senai.services.task;
 
 import lombok.RequiredArgsConstructor;
 
-import java.beans.Transient;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;

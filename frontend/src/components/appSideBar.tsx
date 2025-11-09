@@ -8,6 +8,7 @@ import {
   Users,
   FolderOpen,
   BookOpen,
+  BookOpenCheck,
 } from "lucide-react";
 
 import {
@@ -108,6 +109,11 @@ const teacherItems = [
     title: "Ranking",
     url: "/ranking",
     icon: ChartBarDecreasing,
+  },
+  {
+    title: "Avaliar",
+    url: "/professor/avaliacao",
+    icon: BookOpenCheck,
   },
 ];
 
