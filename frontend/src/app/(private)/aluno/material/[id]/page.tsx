@@ -8,11 +8,14 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, FileText, Video, Download, Upload, Loader2, Eye, BookOpen, AlertCircle } from "lucide-react"
 import QuickActionsAluno from '@/components/admin/quickActionsAluno'
 import ViewTaskContentModal from '@/components/KnowledgeTrail/ViewTaskContentModal'
+import SubmitTaskModal from '@/components/aluno/SubmitTaskModal'
 import getUserFromToken from '@/lib/auth/userToken'
 import GetUserByIdService from '@/lib/api/user/getUserById'
 import CourseContentSummaryService from '@/lib/api/course/courseContentSummary'
+import GetTaskUserByUserAndTaskService from '@/lib/api/task-user/getTaskUserByUserAndTask'
 import { toast } from 'sonner'
 import type { TaskSummary, TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces'
+import type { TaskUserResponse } from '@/lib/interfaces/taskUserInterfaces'
 
 export default function AlunoMaterialPage() {
   const params = useParams()
@@ -23,11 +26,60 @@ export default function AlunoMaterialPage() {
   const [task, setTask] = useState<TaskSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [submissionFile, setSubmissionFile] = useState<File | null>(null)
+  
+  // Estados do TaskUser
+  const [taskUserData, setTaskUserData] = useState<TaskUserResponse | null>(null)
+  const [taskUserId, setTaskUserId] = useState<number | null>(null)
+  const [userId, setUserId] = useState<number | null>(null)
+  const [isLoadingTaskUser, setIsLoadingTaskUser] = useState(false)
   
   // Modal de visualização de conteúdo
   const [isViewContentModalOpen, setIsViewContentModalOpen] = useState(false)
   const [selectedContent, setSelectedContent] = useState<TaskContentSummary | null>(null)
+  
+  // Modal de submissão de atividade
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false)
+
+  // Função para carregar dados do TaskUser
+  const loadTaskUserData = async (userId: number, taskId: number) => {
+    try {
+      setIsLoadingTaskUser(true)
+      console.log('[AlunoMaterial] Buscando TaskUser:', { userId, taskId })
+      
+      const taskUserResponse = await GetTaskUserByUserAndTaskService(userId, taskId)
+      
+      console.log('[AlunoMaterial] TaskUser encontrado:', {
+        taskUserId: taskUserResponse.id,
+        hasUserResponse: !!taskUserResponse.userResponse,
+        userResponseId: taskUserResponse.userResponse?.id
+      })
+      
+      setTaskUserData(taskUserResponse)
+      setTaskUserId(taskUserResponse.id)
+      
+      if (taskUserResponse.userResponse) {
+        console.log('[AlunoMaterial] Aluno já possui resposta enviada:', {
+          responseId: taskUserResponse.userResponse.id,
+          comment: taskUserResponse.userResponse.comment,
+          contentsCount: taskUserResponse.userResponse.contents?.length || 0
+        })
+      } else {
+        console.log('[AlunoMaterial] Aluno ainda não enviou resposta para esta tarefa')
+      }
+    } catch (err) {
+      console.error('[AlunoMaterial] Erro ao buscar TaskUser:', err)
+      // Não mostra toast de erro aqui pois o TaskUser pode não existir ainda
+      // (aluno pode estar acessando a tarefa pela primeira vez)
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar dados da tarefa'
+      if (errorMessage.includes('não encontrado')) {
+        console.log('[AlunoMaterial] TaskUser não existe ainda - primeira vez que aluno acessa esta tarefa')
+      } else {
+        toast.error(errorMessage)
+      }
+    } finally {
+      setIsLoadingTaskUser(false)
+    }
+  }
 
   // Carrega a tarefa ao montar o componente
   useEffect(() => {
@@ -99,6 +151,10 @@ export default function AlunoMaterialPage() {
         })
 
         setTask(foundTask)
+        setUserId(userFromToken.id)
+
+        // 5. Busca dados do TaskUser (relação entre usuário e tarefa)
+        await loadTaskUserData(userFromToken.id, parseInt(taskId))
       } catch (err) {
         console.error('Erro ao carregar tarefa:', err)
         const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar tarefa'
@@ -122,19 +178,31 @@ export default function AlunoMaterialPage() {
     setIsViewContentModalOpen(true)
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setSubmissionFile(file)
-    }
-  }
-
-  const handleSubmit = () => {
-    if (!submissionFile) {
+  const handleOpenSubmitModal = () => {
+    // Verifica se já existe resposta enviada
+    if (taskUserData?.userResponse) {
+      toast.info('Você já enviou uma resposta para esta atividade', {
+        description: 'Não é possível enviar novamente'
+      })
       return
     }
-    console.log('Enviando arquivo:', submissionFile.name)
-    router.push('/aluno/ead')
+
+    // Verifica se tem taskUserId
+    if (!taskUserId) {
+      toast.error('Erro ao identificar a tarefa', {
+        description: 'Recarregue a página e tente novamente'
+      })
+      return
+    }
+
+    setIsSubmitModalOpen(true)
+  }
+
+  const handleSubmitSuccess = async () => {
+    // Recarrega os dados do TaskUser após submissão bem-sucedida
+    if (userId && taskId) {
+      await loadTaskUserData(userId, parseInt(taskId))
+    }
   }
 
   // Loading state
@@ -284,42 +352,101 @@ export default function AlunoMaterialPage() {
               </CardContent>
             </Card>
 
-            {/* Card de Entrega (TODO: Implementar integração com API) */}
+            {/* Card de Entrega */}
             <Card className="bg-white border-2 border-gray-200">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900">
-                  Entrega da Atividade
+                <CardTitle className="text-xl font-semibold text-gray-900 flex items-center justify-between">
+                  <span>Entrega da Atividade</span>
+                  {isLoadingTaskUser && (
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-700">
-                    Enviar arquivo da atividade
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="file"
-                      accept=".pdf,.zip,.doc,.docx"
-                      onChange={handleFileUpload}
-                      className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    />
+                {/* Status da Entrega */}
+                {taskUserData && (
+                  <div className={`p-3 rounded-lg border-2 ${
+                    taskUserData.userResponse 
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <div className="flex items-start gap-2">
+                      {taskUserData.userResponse ? (
+                        <>
+                          <div className="p-1 bg-green-600 rounded-full flex-shrink-0 mt-0.5">
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-green-900">
+                              Atividade já enviada
+                            </p>
+                            <p className="text-xs text-green-700 mt-1">
+                              TaskUser ID: {taskUserId}
+                            </p>
+                            {taskUserData.userResponse.comment && (
+                              <p className="text-xs text-green-700 mt-1">
+                                Comentário: {taskUserData.userResponse.comment}
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="p-1 bg-blue-600 rounded-full flex-shrink-0 mt-0.5">
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-blue-900">
+                              Atividade pendente
+                            </p>
+                            <p className="text-xs text-blue-700 mt-1">
+                              TaskUser ID: {taskUserId} - Envie sua resposta abaixo
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  {submissionFile && (
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm text-gray-700">{submissionFile.name}</span>
+                )}
+                
+                {!taskUserData && !isLoadingTaskUser && (
+                  <div className="p-3 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <div className="p-1 bg-yellow-600 rounded-full flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-yellow-900">
+                          Primeira vez acessando esta tarefa
+                        </p>
+                        <p className="text-xs text-yellow-700 mt-1">
+                          O sistema criará seu registro ao enviar a primeira resposta
+                        </p>
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
+                
+                <div className="space-y-3">
                   <Button
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white h-11 rounded-xl font-semibold"
-                    onClick={handleSubmit}
-                    disabled={!submissionFile}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white h-11 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleOpenSubmitModal}
+                    disabled={!!taskUserData?.userResponse || isLoadingTaskUser}
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    Enviar Atividade
+                    {taskUserData?.userResponse ? 'Atividade Já Enviada' : 'Enviar Atividade'}
                   </Button>
+                  {taskUserData?.userResponse && (
+                    <p className="text-xs text-gray-500 text-center">
+                      Você já enviou uma resposta para esta atividade
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -383,6 +510,17 @@ export default function AlunoMaterialPage() {
           contentName={selectedContent.name}
           contentType={selectedContent.contentType}
           contentUrl={selectedContent.contentUrl}
+        />
+      )}
+
+      {/* Modal de Submissão de Atividade */}
+      {task && (
+        <SubmitTaskModal
+          open={isSubmitModalOpen}
+          onOpenChange={setIsSubmitModalOpen}
+          taskName={task.name}
+          taskUserId={taskUserId}
+          onSubmitSuccess={handleSubmitSuccess}
         />
       )}
     </div>

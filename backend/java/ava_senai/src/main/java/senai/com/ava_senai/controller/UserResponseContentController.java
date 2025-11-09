@@ -1,13 +1,11 @@
 package senai.com.ava_senai.controller;
 
-
 import com.google.gson.Gson;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import senai.com.ava_senai.domain.task.userresponsecontent.UserResponseContentRegisterDTO;
@@ -25,24 +23,22 @@ public class UserResponseContentController {
 
     private final IUserResponseContentService userResponseContentService;
 
-    @Secured({"ADMIN", "TEACHER"})
     @PostMapping("/save")
     public ResponseEntity uploadContent(
             @RequestParam @Valid String userContentStr,
             @RequestParam("file") @Nullable MultipartFile file) throws IOException {
 
-        UserResponseContentResponseDTO userResponseContent = userResponseContentService.saveUserResponseContent(new Gson().fromJson(userContentStr, UserResponseContentRegisterDTO.class), file);
+        UserResponseContentResponseDTO userResponseContent = userResponseContentService.saveUserResponseContent(
+                new Gson().fromJson(userContentStr, UserResponseContentRegisterDTO.class), file);
 
         return ResponseEntity.ok().body(new ApiResponse("Ok", userResponseContent));
 
     }
 
-    @Secured({"ADMIN", "TEACHER"})
     @GetMapping("/find")
     public ResponseEntity findContentByPath(@RequestParam String filePath) throws Throwable {
 
         try {
-
 
             FileData fileData = userResponseContentService.findContentByPath(filePath);
 
@@ -56,8 +52,6 @@ public class UserResponseContentController {
 
     }
 
-
-    @Secured({"ADMIN", "TEACHER"})
     @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable("id") Long id) {
 
