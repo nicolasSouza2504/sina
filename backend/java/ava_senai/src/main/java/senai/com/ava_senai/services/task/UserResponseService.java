@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import senai.com.ava_senai.domain.task.userresponse.UserResponse;
 import senai.com.ava_senai.domain.task.userresponse.UserResponseRegisterDTO;
 import senai.com.ava_senai.domain.task.userresponse.UserResponseResponseDTO;
+import senai.com.ava_senai.domain.task.userresponse.UserResponseSummaryDTO;
 import senai.com.ava_senai.domain.task.userresponsecontent.UserResponseContent;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.Validation;
@@ -51,6 +52,16 @@ public class UserResponseService implements IUserResponseService {
         deleteUserResponseContents(idUserResponse);
 
         userResponseRepository.deleteById(idUserResponse);
+
+    }
+
+    @Override
+    public UserResponseSummaryDTO getUserResponseSummaryById(Long id) {
+
+        UserResponse userResponse = userResponseRepository.findSummaryById(id)
+                                                          .orElseThrow(() -> new NotFoundException("Resposta da tarefa não encontrada"));
+
+        return new UserResponseSummaryDTO(userResponse);
 
     }
 

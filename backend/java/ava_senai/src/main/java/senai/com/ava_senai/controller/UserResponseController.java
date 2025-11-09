@@ -27,6 +27,11 @@ public class UserResponseController {
         return ResponseEntity.ok().body(new ApiResponse("Sucesso!", userResponseService.getUserResponseById(id)));
     }
 
+    @GetMapping("/summary/{id}")
+    public ResponseEntity<ApiResponse> getUserResponseSummaryById(@PathVariable @Valid Long id) {
+        return ResponseEntity.ok().body(new ApiResponse("Sucesso!", userResponseService.getUserResponseSummaryById(id)));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deleteUserResponseById(@PathVariable @Valid Long id) {
 
