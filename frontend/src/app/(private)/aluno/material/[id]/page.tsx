@@ -9,10 +9,12 @@ import { ArrowLeft, FileText, Video, Download, Upload, Loader2, Eye, BookOpen, A
 import QuickActionsAluno from '@/components/admin/quickActionsAluno'
 import ViewTaskContentModal from '@/components/KnowledgeTrail/ViewTaskContentModal'
 import SubmitTaskModal from '@/components/aluno/SubmitTaskModal'
+import ViewSubmittedContentModal from '@/components/aluno/ViewSubmittedContentModal'
 import getUserFromToken from '@/lib/auth/userToken'
 import GetUserByIdService from '@/lib/api/user/getUserById'
 import CourseContentSummaryService from '@/lib/api/course/courseContentSummary'
 import GetTaskUserByUserAndTaskService from '@/lib/api/task-user/getTaskUserByUserAndTask'
+import CreateTaskUserService from '@/lib/api/task-user/createTaskUser'
 import { toast } from 'sonner'
 import type { TaskSummary, TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces'
 import type { TaskUserResponse } from '@/lib/interfaces/taskUserInterfaces'
@@ -39,6 +41,10 @@ export default function AlunoMaterialPage() {
   
   // Modal de submissão de atividade
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false)
+  
+  // Modal de visualização de conteúdo enviado
+  const [isViewSubmittedModalOpen, setIsViewSubmittedModalOpen] = useState(false)
+  const [selectedSubmittedContent, setSelectedSubmittedContent] = useState<any>(null)
 
   // Função para carregar dados do TaskUser
   const loadTaskUserData = async (userId: number, taskId: number) => {
@@ -46,35 +52,72 @@ export default function AlunoMaterialPage() {
       setIsLoadingTaskUser(true)
       console.log('[AlunoMaterial] Buscando TaskUser:', { userId, taskId })
       
-      const taskUserResponse = await GetTaskUserByUserAndTaskService(userId, taskId)
-      
-      console.log('[AlunoMaterial] TaskUser encontrado:', {
-        taskUserId: taskUserResponse.id,
-        hasUserResponse: !!taskUserResponse.userResponse,
-        userResponseId: taskUserResponse.userResponse?.id
-      })
-      
-      setTaskUserData(taskUserResponse)
-      setTaskUserId(taskUserResponse.id)
-      
-      if (taskUserResponse.userResponse) {
-        console.log('[AlunoMaterial] Aluno já possui resposta enviada:', {
-          responseId: taskUserResponse.userResponse.id,
-          comment: taskUserResponse.userResponse.comment,
-          contentsCount: taskUserResponse.userResponse.contents?.length || 0
+      try {
+        // Tenta buscar TaskUser existente
+        const taskUserResponse = await GetTaskUserByUserAndTaskService(userId, taskId)
+        
+        console.log('[AlunoMaterial] TaskUser encontrado:', {
+          taskUserId: taskUserResponse.id,
+          hasUserResponse: !!taskUserResponse.userResponse,
+          userResponseId: taskUserResponse.userResponse?.id
         })
-      } else {
-        console.log('[AlunoMaterial] Aluno ainda não enviou resposta para esta tarefa')
-      }
-    } catch (err) {
-      console.error('[AlunoMaterial] Erro ao buscar TaskUser:', err)
-      // Não mostra toast de erro aqui pois o TaskUser pode não existir ainda
-      // (aluno pode estar acessando a tarefa pela primeira vez)
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar dados da tarefa'
-      if (errorMessage.includes('não encontrado')) {
-        console.log('[AlunoMaterial] TaskUser não existe ainda - primeira vez que aluno acessa esta tarefa')
-      } else {
-        toast.error(errorMessage)
+        
+        setTaskUserData(taskUserResponse)
+        setTaskUserId(taskUserResponse.id)
+        
+        if (taskUserResponse.userResponse) {
+          console.log('[AlunoMaterial] Aluno já possui resposta enviada:', {
+            responseId: taskUserResponse.userResponse.id,
+            comment: taskUserResponse.userResponse.comment,
+            contentsCount: taskUserResponse.userResponse.contents?.length || 0,
+            contents: taskUserResponse.userResponse.contents
+          })
+        } else {
+          console.log('[AlunoMaterial] Aluno ainda não enviou resposta para esta tarefa')
+        }
+      } catch (err) {
+        // Se TaskUser não existe (404), cria automaticamente
+        const errorMessage = err instanceof Error ? err.message : ''
+        
+        if (errorMessage.includes('não encontrado') || errorMessage.includes('not found')) {
+          console.log('[AlunoMaterial] TaskUser não existe - criando automaticamente...')
+          
+          try {
+            // Cria o TaskUser
+            const newTaskUser = await CreateTaskUserService({
+              userId: userId,
+              taskId: taskId
+            })
+            
+            console.log('[AlunoMaterial] TaskUser criado com sucesso:', {
+              taskUserId: newTaskUser.id,
+              userId: newTaskUser.userId,
+              taskId: newTaskUser.taskId
+            })
+            
+            // Busca novamente para obter a estrutura completa com userResponse
+            const taskUserResponse = await GetTaskUserByUserAndTaskService(userId, taskId)
+            
+            setTaskUserData(taskUserResponse)
+            setTaskUserId(taskUserResponse.id)
+            
+            toast.success('Registro criado com sucesso!', {
+              description: 'Você pode agora enviar sua atividade'
+            })
+          } catch (createErr) {
+            console.error('[AlunoMaterial] Erro ao criar TaskUser:', createErr)
+            const createErrorMessage = createErr instanceof Error ? createErr.message : 'Erro ao criar registro'
+            toast.error('Erro ao criar registro da tarefa', {
+              description: createErrorMessage
+            })
+          }
+        } else {
+          // Outro tipo de erro
+          console.error('[AlunoMaterial] Erro ao buscar TaskUser:', err)
+          toast.error('Erro ao buscar dados da tarefa', {
+            description: errorMessage
+          })
+        }
       }
     } finally {
       setIsLoadingTaskUser(false)
@@ -203,6 +246,21 @@ export default function AlunoMaterialPage() {
     if (userId && taskId) {
       await loadTaskUserData(userId, parseInt(taskId))
     }
+  }
+
+  const handleViewSubmittedContent = (content: any) => {
+    console.log('[AlunoMaterial] Abrindo modal de visualização de conteúdo enviado:', {
+      content: content,
+      contentName: content.name,
+      contentType: content.taskContentType,
+      contentUrl: content.url
+    })
+    setSelectedSubmittedContent(content)
+    setIsViewSubmittedModalOpen(true)
+    console.log('[AlunoMaterial] Estados atualizados:', {
+      selectedSubmittedContent: content,
+      isViewSubmittedModalOpen: true
+    })
   }
 
   // Loading state
@@ -414,21 +472,79 @@ export default function AlunoMaterialPage() {
                 )}
                 
                 {!taskUserData && !isLoadingTaskUser && (
-                  <div className="p-3 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+                  <div className="p-3 bg-red-50 border-2 border-red-200 rounded-lg">
                     <div className="flex items-start gap-2">
-                      <div className="p-1 bg-yellow-600 rounded-full flex-shrink-0 mt-0.5">
+                      <div className="p-1 bg-red-600 rounded-full flex-shrink-0 mt-0.5">
                         <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                         </svg>
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-yellow-900">
-                          Primeira vez acessando esta tarefa
+                        <p className="text-sm font-semibold text-red-900">
+                          Erro ao carregar registro
                         </p>
-                        <p className="text-xs text-yellow-700 mt-1">
-                          O sistema criará seu registro ao enviar a primeira resposta
+                        <p className="text-xs text-red-700 mt-1">
+                          Não foi possível criar ou carregar o registro da tarefa. Recarregue a página.
                         </p>
                       </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Seção de Arquivos Enviados - Mostrar se já existe userResponse */}
+                {taskUserData?.userResponse && taskUserData.userResponse.contents && taskUserData.userResponse.contents.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-gray-900">
+                        Arquivos Enviados ({taskUserData.userResponse.contents.length})
+                      </h4>
+                      <Badge className="bg-green-100 text-green-700 border-2 border-green-200">
+                        ✓ Enviado
+                      </Badge>
+                    </div>
+                    
+                    {/* Comentário do aluno */}
+                    {taskUserData.userResponse.comment && (
+                      <div className="p-3 bg-gray-50 rounded-lg border-2 border-gray-200">
+                        <p className="text-xs font-semibold text-gray-700 mb-1">Seu comentário:</p>
+                        <p className="text-sm text-gray-800">{taskUserData.userResponse.comment}</p>
+                      </div>
+                    )}
+                    
+                    {/* Lista de arquivos enviados */}
+                    <div className="space-y-2">
+                      {taskUserData.userResponse.contents.map((content: any, index: number) => (
+                        <div
+                          key={content.id || index}
+                          className="flex items-center justify-between p-3 bg-white border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all group"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {content.taskContentType === 'PDF' && <FileText className="w-5 h-5 text-red-600 flex-shrink-0" />}
+                            {(content.taskContentType === 'VIDEO' || content.taskContentType === 'MP4') && <Video className="w-5 h-5 text-purple-600 flex-shrink-0" />}
+                            {(content.taskContentType === 'JPG' || content.taskContentType === 'PNG') && <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />}
+                            {!['PDF', 'VIDEO', 'MP4', 'JPG', 'PNG'].includes(content.taskContentType) && <FileText className="w-5 h-5 text-gray-600 flex-shrink-0" />}
+                            
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {content.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {content.taskContentType}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleViewSubmittedContent(content)}
+                            className="flex-shrink-0 h-8 px-3 hover:bg-blue-100 group-hover:bg-blue-100"
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            Ver
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -523,6 +639,20 @@ export default function AlunoMaterialPage() {
           onSubmitSuccess={handleSubmitSuccess}
         />
       )}
+
+      {/* Modal de Visualização de Conteúdo Enviado */}
+      <ViewSubmittedContentModal
+        open={isViewSubmittedModalOpen && !!selectedSubmittedContent}
+        onOpenChange={(open) => {
+          setIsViewSubmittedModalOpen(open)
+          if (!open) {
+            setSelectedSubmittedContent(null)
+          }
+        }}
+        contentName={selectedSubmittedContent?.name || ''}
+        contentType={selectedSubmittedContent?.taskContentType || 'PDF'}
+        contentUrl={selectedSubmittedContent?.url || ''}
+      />
     </div>
   )
 }

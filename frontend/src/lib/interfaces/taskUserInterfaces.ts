@@ -1,10 +1,9 @@
 // Interface para TaskUser e UserResponse
 
 export interface UserResponseContent {
-  id: number;
-  contentUrl: string;
-  contentType: string;
-  // Adicione outros campos conforme necessário
+  taskContentType: string;
+  name: string;
+  url: string;
 }
 
 export interface TaskUserResponseDTO {
@@ -12,6 +11,11 @@ export interface TaskUserResponseDTO {
   userId: number;
   taskId: number;
   // Adicione outros campos conforme necessário
+}
+
+export interface TaskUserRegister {
+  userId: number;
+  taskId: number;
 }
 
 export interface UserResponseSummary {
