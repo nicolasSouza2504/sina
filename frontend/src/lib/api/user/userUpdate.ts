@@ -11,6 +11,12 @@ export default async function UpdateUserService(
     const base = getApiBaseUrl();
     const token = await getTokenFromSession();
 
+    console.log('[UpdateUserService] Dados enviados:', {
+        id,
+        userData,
+        hasImage: !!image
+    });
+
     const formData = new FormData();
 
     formData.append("user", JSON.stringify(userData));

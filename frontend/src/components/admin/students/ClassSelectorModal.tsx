@@ -38,8 +38,12 @@ export function ClassSelectorModal({
     const [tempSelectedIds, setTempSelectedIds] = useState<number[]>(selectedClassIds)
 
     useEffect(() => {
-        setTempSelectedIds(selectedClassIds)
-    }, [selectedClassIds, isOpen])
+        if (isOpen) {
+            console.log('[ClassSelectorModal] Modal aberto - Inicializando com selectedClassIds:', selectedClassIds)
+            console.log('[ClassSelectorModal] Turmas disponíveis:', availableClasses.length)
+            setTempSelectedIds(selectedClassIds)
+        }
+    }, [isOpen, selectedClassIds, availableClasses])
 
     const filteredClasses = availableClasses.filter((cls) =>
         cls.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,6 +60,7 @@ export function ClassSelectorModal({
     }
 
     const handleConfirm = () => {
+        console.log('[ClassSelectorModal] Confirmando seleção:', tempSelectedIds)
         onConfirm(tempSelectedIds)
         onClose()
     }
@@ -115,18 +120,23 @@ export function ClassSelectorModal({
                                 </div>
                             ) : (
                                 <div className="divide-y divide-gray-200">
-                                    {filteredClasses.map((cls) => (
-                                        <div
-                                            key={cls.id}
-                                            className="flex items-start gap-1.5 sm:gap-3 p-2 sm:p-4 hover:bg-blue-50 transition-colors cursor-pointer border-b last:border-b-0"
-                                            onClick={() => handleToggleClass(cls.id)}
-                                        >
-                                            <Checkbox
-                                                checked={tempSelectedIds.includes(cls.id)}
-                                                onCheckedChange={() => handleToggleClass(cls.id)}
-                                                onClick={(e) => e.stopPropagation()}
-                                                className="border-2 border-gray-200 flex-shrink-0 mt-0.5"
-                                            />
+                                    {filteredClasses.map((cls) => {
+                                        const isChecked = tempSelectedIds.includes(cls.id);
+                                        if (isOpen) {
+                                            console.log(`[ClassSelectorModal] Turma ${cls.id} (${cls.nome}): checked=${isChecked}, tempSelectedIds=`, tempSelectedIds);
+                                        }
+                                        return (
+                                            <div
+                                                key={cls.id}
+                                                className="flex items-start gap-1.5 sm:gap-3 p-2 sm:p-4 hover:bg-blue-50 transition-colors cursor-pointer border-b last:border-b-0"
+                                                onClick={() => handleToggleClass(cls.id)}
+                                            >
+                                                <Checkbox
+                                                    checked={isChecked}
+                                                    onCheckedChange={() => handleToggleClass(cls.id)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="border-2 border-gray-200 flex-shrink-0 mt-0.5"
+                                                />
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-start gap-1.5 mb-0.5 flex-wrap">
                                                     <h4 className="font-semibold text-xs sm:text-sm text-gray-900 break-words">
@@ -153,7 +163,8 @@ export function ClassSelectorModal({
                                                 </div>
                                             </div>
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
