@@ -35,14 +35,16 @@ export interface UserData {
     cpf: string
     status?: string
     classes?: Array<{
-        id: number;
+        Id: number;        // ✅ CORRIGIDO: Backend retorna "Id" com I maiúsculo
+        id?: number;       // ✅ Mantém compatibilidade se vier minúsculo
         nome: string;
         startDate: string;
-        endDate: string;
+        finalDate: string; // ✅ CORRIGIDO: Backend retorna "finalDate"
+        endDate?: string;  // ✅ Mantém compatibilidade
         imgClass: string;
         semester: number;
         code: string;
-        courseId: number;
+        courseId?: number;
         course: {
             id: number;
             name: string;
@@ -69,6 +71,7 @@ export interface UserUpdate {
     name?: string;
     email?: string;
     password?: string;
-    role?: string;
-    cpf?: string
+    cpf?: string;
+    roleId?: number;
+    classesId?: number[];
 }

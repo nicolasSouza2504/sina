@@ -60,6 +60,12 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
 
     useEffect(() => {
         if (user) {
+            console.log('[EditTeacherModal] Carregando dados do usuário:', {
+                userId: user.id,
+                userName: user.nome,
+                userClasses: user.classes
+            })
+            
             setFormData({
                 name: user.nome || "",
                 email: user.email || "",
@@ -68,8 +74,12 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
                 password: "",
             })
             setUpdatePassword(false)
+            
             // Set selected classes from user data
-            const userClassIds = user.classes?.map(cls => cls.id) || []
+            // Backend retorna "Id" (maiúsculo), mas aceita "id" (minúsculo) como fallback
+            const userClassIds = user.classes?.map(cls => cls.Id || cls.id).filter(id => id !== undefined) as number[] || []
+            console.log('[EditTeacherModal] IDs das turmas do usuário:', userClassIds)
+            console.log('[EditTeacherModal] Classes brutas:', user.classes)
             setSelectedClassIds(userClassIds)
         }
     }, [user])
@@ -146,14 +156,35 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
 
             setIsSubmitting(true)
 
-            const userData = {
+            console.log('[EditTeacherModal] Estado antes do envio:', {
+                selectedClassIds,
+                selectedClassIdsLength: selectedClassIds.length,
+                updatePassword,
+                hasPassword: !!formData.password
+            })
+
+            const userData: any = {
                 name: formData.name,
                 email: formData.email,
                 cpf: formData.cpf,
                 roleId: 2, // Always TEACHER
-                classesId: selectedClassIds.length > 0 ? selectedClassIds : undefined,
-                ...(updatePassword && formData.password ? { password: formData.password } : {}),
             }
+
+            // Adiciona classesId apenas se houver turmas selecionadas
+            if (selectedClassIds.length > 0) {
+                userData.classesId = selectedClassIds
+                console.log('[EditTeacherModal] Adicionando classesId:', selectedClassIds)
+            } else {
+                console.log('[EditTeacherModal] Nenhuma turma selecionada, classesId não será enviado')
+            }
+
+            // Adiciona password apenas se updatePassword estiver marcado
+            if (updatePassword && formData.password) {
+                userData.password = formData.password
+                console.log('[EditTeacherModal] Adicionando password')
+            }
+
+            console.log('[EditTeacherModal] Payload final:', userData)
 
             await UpdateUserService(userData, user.id, selectedImage)
 
@@ -189,6 +220,7 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
     }
 
     const handleClassesConfirm = (classIds: number[]) => {
+        console.log('[EditTeacherModal] Recebendo turmas confirmadas:', classIds)
         setSelectedClassIds(classIds)
     }
 
@@ -371,7 +403,11 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => setIsClassModalOpen(true)}
+                            onClick={() => {
+                                console.log('[EditTeacherModal] Abrindo modal de turmas com selectedClassIds:', selectedClassIds)
+                                console.log('[EditTeacherModal] Turmas disponíveis:', availableClasses.length)
+                                setIsClassModalOpen(true)
+                            }}
                             className="w-full h-12 justify-start border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors rounded-xl"
                             disabled={isSubmitting || isLoadingClasses}
                         >
