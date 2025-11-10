@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Upload, AlertCircle, Users, X, Plus, Edit, Calendar } from "lucide-react"
+import { Upload, AlertCircle, Users, X, Plus, Edit, Calendar, Key } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
 import { UserData } from "@/lib/interfaces/userInterfaces"
 import { Class } from "@/lib/interfaces/classInterfaces"
 import { z } from "zod"
@@ -42,7 +43,9 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
         email: "",
         cpf: "",
         roleId: 2, // Always TEACHER
+        password: "",
     })
+    const [updatePassword, setUpdatePassword] = useState(false)
     const [selectedImage, setSelectedImage] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [errors, setErrors] = useState<Record<string, string>>({})
@@ -62,9 +65,11 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
                 email: user.email || "",
                 cpf: user.cpf || "",
                 roleId: 2, // Always preset to TEACHER
+                password: "",
             })
+            setUpdatePassword(false)
             // Set selected classes from user data
-            const userClassIds = user.classes?.map(cls => cls.Id) || []
+            const userClassIds = user.classes?.map(cls => cls.id) || []
             setSelectedClassIds(userClassIds)
         }
     }, [user])
@@ -121,6 +126,16 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
         }
 
         try {
+            // Validar senha se checkbox marcado
+            if (updatePassword && !formData.password) {
+                setErrors({ password: "Senha é obrigatória quando marcado para atualizar" })
+                return
+            }
+            if (updatePassword && formData.password.length < 6) {
+                setErrors({ password: "Senha deve ter no mínimo 6 caracteres" })
+                return
+            }
+
             // Validar dados com Zod
             updateUserSchema.parse({
                 name: formData.name,
@@ -137,6 +152,7 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
                 cpf: formData.cpf,
                 roleId: 2, // Always TEACHER
                 classesId: selectedClassIds.length > 0 ? selectedClassIds : undefined,
+                ...(updatePassword && formData.password ? { password: formData.password } : {}),
             }
 
             await UpdateUserService(userData, user.id, selectedImage)
@@ -164,11 +180,12 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
     }
 
     const resetForm = () => {
-        setFormData({ name: "", email: "", cpf: "", roleId: 2 })
+        setFormData({ name: "", email: "", cpf: "", roleId: 2, password: "" })
         setSelectedImage(null)
         setImagePreview(null)
         setErrors({})
         setSelectedClassIds([])
+        setUpdatePassword(false)
     }
 
     const handleClassesConfirm = (classIds: number[]) => {
@@ -297,6 +314,52 @@ export function EditTeacherModal({ isOpen, onClose, onSuccess, user }: EditTeach
                             className="h-12 bg-gray-100 border-2 border-gray-200 cursor-not-allowed rounded-xl"
                         />
                         <p className="text-xs text-gray-500">Instituição padrão</p>
+                    </div>
+
+                    {/* Password Update Section */}
+                    <div className="space-y-3 p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="updatePassword"
+                                checked={updatePassword}
+                                onCheckedChange={(checked) => {
+                                    setUpdatePassword(checked as boolean)
+                                    if (!checked) {
+                                        setFormData({ ...formData, password: "" })
+                                        setErrors({ ...errors, password: "" })
+                                    }
+                                }}
+                                disabled={isSubmitting}
+                            />
+                            <Label htmlFor="updatePassword" className="text-sm font-semibold text-gray-700 cursor-pointer flex items-center gap-2">
+                                <Key className="h-4 w-4 text-amber-600" />
+                                Desejo atualizar a senha
+                            </Label>
+                        </div>
+                        
+                        {updatePassword && (
+                            <div className="space-y-2 mt-3">
+                                <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
+                                    Nova Senha <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    placeholder="Digite a nova senha"
+                                    className="h-12 border-2 border-gray-200 hover:border-amber-300 focus:border-amber-500 transition-colors rounded-xl"
+                                    disabled={isSubmitting}
+                                />
+                                {errors.password && (
+                                    <div className="flex items-center gap-1 text-red-500 text-xs mt-1">
+                                        <AlertCircle className="h-3 w-3" />
+                                        <span>{errors.password}</span>
+                                    </div>
+                                )}
+                                <p className="text-xs text-gray-600">Mínimo de 6 caracteres</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Class Selection */}

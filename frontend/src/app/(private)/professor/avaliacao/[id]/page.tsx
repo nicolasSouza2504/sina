@@ -25,10 +25,12 @@ import {
   Eye,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { UserResponseResponse, FeedbackRegister } from "@/lib/interfaces/userResponseInterfaces";
-import CreateFeedbackService from "@/lib/api/feedback/createFeedback";
-import UpdateFeedbackService from "@/lib/api/feedback/updateFeedback";
+import type { UserResponseResponse } from "@/lib/interfaces/userResponseInterfaces";
+import type { FeedbackRegister } from "@/lib/interfaces/feedbackInterfaces";
+import type { FeedbackResponseDTO } from "@/lib/interfaces/taskUserInterfaces";
+import EvaluateFeedbackService from "@/lib/api/feedback/evaluateFeedback";
 import ViewSubmittedContentModal from "@/components/aluno/ViewSubmittedContentModal";
+import getUserFromToken from "@/lib/auth/userToken";
 
 export default function AvaliacaoIndividualPage() {
   const params = useParams();
@@ -39,6 +41,8 @@ export default function AvaliacaoIndividualPage() {
   const [userResponse, setUserResponse] = useState<UserResponseResponse | null>(null);
   const [studentName, setStudentName] = useState<string>('');
   const [taskId, setTaskId] = useState<number | null>(null);
+  const [teacherId, setTeacherId] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackResponseDTO | null>(null); // ✅ Estado para feedback existente
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -54,10 +58,23 @@ export default function AvaliacaoIndividualPage() {
     url: string;
   } | null>(null);
 
-  // Carregar dados da URL (passados via state)
+  // Carregar dados da URL (passados via state) e ID do professor
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       try {
+        // Busca ID do professor pelo token
+        const userFromToken = await getUserFromToken();
+        console.log('[AvaliacaoPage] User from token:', userFromToken);
+        
+        if (!userFromToken?.id) {
+          toast.error('Erro ao identificar professor. Faça login novamente.');
+          router.push('/login');
+          return;
+        }
+        
+        setTeacherId(userFromToken.id);
+        console.log('[AvaliacaoPage] Teacher ID:', userFromToken.id);
+        
         // Recupera dados do sessionStorage
         const storedData = sessionStorage.getItem(`evaluation_${responseId}`);
         
@@ -67,10 +84,14 @@ export default function AvaliacaoIndividualPage() {
           setStudentName(data.studentName);
           setTaskId(data.taskId);
           
-          // Se já existe feedback, preenche o formulário
-          if (data.userResponse.feedback) {
-            setGrade(data.userResponse.feedback.grade.toString());
-            setComment(data.userResponse.feedback.comment || '');
+          // ✅ Carrega feedback se existir (vem do nível raiz)
+          if (data.feedback) {
+            console.log('[AvaliacaoPage] Feedback encontrado:', data.feedback);
+            setFeedback(data.feedback);
+            setGrade(data.feedback.grade.toString());
+            setComment(data.feedback.comment || '');
+          } else {
+            console.log('[AvaliacaoPage] Nenhum feedback encontrado - nova avaliação');
           }
         } else {
           toast.error('Dados da avaliação não encontrados');
@@ -96,6 +117,11 @@ export default function AvaliacaoIndividualPage() {
       return;
     }
 
+    if (!teacherId) {
+      toast.error('ID do professor não encontrado. Recarregue a página.');
+      return;
+    }
+
     const gradeValue = parseFloat(grade);
     if (isNaN(gradeValue) || gradeValue < 0 || gradeValue > 10) {
       toast.error('A nota deve ser um número entre 0 e 10');
@@ -107,23 +133,19 @@ export default function AvaliacaoIndividualPage() {
     try {
       const feedbackData: FeedbackRegister = {
         userResponseId: userResponse.id,
+        teacherId: teacherId,
         grade: gradeValue,
-        comment: comment.trim() ? comment.trim() : '',
+        comment: comment.trim() || '',
       };
 
-      if (userResponse.feedback) {
-        // Atualizar feedback existente
-        await UpdateFeedbackService(userResponse.feedback.id, feedbackData);
-        toast.success('✅ Avaliação atualizada com sucesso!', {
-          description: `Nota: ${gradeValue.toFixed(1)}`
-        });
-      } else {
-        // Criar novo feedback
-        await CreateFeedbackService(feedbackData);
-        toast.success('✅ Avaliação criada com sucesso!', {
-          description: `Nota: ${gradeValue.toFixed(1)}`
-        });
-      }
+      console.log('[AvaliacaoPage] Enviando feedback:', feedbackData);
+
+      // Sempre usa o endpoint de evaluate (cria ou atualiza)
+      await EvaluateFeedbackService(feedbackData);
+      
+      toast.success('✅ Avaliação salva com sucesso!', {
+        description: `Nota: ${gradeValue.toFixed(1)}`
+      });
 
       // Limpa o sessionStorage
       sessionStorage.removeItem(`evaluation_${responseId}`);
@@ -205,10 +227,10 @@ export default function AvaliacaoIndividualPage() {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {userResponse.feedback ? 'Editar Avaliação' : 'Avaliar Entrega'}
+              {feedback ? 'Avaliação Realizada' : 'Avaliar Entrega'}
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              {userResponse.feedback ? 'Atualize a nota e comentário da avaliação' : 'Adicione nota e comentário para a entrega do aluno'}
+              {feedback ? 'Visualize os dados da avaliação já realizada' : 'Adicione nota e comentário para a entrega do aluno'}
             </p>
           </div>
         </div>
@@ -321,16 +343,73 @@ export default function AvaliacaoIndividualPage() {
             </Card>
           )}
 
-          {/* Formulário de Avaliação */}
-          <Card className="border-2 border-purple-200">
+          {/* Avaliação - Exibição ou Formulário */}
+          <Card className={`border-2 ${feedback ? 'border-green-200' : 'border-purple-200'}`}>
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Star className="h-5 w-5 text-purple-600" />
-                Avaliação
+              <CardTitle className={`text-lg font-semibold text-gray-900 flex items-center gap-2 ${feedback ? 'text-green-900' : ''}`}>
+                <Star className={`h-5 w-5 ${feedback ? 'text-green-600' : 'text-purple-600'}`} />
+                {feedback ? 'Avaliação Realizada' : 'Avaliação'}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              {feedback ? (
+                /* Exibição dos dados da avaliação */
+                <div className="space-y-6">
+                  {/* Nota */}
+                  <div className="p-6 bg-green-50 rounded-xl border-2 border-green-200">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-sm font-semibold text-green-700 uppercase tracking-wide mb-1">Nota Atribuída</p>
+                        <div className="flex items-center gap-2">
+                          <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                          <span className="text-4xl font-bold text-green-900">
+                            {feedback.grade.toFixed(1)}
+                          </span>
+                          <span className="text-lg text-green-700">/10.0</span>
+                        </div>
+                      </div>
+                      <Badge className="bg-green-100 text-green-700 border-green-200">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Avaliado
+                      </Badge>
+                    </div>
+                    
+                    {/* Professor que avaliou */}
+                    <div className="pt-4 border-t border-green-200">
+                      <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Avaliado por</p>
+                      <p className="text-sm font-medium text-green-900">{feedback.teacher.nome}</p>
+                      <p className="text-xs text-green-600">{feedback.teacher.email}</p>
+                    </div>
+                  </div>
+
+                  {/* Comentário */}
+                  {feedback.comment && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-gray-700">
+                        Comentário do Professor
+                      </Label>
+                      <div className="p-4 bg-gray-50 border-2 border-gray-200 rounded-xl">
+                        <p className="text-sm text-gray-800 whitespace-pre-wrap">{feedback.comment}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Botão Voltar */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleBack}
+                      className="w-full h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl font-semibold"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Voltar para Avaliações
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                /* Formulário de avaliação */
+                <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Nota */}
                   <div className="space-y-2">
@@ -418,6 +497,7 @@ export default function AvaliacaoIndividualPage() {
                   </Button>
                 </div>
               </form>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -432,7 +512,7 @@ export default function AvaliacaoIndividualPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {userResponse.feedback ? (
+              {feedback ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 p-3 bg-green-50 border-2 border-green-200 rounded-lg">
                     <CheckCircle className="h-5 w-5 text-green-600" />
@@ -446,16 +526,16 @@ export default function AvaliacaoIndividualPage() {
                     <div className="flex items-center gap-2">
                       <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                       <span className="text-xl font-bold text-gray-900">
-                        {userResponse.feedback.grade.toFixed(1)}
+                        {feedback.grade.toFixed(1)}
                       </span>
                     </div>
                   </div>
 
-                  {userResponse.feedback.comment && (
+                  {feedback.comment && (
                     <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                       <p className="text-xs font-semibold text-gray-700 mb-1">Comentário Atual:</p>
                       <p className="text-sm text-gray-800 italic">
-                        "{userResponse.feedback.comment}"
+                        "{feedback.comment}"
                       </p>
                     </div>
                   )}
@@ -463,10 +543,10 @@ export default function AvaliacaoIndividualPage() {
                   <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <p className="text-xs font-semibold text-gray-700 mb-1">Avaliado por:</p>
                     <p className="text-sm text-gray-900 font-medium">
-                      {userResponse.feedback.teacher.name}
+                      {feedback.teacher.nome}
                     </p>
                     <p className="text-xs text-gray-600">
-                      {userResponse.feedback.teacher.email}
+                      {feedback.teacher.email}
                     </p>
                   </div>
                 </div>

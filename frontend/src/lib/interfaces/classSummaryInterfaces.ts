@@ -1,14 +1,39 @@
 import { Role } from "@/lib/interfaces/roleInterfaces";
-import { TaskUserResponse } from "@/lib/interfaces/taskUserInterfaces";
-import { UserResponseResponse, FeedbackResponse } from "@/lib/interfaces/userResponseInterfaces";
+import { FeedbackResponseDTO } from "@/lib/interfaces/taskUserInterfaces";
 
-// Interface para o curso dentro do ClassSummary
+// CourseSimpleResponseDTO do backend
 export interface ClassSummaryCourse {
   id: number;
   name: string;
 }
 
-// Interface para o usuário dentro do ClassSummary
+// UserResponseSummaryDTO do backend (simplificado para ClassSummary)
+export interface UserResponseSummary {
+  id: number;
+  comment: string;
+  taskUser: {
+    id: number;
+    userId: number;
+    taskId: number;
+  };
+  contents: Array<{
+    taskContentType: string;
+    name: string;
+    url: string;
+  }>;
+  createdAt?: string; // Campo opcional (pode não vir do backend)
+}
+
+// TaskUserResponseSummaryDTO do backend
+export interface TaskUserResponseSummary {
+  idUser: number;
+  taskId: number;
+  id: number; // taskUserId
+  userResponse: UserResponseSummary | null;
+  feedback: FeedbackResponseDTO | null; // ✅ Feedback no nível raiz
+}
+
+// UserTaskResponse do backend
 export interface ClassSummaryUser {
   id: number;
   email: string;
@@ -17,20 +42,10 @@ export interface ClassSummaryUser {
   role: Role;
   institutionName: string;
   cpf: string;
-  taskUser: TaskUserResponse[];
+  taskUser: TaskUserResponseSummary[]; // ✅ Array de TaskUserResponseSummary
 }
 
-// Interface para a tarefa do usuário com feedback
-export interface TaskUserWithFeedback {
-  taskId: number;
-  taskUserId: number;
-  hasResponse: boolean;
-  response: UserResponseResponse;
-  hasFeedback: boolean;
-  feedback?: FeedbackResponse;
-}
-
-// Interface principal do ClassSummary
+// ClassResponseSummaryDTO do backend
 export interface ClassSummary {
   Id: number;
   nome: string;

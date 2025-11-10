@@ -25,9 +25,8 @@ import {
   Edit
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ClassSummary, ClassSummaryUser, TaskUserWithFeedback } from "@/lib/interfaces/classSummaryInterfaces";
+import { ClassSummary, ClassSummaryUser, TaskUserResponseSummary } from "@/lib/interfaces/classSummaryInterfaces";
 import { Course } from "@/lib/interfaces/courseInterfaces";
-import { UserResponseResponse } from "@/lib/interfaces/userResponseInterfaces";
 import CourseList from "@/lib/api/course/courseList";
 import GetClassSummaryService from "@/lib/api/class/getClassSummary";
 import QuickActions from '@/components/admin/quickActions';
@@ -92,18 +91,20 @@ export default function AvaliacaoConteudo() {
 
   // Handler para redirecionar para tela de avaliação
   const handleOpenEvaluation = (
-    userResponse: UserResponseResponse,
-    student: ClassSummaryUser,
-    taskId: number
+    task: TaskUserResponseSummary,
+    student: ClassSummaryUser
   ) => {
+    if (!task.userResponse) return;
+    
     // Salva os dados no sessionStorage para a próxima tela
     const evaluationData = {
-      userResponse,
+      userResponse: task.userResponse,
       studentName: student.nome,
-      taskId
+      taskId: task.taskId,
+      feedback: task.feedback // ✅ Inclui feedback se existir
     };
     
-    sessionStorage.setItem(`evaluation_${userResponse.id}`, JSON.stringify(evaluationData));
+    sessionStorage.setItem(`evaluation_${task.userResponse.id}`, JSON.stringify(evaluationData));
     
     // Salva o estado dos filtros para restaurar ao voltar
     sessionStorage.setItem('avaliacao_filters', JSON.stringify({
@@ -112,7 +113,7 @@ export default function AvaliacaoConteudo() {
     }));
     
     // Redireciona para a tela de avaliação individual
-    router.push(`/professor/avaliacao/${userResponse.id}`);
+    router.push(`/professor/avaliacao/${task.userResponse.id}`);
   };
 
   const loadClassSummary = async () => {
@@ -162,7 +163,7 @@ export default function AvaliacaoConteudo() {
     return (
       <div className="space-y-3">
         {tasksWithResponse.map((task, index) => {
-          const hasFeedback = task.userResponse?.feedback !== undefined && task.userResponse?.feedback !== null;
+          const hasFeedback = task.feedback !== undefined && task.feedback !== null;
           
           return (
             <div
@@ -201,14 +202,14 @@ export default function AvaliacaoConteudo() {
                       "{task.userResponse.comment}"
                     </p>
                   )}
-                  {hasFeedback && task.userResponse?.feedback && (
+                  {hasFeedback && task.feedback && (
                     <div className="mt-2 flex items-center gap-2">
                       <Badge className="bg-green-100 text-green-700 border-green-200">
                         <Star className="h-3 w-3 mr-1" />
-                        Nota: {task.userResponse.feedback.grade.toFixed(1)}
+                        Nota: {task.feedback.grade.toFixed(1)}
                       </Badge>
                       <span className="text-xs text-green-600">
-                        por {task.userResponse.feedback.teacher.name}
+                        por {task.feedback.teacher.nome}
                       </span>
                     </div>
                   )}
@@ -228,7 +229,7 @@ export default function AvaliacaoConteudo() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => task.userResponse && handleOpenEvaluation(task.userResponse as unknown as UserResponseResponse, student, task.taskId)}
+                  onClick={() => task.userResponse && handleOpenEvaluation(task, student)}
                   className={`h-8 w-8 p-0 ${
                     hasFeedback 
                       ? 'hover:bg-green-100 text-green-600' 
@@ -407,8 +408,8 @@ export default function AvaliacaoConteudo() {
                           <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                             {(() => {
                               const tasksWithResponse = user.taskUser.filter(task => task.userResponse !== null);
-                              const evaluatedTasks = tasksWithResponse.filter(task => task.userResponse?.feedback !== undefined && task.userResponse?.feedback !== null);
-                              const pendingTasks = tasksWithResponse.filter(task => task.userResponse?.feedback === undefined || task.userResponse?.feedback === null);
+                              const evaluatedTasks = tasksWithResponse.filter(task => task.feedback !== undefined && task.feedback !== null);
+                              const pendingTasks = tasksWithResponse.filter(task => task.feedback === undefined || task.feedback === null);
                               return `${evaluatedTasks.length} avaliadas • ${pendingTasks.length} pendentes`;
                             })()}
                           </Badge>
