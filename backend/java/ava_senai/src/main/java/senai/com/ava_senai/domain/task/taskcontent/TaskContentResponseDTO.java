@@ -1,7 +1,4 @@
-package senai.com.ava_senai.domain.task;
-
-import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContentType;
+package senai.com.ava_senai.domain.task.taskcontent;
 
 public record TaskContentResponseDTO(TaskContentType taskContentType, String name, String url) {
 

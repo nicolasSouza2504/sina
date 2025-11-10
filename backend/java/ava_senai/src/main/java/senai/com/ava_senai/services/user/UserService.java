@@ -1,6 +1,5 @@
 package senai.com.ava_senai.services.user;
 
-
 import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import senai.com.ava_senai.domain.course.Course;
+import senai.com.ava_senai.domain.course.CourseContentSummaryDTO;
 import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.institution.Institution;
 import senai.com.ava_senai.domain.user.*;
@@ -51,7 +51,9 @@ public class UserService implements IUserService {
     @Override
     public List<UserResponseDTO> getAllUsers(UserFinderDTO userFinderDTO) {
 
-        List<UserResponseDTO> userList = userRepository.findAll(userFinderDTO.name(), userFinderDTO.role(), userFinderDTO.idClass(), userFinderDTO.idCourse()).stream().map(UserResponseDTO::new).toList();
+        List<UserResponseDTO> userList = userRepository
+                .findAll(userFinderDTO.name(), userFinderDTO.role(), userFinderDTO.idClass(), userFinderDTO.idCourse())
+                .stream().map(UserResponseDTO::new).toList();
 
         if (userList.isEmpty()) {
             throw new NullListException("Lista de Usuarios Vazia");
@@ -61,11 +63,11 @@ public class UserService implements IUserService {
 
     }
 
-    // na hora que eu vou salvar um usuário, caso ele esteja em uma class devo chamar a rotina de salvar tasks
+    // na hora que eu vou salvar um usuário, caso ele esteja em uma class devo
+    // chamar a rotina de salvar tasks
 
     // sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
-    
-    
+
     @Override
     @Transactional(rollbackOn = Exception.class)
     public UserResponseDTO createUser(UserRegisterDTO request) {
@@ -121,11 +123,14 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserContentSummaryDTO getUserContentSummaryById(Long id) {
-        User user = userRepository.findUserWithContentById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado!"));
+    public CourseContentSummaryDTO getUserContentSummaryById(Long userId, Long courseId) {
 
-        return new UserContentSummaryDTO(user);
+        Course course = courseRepository.findCourseWithContentOfUserById(userId, courseId)
+                .orElseThrow(
+                        () -> new NotFoundException("Usuário sem acesso ao conteúdo deste curso ou curso não existe!"));
+
+        return new CourseContentSummaryDTO(course);
+
     }
 
     @Override
@@ -146,7 +151,6 @@ public class UserService implements IUserService {
                 })
                 .orElseThrow(() -> new UserNotFoundException("Usuario não existe!"));
 
-
     }
 
     @Override
@@ -166,7 +170,7 @@ public class UserService implements IUserService {
 
         List<UserClass> userClasses = userClassRepository.findUserClassByUserId(userDb.getId());
 
-        if(!userClasses.isEmpty()){
+        if (!userClasses.isEmpty()) {
 
             userClasses.forEach(userClass -> {
                 userClassRepository.deleteById(userClass.getId());
@@ -199,7 +203,7 @@ public class UserService implements IUserService {
             validation.add("Email", "Informe o email");
         }
 
-        if(action == 1){
+        if (action == 1) {
             if (StringUtils.isBlank(user.getPassword())) {
                 validation.add("Senha", "Informe a senha");
             }
@@ -221,7 +225,7 @@ public class UserService implements IUserService {
 
             user.getClassesId().forEach(classId -> {
 
-                if (!classRepository.existsById(classId))  {
+                if (!classRepository.existsById(classId)) {
                     validation.add("Classe", "A classe com ID " + classId + " não existe");
                 }
 
@@ -237,7 +241,8 @@ public class UserService implements IUserService {
 
         userDb.setEmail(user.getEmail());
         userDb.setName(user.getName());
-        userDb.setPassword(passwordEncoder.encode(user.getPassword() != null ? user.getPassword() : userDb.getPassword()));
+        userDb.setPassword(
+                user.getPassword() != null ? passwordEncoder.encode(user.getPassword()) : userDb.getPassword());
         userDb.setRole(user.getRole());
         userDb.setCpf(user.getCpf());
 
@@ -253,7 +258,8 @@ public class UserService implements IUserService {
         user.setRole(request.getRole());
         user.setCpf(request.getCpf());
         user.setUserStatus(UserStatus.ATIVO);
-        Institution institution = institutionRepository.findById(request.getIdInstitution()).orElseThrow(()-> new NotFoundException("Instituicao nao encontrada!"));
+        Institution institution = institutionRepository.findById(request.getIdInstitution())
+                .orElseThrow(() -> new NotFoundException("Instituicao nao encontrada!"));
         user.setInstitution(institution);
         user.setIdInstitution(request.getIdInstitution());
 
@@ -311,7 +317,7 @@ public class UserService implements IUserService {
 
                 Long courseId = clazz.getCourseId();
 
-                if(!coursesOfUser.contains(courseId)){
+                if (!coursesOfUser.contains(courseId)) {
 
                     createContentCourseForUser(courseId);
 

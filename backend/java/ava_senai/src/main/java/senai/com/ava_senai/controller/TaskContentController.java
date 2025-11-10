@@ -3,14 +3,13 @@ package senai.com.ava_senai.controller;
 import com.google.gson.Gson;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
-import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import senai.com.ava_senai.domain.task.TaskContentResponseDTO;
+import senai.com.ava_senai.domain.task.taskcontent.TaskContentResponseDTO;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
 import senai.com.ava_senai.dto.FileData;
 import senai.com.ava_senai.response.ApiResponse;
@@ -25,25 +24,25 @@ public class TaskContentController {
 
     private final TaskContentService taskContentService;
 
-    @Secured({"ADMIN", "TEACHER"})
+    @Secured({ "ADMIN", "TEACHER" })
     @PostMapping("/save")
     public ResponseEntity uploadContent(
             @RequestParam @Valid String taskContentStr,
             @RequestParam("file") @Nullable MultipartFile file) throws IOException {
 
-        TaskContentResponseDTO taskContentResponesDTO = taskContentService.saveTaskContent(new Gson().fromJson(taskContentStr, TaskContentRegisterDTO.class), file);
+        TaskContentResponseDTO taskContentResponesDTO = taskContentService
+                .saveTaskContent(new Gson().fromJson(taskContentStr, TaskContentRegisterDTO.class), file);
 
         return ResponseEntity.ok().body(new ApiResponse("Ok", taskContentResponesDTO));
 
     }
 
-    @Secured({"ADMIN", "TEACHER"})
     @GetMapping("/find")
-    public ResponseEntity findContentByPath(@RequestParam String filePath) {
+    public ResponseEntity findContentByPath(@RequestParam String filePath) throws Throwable {
 
         try {
 
-            FileData fileData = taskContentService.findContentByPathWithMetadata(filePath);
+            FileData fileData = taskContentService.findContentByPath(filePath);
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, fileData.getMimeType())
@@ -55,8 +54,7 @@ public class TaskContentController {
 
     }
 
-
-    @Secured({"ADMIN", "TEACHER"})
+    @Secured({ "ADMIN", "TEACHER" })
     @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable("id") Long id) {
 

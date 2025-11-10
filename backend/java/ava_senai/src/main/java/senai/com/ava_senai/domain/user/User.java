@@ -11,7 +11,7 @@ import senai.com.ava_senai.domain.course.institution.Institution;
 import senai.com.ava_senai.domain.user.address.Address;
 import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.userclass.UserClass;
-import senai.com.ava_senai.taskuser.TaskUser;
+import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 
 import java.util.List;
 

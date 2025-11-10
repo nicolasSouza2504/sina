@@ -1,10 +1,14 @@
 package senai.com.ava_senai.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import senai.com.ava_senai.domain.course.clazz.Class;
+
+import java.util.List;
 
 public interface ClassRepository extends JpaRepository<Class, Long> {
     boolean existsByName(String turmaNome);
 
     boolean existsByNameLikeAndIdNot(String nome, Long turmaId);
+
 }

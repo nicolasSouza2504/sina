@@ -22,7 +22,7 @@ public class ClassController {
 
     private final ClassService classService;
 
-    @Secured({"TEACHER", "ADMIN"})
+    @Secured({ "TEACHER", "ADMIN" })
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> addClass(@RequestBody @Valid ClassRegisterDTO turma) {
 
@@ -55,7 +55,8 @@ public class ClassController {
     }
 
     @PutMapping("/{classId}/edit")
-    public ResponseEntity<ApiResponse> editClass(@PathVariable Long classId, @RequestBody @Valid ClassRegisterDTO turma) {
+    public ResponseEntity<ApiResponse> editClass(@PathVariable Long classId,
+            @RequestBody @Valid ClassRegisterDTO turma) {
 
         try {
 
@@ -89,6 +90,17 @@ public class ClassController {
 
         try {
             return ResponseEntity.ok().body(new ApiResponse("Sucesso", classService.getTurmaById(classId)));
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
+        }
+
+    }
+
+    @GetMapping("/{classId}/class-summary")
+    public ResponseEntity<ApiResponse> getTurmaSummaryById(@PathVariable Long classId) {
+
+        try {
+            return ResponseEntity.ok().body(new ApiResponse("Sucesso", classService.getTurmaSummaryById(classId)));
         } catch (NotFoundException e) {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }

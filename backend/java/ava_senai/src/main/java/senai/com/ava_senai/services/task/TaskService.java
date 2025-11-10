@@ -13,10 +13,9 @@ import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.*;
 import senai.com.ava_senai.services.messaging.RabbitMQSender;
-import senai.com.ava_senai.taskuser.TaskUser;
+import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 
 import java.util.List;
-
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +45,8 @@ public class TaskService implements ITaskService {
     public void saveTaskUsersForCourse(TaskUserCourseMessage taskUserCourseMessage) {
 
         // Get all users from the course that does not have the task assigned
-        List<User> users = userRepository.findUsersByCourseIdWhereNotExistsUserTask(taskUserCourseMessage.getCourseId(), taskUserCourseMessage.getTaskId());
+        List<User> users = userRepository.findUsersByCourseIdWhereNotExistsUserTask(taskUserCourseMessage.getCourseId(),
+                taskUserCourseMessage.getTaskId());
 
         // Create user tasks for each user in the course
         users.forEach(user -> {
@@ -57,8 +57,9 @@ public class TaskService implements ITaskService {
             userTask.setIdInstitution(user.getIdInstitution());
             userTask.setUserId(user.getId());
 
-            taskUserRepository.save(userTask);
-
+            if (taskUserRepository.findByUserIdAndTaskId(user.getId(), taskUserCourseMessage.getTaskId()) == null) {
+                taskUserRepository.save(userTask);
+            }
         });
 
     }
@@ -94,7 +95,8 @@ public class TaskService implements ITaskService {
 
             taskUpdateOrderDTOS.forEach(taskUpdateOrderDTO -> {
 
-                Task task = taskRepository.findById(taskUpdateOrderDTO.taskId()).orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
+                Task task = taskRepository.findById(taskUpdateOrderDTO.taskId())
+                        .orElseThrow(() -> new NotFoundException("Tarefa não encontrada"));
 
                 task.setTaskOrder(taskUpdateOrderDTO.newOrder());
 
@@ -126,10 +128,9 @@ public class TaskService implements ITaskService {
         String jsonMessage = new Gson().toJson(new TaskUserCourseMessage(taskID, courseID));
 
         rabbitMQSender.sendMessage(
-            RabbitMQConfig.EXCHANGE_TASKS,
-            RabbitMQConfig.ROUTING_CREATE_USER_TASK,
-            jsonMessage
-        );
+                RabbitMQConfig.EXCHANGE_TASKS,
+                RabbitMQConfig.ROUTING_CREATE_USER_TASK,
+                jsonMessage);
 
     }
 
@@ -147,7 +148,8 @@ public class TaskService implements ITaskService {
             validation.add("knowledgeTrailId", "Trilha de conhecimento é obrigatória");
         } else {
 
-            KnowledgeTrail knowledgeTrail = knowledgeTrailRepository.findById(taskRegister.knowledgeTrailId()).orElse(null);
+            KnowledgeTrail knowledgeTrail = knowledgeTrailRepository.findById(taskRegister.knowledgeTrailId())
+                    .orElse(null);
 
             if (knowledgeTrail == null) {
                 validation.add("knowledgeTrailId", "Trilha de conhecimento informada não existe");

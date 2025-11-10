@@ -1,33 +1,60 @@
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { decodeJwt, hasAnyRole, type AuthPayload } from "./lib/auth/jwtAuth";
-import { getTokenFromSession } from "./lib/auth/jwtAuth.server";
+import getTokenFromSession from "./lib/auth/jwtAuth.server";
 
 const TOKEN_COOKIE = "token";
 
 const AUTH_PROTECTED: RegExp[] = [
   /^\/$/,
   /^\/home(\/.*)?$/,
-  /^\/turmas(\/.*)?$/,
-  /^\/professores(\/.*)?$/,
+  /^\/aluno(\/.*)?$/,
   /^\/professor(\/.*)?$/,
   /^\/cursos(\/.*)?$/,
   /^\/trilhas(\/.*)?$/,
   /^\/ranking(\/.*)?$/,
   /^\/admin(\/.*)?$/,
+  /^\/user(\/.*)?$/,
 ];
 
 const ROLE_RULES: Array<{ pattern: RegExp; roles: string[] }> = [
-  // Regras específicas primeiro (mais específicas)
-  { pattern: /^\/admin\/class(\/.*)?$/, roles: ["ADMIN", "TEACHER"] },
-  { pattern: /^\/admin\/students(\/.*)?$/, roles: ["ADMIN", "TEACHER"] },
-  { pattern: /^\/professor(\/.*)?$/, roles: ["TEACHER"] },
-  { pattern: /^\/professores(\/.*)?$/, roles: ["ADMIN", "TEACHER"] },
-  { pattern: /^\/ranking(\/.*)?$/, roles: ["ADMIN", "TEACHER", "USER"] },
-  // Regras gerais depois (menos específicas)
-  { pattern: /^\/admin(\/.*)?$/, roles: ["ADMIN"] },
-  { pattern: /^\/dashboard(\/.*)?$/, roles: ["ADMIN"] },
-  { pattern: /^\/reports(\/.*)?$/, roles: ["MANAGER", "ADMIN"] },
+  // ========================================
+  // TELAS EXCLUSIVAS DO ADMIN (role=1)
+  // ========================================
+  { pattern: /^\/admin$/, roles: ["ADMIN"] }, // Dashboard Admin
+  { pattern: /^\/admin\/admin(\/.*)?$/, roles: ["ADMIN"] }, // Gerenciamento de Administradores
+  { pattern: /^\/admin\/teachers(\/.*)?$/, roles: ["ADMIN"] }, // Gerenciamento de Professores
+  { pattern: /^\/admin\/students(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Gerenciamento de Alunos
+  { pattern: /^\/admin\/class(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Gerenciamento de Turmas
+  
+  // ========================================
+  // TELAS EXCLUSIVAS DO PROFESSOR (role=2)
+  // ADMIN também tem acesso a estas telas
+  // ========================================
+  { pattern: /^\/professor\/dashboard(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Dashboard Professor
+  { pattern: /^\/professor\/cursos(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Cursos do Professor
+  { pattern: /^\/professor\/conteudo(\/.*)?$/, roles: ["ADMIN", "TEACHER"] }, // Conteúdo/Tarefas
+  
+  // ========================================
+  // TELAS COMPARTILHADAS (ADMIN + TEACHER + STUDENT)
+  // ========================================
+  { pattern: /^\/cursos(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT"] }, // Visualização de Cursos
+  { pattern: /^\/ranking(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT"] }, // Ranking
+  { pattern: /^\/trilhas(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT"] }, // Trilhas de Conhecimento
+  
+  // ========================================
+  // TELAS DO ESTUDANTE (role=3)
+  // ========================================
+  { pattern: /^\/aluno\/dashboard(\/.*)?$/, roles: ["STUDENT"] }, // Dashboard Aluno
+  { pattern: /^\/aluno\/trilhas(\/.*)?$/, roles: ["STUDENT"] }, // Trilhas do Aluno
+  { pattern: /^\/aluno\/ead(\/.*)?$/, roles: ["STUDENT"] }, // EAD do Aluno
+  { pattern: /^\/aluno\/ranking(\/.*)?$/, roles: ["STUDENT"] }, // Ranking EAD
+  { pattern: /^\/home(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT"] }, // Dashboard Geral (fallback)
+  
+  // ========================================
+  // TELAS DE PERFIL (todos os roles autenticados)
+  // ========================================
+  { pattern: /^\/user\/profile(\/.*)?$/, roles: ["ADMIN", "TEACHER", "STUDENT", "USER"] }, // Perfil do Usuário
 ];
 
 function matches(path: string, patterns: RegExp[]) {
@@ -112,13 +139,12 @@ export const config = {
   matcher: [
     "/",
     "/home/:path*",
-    "/turmas/:path*",
-    "/alunos/:path*",
+    "/aluno/:path*",
     "/professor/:path*",
+    "/admin/:path*",
     "/cursos/:path*",
     "/trilhas/:path*",
-    "/admin/:path*",
     "/ranking/:path*",
-    "/professores/:path*",
+    "/user/:path*",
   ],
 };

@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
-import senai.com.ava_senai.taskuser.TaskUser;
+import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 
 import java.util.Date;
 import java.util.Set;

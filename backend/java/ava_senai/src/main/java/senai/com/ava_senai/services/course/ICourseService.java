@@ -18,4 +18,5 @@ public interface ICourseService {
 
     CourseContentSummaryDTO getCourseContentSummaryById(Long id);
 
+    List<CourseResponseDTO> getAllCoursesByClasses(List<Long> classesIds);
 }

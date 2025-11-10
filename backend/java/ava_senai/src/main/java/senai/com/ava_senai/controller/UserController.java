@@ -9,6 +9,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import senai.com.ava_senai.domain.course.CourseContentSummaryDTO;
 import senai.com.ava_senai.domain.user.*;
 import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.role.Roles;
@@ -112,11 +113,14 @@ public class UserController {
 
     }
 
-    @GetMapping("/{id}/content-summary")
-    public ResponseEntity<ApiResponse> getUserContentSummary(@PathVariable @Valid Long id) {
+    @GetMapping("/{userId}/{courseId}/content-summary")
+    public ResponseEntity<ApiResponse> getUserContentSummary(@PathVariable @Valid Long userId, @PathVariable @Valid Long courseId) {
         try {
-            UserContentSummaryDTO userContentSummary = iUserService.getUserContentSummaryById(id);
+
+            CourseContentSummaryDTO userContentSummary = iUserService.getUserContentSummaryById(userId, courseId);
+
             return ResponseEntity.ok().body(new ApiResponse("Resumo do conteúdo do usuário", userContentSummary));
+
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }
