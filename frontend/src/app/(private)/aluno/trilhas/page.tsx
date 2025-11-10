@@ -230,13 +230,22 @@ export default function AlunoTrilhasPage() {
         <div className="mb-6">
           <Label className="text-sm font-medium text-gray-700 mb-2 block">Selecionar Curso</Label>
           <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-            <SelectTrigger className="w-full sm:max-w-md h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
-              <SelectValue placeholder="Selecione um curso" />
+            <SelectTrigger className="w-full sm:max-w-md h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl overflow-hidden">
+              <SelectValue placeholder="Selecione um curso">
+                {selectedCourseId && (() => {
+                  const course = availableCourses.find(c => c.id.toString() === selectedCourseId);
+                  return course ? (
+                    <span className="block whitespace-normal sm:whitespace-pre-wrap text-left">
+                      {course.name}
+                    </span>
+                  ) : 'Selecione um curso';
+                })()}
+              </SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-w-[calc(100vw-2rem)] sm:max-w-[400px]">
               {availableCourses.map((course) => (
                 <SelectItem key={course.id} value={course.id.toString()}>
-                  {course.name}
+                  <span className="block whitespace-normal leading-tight">{course.name}</span>
                 </SelectItem>
               ))}
             </SelectContent>
