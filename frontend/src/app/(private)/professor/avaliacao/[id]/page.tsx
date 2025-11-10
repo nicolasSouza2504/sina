@@ -25,17 +25,20 @@ import {
   Eye,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import type { UserResponseResponse } from "@/lib/interfaces/userResponseInterfaces";
 import type { FeedbackRegister } from "@/lib/interfaces/feedbackInterfaces";
 import type { FeedbackResponseDTO } from "@/lib/interfaces/taskUserInterfaces";
 import EvaluateFeedbackService from "@/lib/api/feedback/evaluateFeedback";
 import ViewSubmittedContentModal from "@/components/aluno/ViewSubmittedContentModal";
 import getUserFromToken from "@/lib/auth/userToken";
+import { Download } from "lucide-react";
 
 export default function AvaliacaoIndividualPage() {
   const params = useParams();
   const router = useRouter();
   const responseId = params?.id as string;
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Estados
   const [userResponse, setUserResponse] = useState<UserResponseResponse | null>(null);
@@ -177,6 +180,7 @@ export default function AvaliacaoIndividualPage() {
     setIsViewModalOpen(true);
   };
 
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -209,60 +213,60 @@ export default function AvaliacaoIndividualPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-5xl">
+    <div className="container mx-auto p-3 sm:p-6 max-w-5xl">
       {/* Header com Botão Voltar */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <Button
           variant="outline"
           onClick={handleBack}
-          className="mb-4 border-2 border-gray-200 hover:border-gray-300"
+          className="mb-3 sm:mb-4 w-full sm:w-auto border-2 border-gray-200 hover:border-gray-300 h-10 sm:h-11"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar para Avaliações
+          Voltar
         </Button>
         
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-purple-600 rounded-xl">
-            <Star className="h-6 w-6 text-white" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="p-2 sm:p-3 bg-purple-600 rounded-lg sm:rounded-xl flex-shrink-0">
+            <Star className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
               {feedback ? 'Avaliação Realizada' : 'Avaliar Entrega'}
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1 line-clamp-2">
               {feedback ? 'Visualize os dados da avaliação já realizada' : 'Adicione nota e comentário para a entrega do aluno'}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Coluna Principal - Formulário */}
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Coluna Principal - Formulário (order-2 em mobile, order-1 em desktop) */}
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-2 lg:order-1">
           {/* Informações do Aluno */}
           <Card className="border-2 border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <User className="h-5 w-5 text-purple-600" />
-                Informações do Aluno
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
+                <span className="truncate">Informações do Aluno</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="p-2 bg-purple-600 rounded-lg">
-                  <User className="h-4 w-4 text-white" />
+            <CardContent className="space-y-2 sm:space-y-3 p-4 sm:p-6 pt-0">
+              <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="p-1.5 sm:p-2 bg-purple-600 rounded-lg flex-shrink-0">
+                  <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Aluno</p>
-                  <p className="text-sm font-bold text-purple-900">{studentName}</p>
+                  <p className="text-sm font-bold text-purple-900 truncate">{studentName}</p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="p-2 bg-gray-600 rounded-lg">
-                  <FileText className="h-4 w-4 text-white" />
+              <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="p-1.5 sm:p-2 bg-gray-600 rounded-lg flex-shrink-0">
+                  <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Tarefa</p>
                   <p className="text-sm font-bold text-gray-900">Tarefa #{taskId}</p>
                 </div>
@@ -273,13 +277,13 @@ export default function AvaliacaoIndividualPage() {
           {/* Comentário do Aluno */}
           {userResponse.comment && (
             <Card className="border-2 border-blue-200">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
                   Comentário do Aluno
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 italic bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <CardContent className="p-4 sm:p-6 pt-0">
+                <p className="text-sm sm:text-base text-gray-700 italic bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200 break-words">
                   "{userResponse.comment}"
                 </p>
               </CardContent>
@@ -289,17 +293,17 @@ export default function AvaliacaoIndividualPage() {
           {/* Arquivos Enviados */}
           {userResponse.contents && userResponse.contents.length > 0 && (
             <Card className="border-2 border-gray-200">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
                   Arquivos Enviados ({userResponse.contents.length})
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6 pt-0">
                 <div className="space-y-2">
                   {userResponse.contents.map((content, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors group"
+                      className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors group"
                     >
                       <div className="flex-shrink-0">
                         {content.taskContentType === 'PDF' && <FileText className="h-4 w-4 text-red-500" />}
@@ -316,25 +320,78 @@ export default function AvaliacaoIndividualPage() {
                           {content.taskContentType}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => handleViewContent(content)}
-                          title="Visualizar conteúdo"
-                        >
-                          <Eye className="h-4 w-4 text-purple-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => window.open(content.url, '_blank')}
-                          title="Abrir em nova aba"
-                        >
-                          <ExternalLink className="h-4 w-4 text-gray-600" />
-                        </Button>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {/* Mobile: Mostra botões sempre visíveis */}
+                        {/* Desktop: Mostra apenas no hover */}
+                        {(!isMobile || content.taskContentType === 'LINK') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`h-8 w-8 p-0 ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}
+                            onClick={() => handleViewContent(content)}
+                            title="Visualizar conteúdo"
+                          >
+                            <Eye className="h-4 w-4 text-purple-600" />
+                          </Button>
+                        )}
+                        {isMobile && content.taskContentType !== 'LINK' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 opacity-100"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(`/api/user-response-content/download?url=${encodeURIComponent(content.url)}`);
+                                if (!response.ok) throw new Error('Erro ao baixar');
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = content.name || 'download';
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                                toast.success('Download iniciado!');
+                              } catch (error) {
+                                console.error('Erro ao baixar:', error);
+                                toast.error('Erro ao baixar arquivo');
+                              }
+                            }}
+                            title="Baixar arquivo"
+                          >
+                            <Download className="h-4 w-4 text-blue-600" />
+                          </Button>
+                        )}
+                        {!isMobile && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(`/api/user-response-content/download?url=${encodeURIComponent(content.url)}`);
+                                if (!response.ok) throw new Error('Erro ao baixar');
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = content.name || 'download';
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                                toast.success('Download iniciado!');
+                              } catch (error) {
+                                console.error('Erro ao baixar:', error);
+                                toast.error('Erro ao baixar arquivo');
+                              }
+                            }}
+                            title="Baixar arquivo"
+                          >
+                            <Download className="h-4 w-4 text-blue-600" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -345,62 +402,62 @@ export default function AvaliacaoIndividualPage() {
 
           {/* Avaliação - Exibição ou Formulário */}
           <Card className={`border-2 ${feedback ? 'border-green-200' : 'border-purple-200'}`}>
-            <CardHeader>
-              <CardTitle className={`text-lg font-semibold text-gray-900 flex items-center gap-2 ${feedback ? 'text-green-900' : ''}`}>
-                <Star className={`h-5 w-5 ${feedback ? 'text-green-600' : 'text-purple-600'}`} />
-                {feedback ? 'Avaliação Realizada' : 'Avaliação'}
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className={`text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2 ${feedback ? 'text-green-900' : ''}`}>
+                <Star className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 ${feedback ? 'text-green-600' : 'text-purple-600'}`} />
+                <span className="truncate">{feedback ? 'Avaliação Realizada' : 'Avaliação'}</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0">
               {feedback ? (
                 /* Exibição dos dados da avaliação */
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Nota */}
-                  <div className="p-6 bg-green-50 rounded-xl border-2 border-green-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="text-sm font-semibold text-green-700 uppercase tracking-wide mb-1">Nota Atribuída</p>
+                  <div className="p-4 sm:p-6 bg-green-50 rounded-lg sm:rounded-xl border-2 border-green-200">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-semibold text-green-700 uppercase tracking-wide mb-1">Nota Atribuída</p>
                         <div className="flex items-center gap-2">
-                          <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-                          <span className="text-4xl font-bold text-green-900">
+                          <Star className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                          <span className="text-3xl sm:text-4xl font-bold text-green-900">
                             {feedback.grade.toFixed(1)}
                           </span>
-                          <span className="text-lg text-green-700">/10.0</span>
+                          <span className="text-base sm:text-lg text-green-700">/10.0</span>
                         </div>
                       </div>
-                      <Badge className="bg-green-100 text-green-700 border-green-200">
+                      <Badge className="bg-green-100 text-green-700 border-green-200 flex-shrink-0">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Avaliado
                       </Badge>
                     </div>
                     
                     {/* Professor que avaliou */}
-                    <div className="pt-4 border-t border-green-200">
+                    <div className="pt-3 sm:pt-4 border-t border-green-200">
                       <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Avaliado por</p>
-                      <p className="text-sm font-medium text-green-900">{feedback.teacher.nome}</p>
-                      <p className="text-xs text-green-600">{feedback.teacher.email}</p>
+                      <p className="text-sm font-medium text-green-900 truncate">{feedback.teacher.nome}</p>
+                      <p className="text-xs text-green-600 truncate">{feedback.teacher.email}</p>
                     </div>
                   </div>
 
                   {/* Comentário */}
                   {feedback.comment && (
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold text-gray-700">
+                      <Label className="text-xs sm:text-sm font-semibold text-gray-700">
                         Comentário do Professor
                       </Label>
-                      <div className="p-4 bg-gray-50 border-2 border-gray-200 rounded-xl">
-                        <p className="text-sm text-gray-800 whitespace-pre-wrap">{feedback.comment}</p>
+                      <div className="p-3 sm:p-4 bg-gray-50 border-2 border-gray-200 rounded-lg sm:rounded-xl">
+                        <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{feedback.comment}</p>
                       </div>
                     </div>
                   )}
 
                   {/* Botão Voltar */}
-                  <div className="pt-4 border-t border-gray-200">
+                  <div className="pt-3 sm:pt-4 border-t border-gray-200">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleBack}
-                      className="w-full h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl font-semibold"
+                      className="w-full h-11 sm:h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base"
                     >
                       <ArrowLeft className="h-4 w-4 mr-2" />
                       Voltar para Avaliações
@@ -410,10 +467,10 @@ export default function AvaliacaoIndividualPage() {
               ) : (
                 /* Formulário de avaliação */
                 <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Nota */}
                   <div className="space-y-2">
-                    <Label htmlFor="grade" className="text-sm font-semibold text-gray-700">
+                    <Label htmlFor="grade" className="text-xs sm:text-sm font-semibold text-gray-700">
                       Nota <span className="text-red-500">*</span>
                     </Label>
                     <Input
@@ -426,7 +483,7 @@ export default function AvaliacaoIndividualPage() {
                       onChange={(e) => setGrade(e.target.value)}
                       placeholder="0.0 a 10.0"
                       required
-                      className="h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-xl"
+                      className="h-11 sm:h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-lg sm:rounded-xl text-sm sm:text-base"
                     />
                     <p className="text-xs text-gray-500">
                       Digite uma nota de 0 a 10
@@ -435,13 +492,13 @@ export default function AvaliacaoIndividualPage() {
 
                   {/* Preview da Nota */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-gray-700">
+                    <Label className="text-xs sm:text-sm font-semibold text-gray-700">
                       Preview da Nota
                     </Label>
-                    <div className="h-12 flex items-center justify-center bg-purple-50 border-2 border-purple-200 rounded-xl">
+                    <div className="h-11 sm:h-12 flex items-center justify-center bg-purple-50 border-2 border-purple-200 rounded-lg sm:rounded-xl">
                       <div className="flex items-center gap-2">
-                        <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                        <span className="text-2xl font-bold text-purple-900">
+                        <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 fill-yellow-500" />
+                        <span className="text-xl sm:text-2xl font-bold text-purple-900">
                           {grade || '0.0'}
                         </span>
                       </div>
@@ -451,7 +508,7 @@ export default function AvaliacaoIndividualPage() {
 
                 {/* Comentário */}
                 <div className="space-y-2">
-                  <Label htmlFor="comment" className="text-sm font-semibold text-gray-700">
+                  <Label htmlFor="comment" className="text-xs sm:text-sm font-semibold text-gray-700">
                     Comentário (opcional)
                   </Label>
                   <Textarea
@@ -460,7 +517,7 @@ export default function AvaliacaoIndividualPage() {
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="Adicione um comentário sobre a entrega do aluno..."
                     rows={4}
-                    className="border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-xl resize-none"
+                    className="border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-lg sm:rounded-xl resize-none text-sm sm:text-base"
                   />
                   <p className="text-xs text-gray-500">
                     Forneça feedback construtivo para o aluno
@@ -468,20 +525,20 @@ export default function AvaliacaoIndividualPage() {
                 </div>
 
                 {/* Botões de Ação */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-200">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleBack}
                     disabled={isSaving}
-                    className="w-full sm:w-auto order-2 sm:order-1 h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl font-semibold"
+                    className="w-full sm:w-auto order-2 sm:order-1 h-11 sm:h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base"
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
                     disabled={isSaving || !grade}
-                    className="w-full sm:w-auto order-1 sm:order-2 h-12 bg-purple-600 hover:bg-purple-700 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                    className="w-full sm:w-auto order-1 sm:order-2 h-11 sm:h-12 bg-purple-600 hover:bg-purple-700 rounded-lg sm:rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all text-sm sm:text-base"
                   >
                     {isSaving ? (
                       <>
@@ -491,7 +548,7 @@ export default function AvaliacaoIndividualPage() {
                     ) : (
                       <>
                         <Save className="h-4 w-4 mr-2" />
-                        {userResponse.feedback ? 'Atualizar Avaliação' : 'Salvar Avaliação'}
+                        {userResponse.feedback ? 'Atualizar' : 'Salvar'}
                       </>
                     )}
                   </Button>
@@ -502,65 +559,65 @@ export default function AvaliacaoIndividualPage() {
           </Card>
         </div>
 
-        {/* Coluna Lateral - Resumo */}
-        <div className="space-y-6">
+        {/* Coluna Lateral - Resumo (order-1 em mobile, order-2 em desktop) */}
+        <div className="space-y-4 sm:space-y-6 order-1 lg:order-2">
           {/* Status Atual */}
           <Card className="border-2 border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
                 Status Atual
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0">
               {feedback ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 p-3 bg-green-50 border-2 border-green-200 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-green-50 border-2 border-green-200 rounded-lg">
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
                     <span className="text-sm font-semibold text-green-900">
                       Já Avaliado
                     </span>
                   </div>
                   
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="p-2.5 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <p className="text-xs font-semibold text-gray-700 mb-1">Nota Atual:</p>
                     <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                      <span className="text-xl font-bold text-gray-900">
+                      <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                      <span className="text-lg sm:text-xl font-bold text-gray-900">
                         {feedback.grade.toFixed(1)}
                       </span>
                     </div>
                   </div>
 
                   {feedback.comment && (
-                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="p-2.5 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
                       <p className="text-xs font-semibold text-gray-700 mb-1">Comentário Atual:</p>
-                      <p className="text-sm text-gray-800 italic">
+                      <p className="text-sm text-gray-800 italic line-clamp-3">
                         "{feedback.comment}"
                       </p>
                     </div>
                   )}
 
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="p-2.5 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <p className="text-xs font-semibold text-gray-700 mb-1">Avaliado por:</p>
-                    <p className="text-sm text-gray-900 font-medium">
+                    <p className="text-sm text-gray-900 font-medium truncate">
                       {feedback.teacher.nome}
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 truncate">
                       {feedback.teacher.email}
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 p-3 bg-orange-50 border-2 border-orange-200 rounded-lg">
-                    <AlertCircle className="h-5 w-5 text-orange-600" />
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-orange-50 border-2 border-orange-200 rounded-lg">
+                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600 flex-shrink-0" />
                     <span className="text-sm font-semibold text-orange-900">
                       Pendente de Avaliação
                     </span>
                   </div>
                   
                   <p className="text-sm text-gray-600">
-                    Esta entrega ainda não foi avaliada. Preencha o formulário ao lado para adicionar uma nota e comentário.
+                    Esta entrega ainda não foi avaliada. Preencha o formulário {isMobile ? 'abaixo' : 'ao lado'} para adicionar uma nota e comentário.
                   </p>
                 </div>
               )}
@@ -569,21 +626,21 @@ export default function AvaliacaoIndividualPage() {
 
           {/* Informações Adicionais */}
           <Card className="border-2 border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
                 Informações
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 sm:space-y-3 p-4 sm:p-6 pt-0">
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Calendar className="h-4 w-4" />
-                <span>
+                <Calendar className="h-4 w-4 flex-shrink-0" />
+                <span className="break-words">
                   Entregue em {userResponse.createdAt ? new Date(userResponse.createdAt).toLocaleDateString('pt-BR') : 'Data não disponível'}
                 </span>
               </div>
               
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <FileText className="h-4 w-4" />
+                <FileText className="h-4 w-4 flex-shrink-0" />
                 <span>
                   {userResponse.contents?.length || 0} arquivo(s) enviado(s)
                 </span>

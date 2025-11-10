@@ -8,7 +8,7 @@ import {
 } from "../ui/card";
 import {Button} from "../ui/button";
 import {useRouter, usePathname} from "next/navigation";
-import {AlertCircle, Code, Database, LayoutDashboardIcon, Users} from "lucide-react";
+import {AlertCircle, BookOpenCheck, Code, Database, LayoutDashboardIcon, Users} from "lucide-react";
 
 export interface QuickActionsProps {
     quickActionsTitle: string;
@@ -44,7 +44,7 @@ export default function QuickActions() {
             {
                 key: 2,
                 title: "Gerenciar Cursos",
-                link: "/cursos",
+                link: "/professor/cursos",
                 icon: <Code className="h-4 w-4"/>,
             },
             {
@@ -55,18 +55,24 @@ export default function QuickActions() {
             },
             {
                 key: 4,
-                title: "Gerenciar EADs",
-                link: "/admin/eads",
+                title: "Gerenciar Conteúdos",
+                link: "/professor/conteudo",
                 icon: <Database className="h-4 w-4"/>,
             },
             {
                 key: 5,
-                title: "Relatórios",
-                link: "/admin/reports",
-                icon: <AlertCircle className="h-4 w-4"/>,
+                title: "Avaliar Atividades",
+                link: "/professor/avaliacao",
+                icon: <BookOpenCheck className="h-4 w-4"/>,
             },
+            // {
+            //     key: 6,
+            //     title: "Relatórios",
+            //     link: "/admin/reports",
+            //     icon: <AlertCircle className="h-4 w-4"/>,
+            // },
             {
-                key: 6,
+                key: 7,
                 title: "Dashboard",
                 link: "/admin",
                 icon: <LayoutDashboardIcon className="h-4 w-4"/>,

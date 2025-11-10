@@ -233,10 +233,10 @@ export default function AlunoTrilhasPage() {
             <SelectTrigger className="w-full sm:max-w-md h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
               <SelectValue placeholder="Selecione um curso" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-w-[calc(100vw-2rem)]">
               {availableCourses.map((course) => (
                 <SelectItem key={course.id} value={course.id.toString()}>
-                  {course.name}
+                  <span className="block whitespace-normal sm:whitespace-nowrap text-left">{course.name}</span>
                 </SelectItem>
               ))}
             </SelectContent>
