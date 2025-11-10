@@ -300,22 +300,13 @@ export default function AvaliacaoConteudo() {
                 }}
                 disabled={isLoadingCourses}
               >
-                <SelectTrigger className="h-11 sm:h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-lg sm:rounded-xl text-sm sm:text-base overflow-hidden">
-                  <SelectValue placeholder="Selecione um curso">
-                    {selectedCourseId && (() => {
-                      const course = courses.find(c => c.id.toString() === selectedCourseId);
-                      return course ? (
-                        <span className="block whitespace-normal sm:whitespace-pre-wrap text-left">
-                          {course.name}
-                        </span>
-                      ) : 'Selecione um curso';
-                    })()}
-                  </SelectValue>
+                <SelectTrigger className="h-11 sm:h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-lg sm:rounded-xl text-sm sm:text-base">
+                  <SelectValue placeholder="Selecione um curso" />
                 </SelectTrigger>
-                <SelectContent className="max-w-[calc(100vw-2rem)] sm:max-w-[400px]">
+                <SelectContent className="max-w-[calc(100vw-2rem)]">
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={course.id.toString()} className="text-sm sm:text-base">
-                      <span className="block whitespace-normal leading-tight">{course.name}</span>
+                      <span className="block whitespace-normal sm:whitespace-nowrap text-left">{course.name}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -329,22 +320,13 @@ export default function AvaliacaoConteudo() {
                 onValueChange={setSelectedClassId}
                 disabled={!selectedCourseId || isLoadingCourses}
               >
-                <SelectTrigger className="h-11 sm:h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-lg sm:rounded-xl text-sm sm:text-base overflow-hidden">
-                  <SelectValue placeholder="Selecione uma turma">
-                    {selectedClassId && (() => {
-                      const cls = filteredClasses.find(c => c.id.toString() === selectedClassId);
-                      return cls ? (
-                        <span className="block whitespace-normal sm:whitespace-pre-wrap text-left">
-                          {cls.nome} {cls.code ? `(${cls.code})` : ''}
-                        </span>
-                      ) : 'Selecione uma turma';
-                    })()}
-                  </SelectValue>
+                <SelectTrigger className="h-11 sm:h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-lg sm:rounded-xl text-sm sm:text-base">
+                  <SelectValue placeholder="Selecione uma turma" />
                 </SelectTrigger>
-                <SelectContent className="max-w-[calc(100vw-2rem)] sm:max-w-[400px]">
+                <SelectContent className="max-w-[calc(100vw-2rem)]">
                   {filteredClasses.map((cls) => (
                     <SelectItem key={cls.id} value={cls.id.toString()} className="text-sm sm:text-base">
-                      <span className="block whitespace-normal leading-tight">
+                      <span className="block whitespace-normal sm:whitespace-nowrap text-left">
                         {cls.nome} {cls.code ? `(${cls.code})` : ''}
                       </span>
                     </SelectItem>
