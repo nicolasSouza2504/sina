@@ -63,11 +63,6 @@ public class UserService implements IUserService {
 
     }
 
-    // na hora que eu vou salvar um usuário, caso ele esteja em uma class devo
-    // chamar a rotina de salvar tasks
-
-    // sendMessageCreateUsersTask(task.getId(), taskRegister.courseId());
-
     @Override
     @Transactional(rollbackOn = Exception.class)
     public UserResponseDTO createUser(UserRegisterDTO request) {

@@ -9,6 +9,9 @@ import senai.com.ava_senai.domain.task.TaskUserCourseMessage;
 import senai.com.ava_senai.services.task.ITaskService;
 import senai.com.ava_senai.services.task.TaskService;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 @Service
 @RequiredArgsConstructor
 public class TaskUserConsumer {
@@ -21,6 +24,8 @@ public class TaskUserConsumer {
         try {
 
             TaskUserCourseMessage taskUserCourseMessage = new Gson().fromJson(message, TaskUserCourseMessage.class);
+
+            Logger.getLogger(TaskUserConsumer.class.getName()).log(Level.INFO, "Processando mensagem de criação de tarefa " + taskUserCourseMessage.getTaskId() +  " para usuários do curso: " + taskUserCourseMessage.getCourseId());
 
             taskService.saveTaskUsersForCourse(taskUserCourseMessage);
 
