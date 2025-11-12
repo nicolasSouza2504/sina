@@ -1,0 +1,126 @@
+name: Deploy to Server (Advanced)
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy via SSH
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📋 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 🚀 Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          command_timeout: 30m
+          script: |
+            set -e  # Para execução em caso de erro
+            
+            echo "=========================================="
+            echo "🚀 Iniciando deploy automático"
+            echo "📅 Data: $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "=========================================="
+            
+            # Variáveis
+            PROJECT_PATH="${{ secrets.PROJECT_PATH || '/home/ocidog/ava-senai' }}"
+            BACKUP_DIR="$HOME/backups/ava-senai"
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            
+            # Navega para o diretório do projeto
+            echo "📂 Navegando para: $PROJECT_PATH"
+            cd "$PROJECT_PATH" || exit 1
+            
+            # Backup antes do deploy (opcional)
+            echo "💾 Criando backup..."
+            mkdir -p "$BACKUP_DIR"
+            tar -czf "$BACKUP_DIR/backup_$TIMESTAMP.tar.gz" \
+              --exclude='node_modules' \
+              --exclude='.git' \
+              --exclude='dist' \
+              --exclude='build' \
+              . || echo "⚠️  Backup falhou, continuando..."
+            
+            # Limpar backups antigos (manter últimos 5)
+            ls -t "$BACKUP_DIR"/backup_*.tar.gz | tail -n +6 | xargs -r rm -f
+            
+            # Verificar branch atual
+            CURRENT_BRANCH=$(git branch --show-current)
+            echo "🌿 Branch atual: $CURRENT_BRANCH"
+            
+            if [ "$CURRENT_BRANCH" != "master" ]; then
+              echo "⚠️  Não está na branch master, fazendo checkout..."
+              git checkout master || exit 1
+            fi
+            
+            # Stash de alterações locais (se houver)
+            if ! git diff-index --quiet HEAD --; then
+              echo "💼 Salvando alterações locais..."
+              git stash save "Auto-stash before deploy $TIMESTAMP"
+            fi
+            
+            # Pull das alterações
+            echo "📥 Baixando alterações do repositório..."
+            git pull origin master || {
+              echo "❌ Erro ao fazer pull"
+              exit 1
+            }
+            
+            # Verificar se há alterações
+            COMMIT_HASH=$(git rev-parse --short HEAD)
+            echo "📝 Commit atual: $COMMIT_HASH"
+            
+            # Parar containers
+            echo "🛑 Parando containers..."
+            docker-compose down || echo "⚠️  Containers já estavam parados"
+            
+            # Rebuild e restart
+            echo "🐳 Reconstruindo e iniciando containers..."
+            docker-compose up -d --build || {
+              echo "❌ Erro ao iniciar containers"
+              echo "🔄 Tentando restaurar backup..."
+              # Aqui você pode adicionar lógica de rollback se necessário
+              exit 1
+            }
+            
+            # Aguardar containers iniciarem
+            echo "⏳ Aguardando containers iniciarem..."
+            sleep 10
+            
+            # Verificar status dos containers
+            echo "🔍 Verificando status dos containers..."
+            docker-compose ps
+            
+            # Limpar recursos não utilizados
+            echo "🧹 Limpando recursos Docker não utilizados..."
+            docker system prune -f --volumes || echo "⚠️  Limpeza falhou"
+            
+            echo "=========================================="
+            echo "✅ Deploy concluído com sucesso!"
+            echo "📝 Commit: $COMMIT_HASH"
+            echo "⏰ Finalizado em: $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "=========================================="
+      
+      - name: 📊 Deploy Status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deploy realizado com sucesso!"
+          else
+            echo "❌ Deploy falhou!"
+          fi
+      
+      # Opcional: Notificar em caso de falha
+      - name: 🔔 Notify on Failure
+        if: failure()
+        run: |
+          echo "Deploy falhou! Verifique os logs."
+          # Aqui você pode adicionar notificações (Discord, Slack, Email, etc)
