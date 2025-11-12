@@ -1,9 +1,9 @@
 package senai.com.ava_senai.controller;
 
 import jakarta.validation.Valid;
-import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import senai.com.ava_senai.domain.task.feedback.FeedbackRegisterDTO;
 import senai.com.ava_senai.response.ApiResponse;
@@ -16,8 +16,9 @@ public class FeedbackController {
 
     private final IFeedbackService feedbackService;
 
+    @Secured({"TEACHER"})
     @PostMapping("/evaluate")
-    public ResponseEntity<ApiResponse> getCourseById(@RequestBody @Valid FeedbackRegisterDTO feedbackRegisterDTO) {
+    public ResponseEntity<ApiResponse> evaluate(@RequestBody @Valid FeedbackRegisterDTO feedbackRegisterDTO) {
         return ResponseEntity.ok().body(new ApiResponse("Sucesso!", feedbackService.evaluate(feedbackRegisterDTO)));
     }
 

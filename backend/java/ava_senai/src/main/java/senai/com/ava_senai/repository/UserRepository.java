@@ -66,5 +66,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "ORDER BY s.semester, kt.name, t.taskOrder")
     Optional<User> findUserWithContentById(@Param("userId")Long userId, @Param("courseId") Long courseId);
 
+    @Query(" SELECT u FROM User u " +
+            " JOIN u.userClasses uc " +
+            " JOIN FETCH u.taskUsers tks " +
+            " LEFT JOIN FETCH tks.userResponse urs " +
+            " LEFT JOIN FETCH urs.feedback fb " +
+            " JOIN tks.task t " +
+            " JOIN t.knowledgeTrail kt " +
+            " WHERE uc.classId = :classId " +
+            " AND kt.id = :knowledgeTrailId ")
+    List<User> findUsersRanking(Long classId, Long knowledgeTrailId);
+
 }
 

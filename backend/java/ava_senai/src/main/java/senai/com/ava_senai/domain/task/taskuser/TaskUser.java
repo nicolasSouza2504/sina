@@ -3,9 +3,14 @@ package senai.com.ava_senai.domain.task.taskuser;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.task.Task;
+import senai.com.ava_senai.domain.task.userresponse.UserResponse;
+import senai.com.ava_senai.domain.task.userresponsecontent.UserResponseContent;
 import senai.com.ava_senai.domain.user.User;
+
+import java.util.Set;
 
 @Data
 @Entity
@@ -25,5 +30,8 @@ public class TaskUser extends DefaultEntity {
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
+
+    @OneToOne(mappedBy = "taskUser")
+    private UserResponse userResponse;
 
 }
