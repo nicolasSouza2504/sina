@@ -6,6 +6,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.config.RabbitMQConfig;
+import senai.com.ava_senai.consumer.TaskUserConsumer;
 import senai.com.ava_senai.domain.task.*;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.user.User;
@@ -16,6 +17,8 @@ import senai.com.ava_senai.services.messaging.RabbitMQSender;
 import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +51,8 @@ public class TaskService implements ITaskService {
         List<User> users = userRepository.findUsersByCourseIdWhereNotExistsUserTask(taskUserCourseMessage.getCourseId(),
                 taskUserCourseMessage.getTaskId());
 
+        Logger.getLogger(TaskService.class.getName()).log(Level.INFO, "Processando mensagem de criação de tarefa " + taskUserCourseMessage.getTaskId() +  " para " + users.size() + " usuários do curso: " + taskUserCourseMessage.getCourseId());
+
         // Create user tasks for each user in the course
         users.forEach(user -> {
 
@@ -57,9 +62,8 @@ public class TaskService implements ITaskService {
             userTask.setIdInstitution(user.getIdInstitution());
             userTask.setUserId(user.getId());
 
-            if (taskUserRepository.findByUserIdAndTaskId(user.getId(), taskUserCourseMessage.getTaskId()) == null) {
-                taskUserRepository.save(userTask);
-            }
+            taskUserRepository.save(userTask);
+
         });
 
     }

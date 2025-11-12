@@ -18,4 +18,12 @@ public interface KnowledgeTrailRepository extends JpaRepository<KnowledgeTrail, 
            " JOIN t.knowledgeTrail kt " +
            " WHERE ur.id = :idUserResponse ")
     Optional<KnowledgeTrail> findByUserResponseId(Long idUserResponse);
+
+    @Query(" SELECT kt FROM KnowledgeTrail kt " +
+           " JOIN kt.section s " +
+           " JOIN s.course co " +
+           " JOIN co.classes cls" +
+           " WHERE cls.id = :classId " +
+           " AND kt.ranked = true ")
+    Optional<List<KnowledgeTrail>> findRankedKnowledgeTrailsByClassId(Long classId);
 }

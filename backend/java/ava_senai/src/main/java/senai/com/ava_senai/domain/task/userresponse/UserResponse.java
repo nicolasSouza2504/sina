@@ -22,11 +22,11 @@ public class UserResponse extends DefaultEntity {
     @OneToMany(mappedBy = "userResponse")
     private Set<UserResponseContent> userResponseContents;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "task_user_id", insertable = false, updatable = false)
     private TaskUser taskUser;
 
-    @Column(name = "task_user_id", nullable = false)
+    @Column(name = "task_user_id", nullable = false, unique = true)
     private Long taskUserId;
 
     @OneToOne(mappedBy = "userResponse")
