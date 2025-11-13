@@ -1,6 +1,6 @@
-package senai.com.ava_senai.domain.task.ranking;
+package senai.com.ava_senai.services.ranking;
 
-import senai.com.ava_senai.services.ranking.RankingResponseDTO;
+import senai.com.ava_senai.domain.ranking.RankingResponseDTO;
 
 import java.util.List;
 

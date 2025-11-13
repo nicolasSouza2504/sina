@@ -1,4 +1,4 @@
-package senai.com.ava_senai.services.ranking;
+package senai.com.ava_senai.domain.ranking;
 
 
 import lombok.Data;
