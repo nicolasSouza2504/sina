@@ -147,3 +147,28 @@ export interface SemesterHeaderProps {
   showActions?: boolean
   className?: string
 }
+
+// Session types (alias for Semester with different naming)
+export interface Session {
+  id: string
+  title: string
+  description: string
+  courseId: string
+  order: number
+  status: 'active' | 'inactive' | 'completed' | 'locked'
+  isUnlocked: boolean
+  estimatedTime: string
+  difficulty: 'Iniciante' | 'Intermediário' | 'Avançado'
+  progress: number // 0-100
+  totalTracks: number
+  completedTracks: number
+  learningTracks: LearningTrack[]
+  prerequisites?: string[] // IDs of sessions that must be completed
+}
+
+export interface SessionCardProps {
+  session: Session
+  onView?: (sessionId: string) => void
+  showProgress?: boolean
+  className?: string
+}

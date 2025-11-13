@@ -55,26 +55,8 @@ export default function VisualizarMaterial() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Busca o material em todas as tarefas
-    let foundMaterial: MockMaterial | null = null;
-    
-    // Buscar material diretamente nos trails e suas tarefas
-    const allTrails = mockCourseService.getAllTrails();
-    for (const trail of allTrails) {
-      // Verificar se a trilha tem tarefas
-      if (trail.tasks && trail.tasks.length > 0) {
-        for (const task of trail.tasks) {
-          const mat = task.materials?.find(m => m.id === materialId);
-          if (mat) {
-            foundMaterial = mat;
-            break;
-          }
-        }
-      }
-      if (foundMaterial) break;
-    }
-    
-    setMaterial(foundMaterial);
+    // TODO: Implement API integration to fetch material
+    setMaterial(null);
     setLoading(false);
   }, [materialId]);
 

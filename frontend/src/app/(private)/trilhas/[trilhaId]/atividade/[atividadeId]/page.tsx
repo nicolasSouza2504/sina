@@ -345,7 +345,7 @@ export default function ActivityPage({ params }: ActivityPageProps) {
                     maxFileSize={activity.maxFileSize}
                     allowedFileTypes={activity.allowedFileTypes}
                     isUploading={isUploading}
-                    uploadProgress={uploadProgress}
+                    uploadProgress={uploadProgress || undefined}
                     className="w-full"
                   />
                 )}

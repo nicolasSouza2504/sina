@@ -44,7 +44,11 @@ import {
   RefreshCcw,
   Loader2
 } from 'lucide-react';
-import { mockCourseService, Course, Trail, Task, Material } from '@/lib/services/mockCourseService';
+// TODO: Replace with real API integration
+const mockCourseService = null;
+const Course = null;
+const Trail = null;
+const Material = null;
 import { mockSubmissionService } from '@/lib/services/mockSubmissionService';
 import { StudentSubmissionsModal } from '@/components/professor/StudentSubmissionsModal';
 import CreateKnowledgeTrailModal from '@/components/professor/CreateKnowledgeTrailModal';
@@ -87,8 +91,8 @@ interface ContentItem {
   trailName?: string;
   taskId?: string;
   taskName?: string;
-  materials?: Material[];
-  tasks?: Task[];
+  materials?: any[]; // TODO: Define proper Material type when API is ready
+  tasks?: any[]; // TODO: Define proper Task type when API is ready
   difficulty?: string;
   estimatedTime?: string;
   status?: string;
@@ -237,17 +241,8 @@ export default function GerenciarConteudo() {
   }, [selectedCourseId, fetchCourseContent]);
 
   useEffect(() => {
-    const allTrails = mockCourseService.getAllTrails();
-    const needsReset = allTrails.some(trail => !trail.tasks);
-    
-    if (needsReset) {
-      mockCourseService.resetDataWithNewStructure();
-    } else {
-      mockCourseService.createSampleData();
-    }
-    
-    const allCourses = mockCourseService.getAllCourses();
-    setCourses(allCourses.map(c => ({ id: c.id, name: c.title })));
+    // TODO: Implement API integration to load courses
+    setCourses([]);
   }, []);
 
   useEffect(() => {
@@ -259,37 +254,8 @@ export default function GerenciarConteudo() {
   const loadContent = () => {
     if (!selectedCourseId) return;
     
-    const allTrails = mockCourseService.getAllTrails();
-    const allTrailsFormatted: ContentItem[] = [];
-
-    allTrails.forEach(trail => {
-      if (trail.courseId === selectedCourseId) {
-        const course = mockCourseService.getCourseById(trail.courseId);
-        if (course) {
-          const tasksWithMaterials = trail.tasks?.map(task => {
-            const materials = mockCourseService.getMaterialsByTaskId(task.id);
-            return {
-              ...task,
-              materials: materials
-            };
-          }) || [];
-
-          allTrailsFormatted.push({
-            id: trail.id,
-      type: 'trilha',
-            title: trail.title,
-            courseId: course.id,
-            courseName: course.title,
-            semesterId: trail.semesterNumber?.toString() || '',
-            semesterName: trail.semesterNumber ? `${trail.semesterNumber}º Semestre` : 'Sem semestre',
-            description: trail.description,
-            tasks: tasksWithMaterials
-          });
-        }
-      }
-    });
-
-    setContent(allTrailsFormatted);
+    // TODO: Implement API integration to load content
+    setContent([]);
   };
 
   // Filtra apenas tarefas por nome quando há filtro ativo

@@ -21,7 +21,7 @@ import { mockCourseService, Course } from '@/lib/services/mockCourseService';
 export default function CursoSucessoPage() {
   const router = useRouter();
   const params = useParams();
-  const courseId = params.id as string;
+  const courseId = params?.id as string;
   
   const [course, setCourse] = useState<Course | null>(null);
 
@@ -48,7 +48,7 @@ export default function CursoSucessoPage() {
   const handleAddTrails = () => {
     // Redireciona para página de criar trilha, passando o ID do curso e do primeiro semestre
     const firstSemester = course.semesters[0];
-    router.push(`/professor/trilha/nova?courseId=${course.id}&semesterId=${firstSemester.id}`);
+    router.push(`/professor/trilha/nova?courseId=${course.id}&semesterId=${firstSemester.number}`);
   };
 
   return (
