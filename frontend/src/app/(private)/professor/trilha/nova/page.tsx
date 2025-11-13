@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { mockCourseService } from '@/lib/services/mockCourseService';
 
-export default function NovaTrilha() {
+function NovaTrilhaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -399,5 +399,20 @@ export default function NovaTrilha() {
         autoCloseDelay={1500}
       />
     </div>
+  );
+}
+
+export default function NovaTrilha() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Carregando formulário...</p>
+        </div>
+      </div>
+    }>
+      <NovaTrilhaContent />
+    </Suspense>
   );
 }

@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar, Clock, CheckCircle, AlertCircle, FileText, Upload, ArrowLeft, BookOpen, Link as LinkIcon } from "lucide-react"
+import { Calendar, Clock, CheckCircle, AlertCircle, FileText, Upload, ArrowLeft, BookOpen, Link as LinkIcon, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import QuickActionsAluno from '@/components/admin/quickActionsAluno'
 import Link from "next/link"
 
-export default function AlunoEADPage() {
+function AlunoEADContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [highlightedActivityId, setHighlightedActivityId] = useState<string | null>(null)
@@ -20,18 +20,6 @@ export default function AlunoEADPage() {
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false)
   const [submissionFile, setSubmissionFile] = useState<File | null>(null)
   const [submissionComment, setSubmissionComment] = useState('')
-
-  useEffect(() => {
-    const activityId = searchParams.get('activity')
-    if (activityId) {
-      setHighlightedActivityId(activityId)
-      const activity = mockActivities.find(a => a.id.toString() === activityId)
-      if (activity && activity.status === 'pendente') {
-        setSelectedActivity(activity)
-        setIsSubmissionModalOpen(true)
-      }
-    }
-  }, [searchParams])
 
   const mockActivities = [
     {
@@ -77,6 +65,19 @@ export default function AlunoEADPage() {
       dataEntrega: "2024-01-03"
     }
   ]
+
+  useEffect(() => {
+    if (!searchParams) return
+    const activityId = searchParams.get('activity')
+    if (activityId) {
+      setHighlightedActivityId(activityId)
+      const activity = mockActivities.find(a => a.id.toString() === activityId)
+      if (activity && activity.status === 'pendente') {
+        setSelectedActivity(activity)
+        setIsSubmissionModalOpen(true)
+      }
+    }
+  }, [searchParams])
 
   const handleSubmitActivity = () => {
     if (!submissionFile && !submissionComment.trim()) {
@@ -383,6 +384,21 @@ export default function AlunoEADPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function AlunoEADPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Carregando atividades...</p>
+        </div>
+      </div>
+    }>
+      <AlunoEADContent />
+    </Suspense>
   )
 }
 

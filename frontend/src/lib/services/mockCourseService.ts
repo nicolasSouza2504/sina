@@ -57,6 +57,7 @@ class MockCourseService {
 
   private loadFromStorage() {
     try {
+      if (typeof window === 'undefined') return;
       const coursesData = localStorage.getItem('mockCourses');
       const trailsData = localStorage.getItem('mockTrails');
       const materialsData = localStorage.getItem('mockMaterials');
@@ -71,6 +72,7 @@ class MockCourseService {
 
   private saveToStorage() {
     try {
+      if (typeof window === 'undefined') return;
       localStorage.setItem('mockCourses', JSON.stringify(this.courses));
       localStorage.setItem('mockTrails', JSON.stringify(this.trails));
       localStorage.setItem('mockMaterials', JSON.stringify(this.materials));
@@ -264,6 +266,7 @@ class MockCourseService {
 
   // Método para criar dados de exemplo para teste
   createSampleData(): void {
+    if (typeof window === 'undefined') return;
     // Verifica se já existem dados
     if (this.courses.length > 0) return;
 

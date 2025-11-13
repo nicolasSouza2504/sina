@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,9 +26,14 @@ import {
   Lock,
   Unlock,
   CheckCircle,
-  GripVertical
+  GripVertical,
+  Loader2
 } from 'lucide-react';
-import { mockCourseService, Course, Trail, Task, Material } from '@/lib/services/mockCourseService';
+// TODO: Replace with real API integration
+const mockCourseService = null;
+const Course = null;
+const Trail = null;
+const Material = null;
 import { toast } from 'sonner';
 
 interface ContentItem {
@@ -44,14 +49,14 @@ interface ContentItem {
   trailName?: string;
   taskId?: string;
   taskName?: string;
-  materials?: Material[];
-  tasks?: Task[];
+  materials?: any[]; // TODO: Define proper Material type when API is ready
+  tasks?: any[]; // TODO: Define proper Task type when API is ready
   difficulty?: string;
   estimatedTime?: string;
   status?: string;
 }
 
-export default function GerenciarConteudoNovo() {
+function GerenciarConteudoNovoContent() {
   const searchParams = useSearchParams();
   const [courses, setCourses] = useState<{ id: string; name: string }[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
@@ -89,17 +94,8 @@ export default function GerenciarConteudoNovo() {
   });
 
   useEffect(() => {
-    // Criar dados de exemplo se não existirem
-    mockCourseService.createSampleData();
-    
-    // Carregar cursos
-    const allCourses = mockCourseService.getAllCourses();
-    setCourses(allCourses.map(c => ({ id: c.id, name: c.title })));
-    
-    // Definir curso padrão se houver apenas um
-    if (allCourses.length === 1) {
-      setSelectedCourseId(allCourses[0].id);
-    }
+    // TODO: Implement API integration to load courses
+    setCourses([]);
   }, []);
 
   useEffect(() => {
@@ -111,29 +107,8 @@ export default function GerenciarConteudoNovo() {
   const loadContent = () => {
     if (!selectedCourseId) return;
     
-    const allTrails = mockCourseService.getAllTrails();
-    const allTrailsFormatted: ContentItem[] = [];
-
-    allTrails.forEach(trail => {
-      if (trail.courseId === selectedCourseId) {
-        const course = mockCourseService.getCourseById(trail.courseId);
-        if (course) {
-          allTrailsFormatted.push({
-            id: trail.id,
-            type: 'trilha',
-            title: trail.title,
-            courseId: course.id,
-            courseName: course.title,
-            semesterId: trail.semesterNumber?.toString() || '',
-            semesterName: trail.semesterNumber ? `${trail.semesterNumber}º Semestre` : 'Sem semestre',
-            description: trail.description,
-            tasks: trail.tasks || []
-          });
-        }
-      }
-    });
-
-    setContent(allTrailsFormatted);
+    // TODO: Implement API integration to load content
+    setContent([]);
   };
 
   const filteredContent = content.filter(item =>
@@ -141,9 +116,9 @@ export default function GerenciarConteudoNovo() {
   );
 
   // Agrupa trilhas por semestre
-  const groupedBySemester = filteredContent.reduce((acc, trail) => {
+  const groupedBySemester = filteredContent.reduce((acc: Record<string, { semesterName: string; trails: ContentItem[] }>, trail) => {
     const semesterKey = trail.semesterId || 'sem-semestre';
-    const semesterName = trail.semesterName;
+    const semesterName = trail.semesterName || 'Sem semestre';
     
     if (!acc[semesterKey]) {
       acc[semesterKey] = {
@@ -164,140 +139,15 @@ export default function GerenciarConteudoNovo() {
   });
 
   const handleCreateTrail = () => {
-    if (!selectedCourseId) {
-      toast.error('❌ Selecione um curso primeiro');
-      return;
-    }
-
-    if (!newTrail.title.trim()) {
-      toast.error('❌ Título da trilha é obrigatório');
-      return;
-    }
-
-    if (!newTrail.description.trim()) {
-      toast.error('❌ Descrição da trilha é obrigatória');
-      return;
-    }
-
-    if (!newTrail.semesterNumber) {
-      toast.error('❌ Selecione um semestre');
-      return;
-    }
-
-    const trail = mockCourseService.createTrail({
-      courseId: selectedCourseId,
-      semesterNumber: parseInt(newTrail.semesterNumber),
-      title: newTrail.title,
-      description: newTrail.description
-    });
-
-    setNewTrail({ title: '', description: '', semesterNumber: '' });
-    loadContent();
-    toast.success('✅ Trilha criada com sucesso!');
+    toast.error('❌ Funcionalidade em desenvolvimento - API integration needed');
   };
 
   const handleCreateTask = () => {
-    if (!selectedTrail) {
-      toast.error('❌ Selecione uma trilha primeiro');
-      return;
-    }
-
-    if (!newTask.title.trim()) {
-      toast.error('❌ Título da tarefa é obrigatório');
-      return;
-    }
-
-    if (!newTask.description.trim()) {
-      toast.error('❌ Descrição da tarefa é obrigatória');
-      return;
-    }
-
-    if (!newTask.estimatedTime.trim()) {
-      toast.error('❌ Tempo estimado é obrigatório');
-      return;
-    }
-
-    const task = mockCourseService.createTask({
-      trailId: selectedTrail.id,
-      title: newTask.title,
-      description: newTask.description,
-      type: newTask.type,
-      difficulty: newTask.difficulty,
-      estimatedTime: newTask.estimatedTime,
-      status: 'unlocked'
-    });
-
-    setNewTask({
-      title: '',
-      description: '',
-      type: 'teórica',
-      difficulty: 'Iniciante',
-      estimatedTime: ''
-    });
-    loadContent();
-    setIsTaskModalOpen(false);
-    toast.success('✅ Tarefa criada com sucesso!');
+    toast.error('❌ Funcionalidade em desenvolvimento - API integration needed');
   };
 
   const handleCreateMaterial = () => {
-    if (!selectedTask) {
-      toast.error('❌ Selecione uma tarefa primeiro');
-      return;
-    }
-
-    if (!newMaterial.title.trim()) {
-      toast.error('❌ Título do material é obrigatório');
-      return;
-    }
-
-    let materialData: any = {
-      taskId: selectedTask.id,
-      type: newMaterial.type,
-      title: newMaterial.title
-    };
-
-    if (newMaterial.type === 'text') {
-      if (!newMaterial.content.trim()) {
-        toast.error('❌ Conteúdo é obrigatório para material de texto');
-        return;
-      }
-      materialData.content = newMaterial.content;
-    } else if (newMaterial.type === 'video' || newMaterial.type === 'link') {
-      if (!newMaterial.url.trim()) {
-        toast.error('❌ URL é obrigatória');
-        return;
-      }
-      materialData.url = newMaterial.url;
-    } else if (newMaterial.type === 'file') {
-      if (!newMaterial.file) {
-        toast.error('❌ Arquivo é obrigatório');
-        return;
-      }
-      // Converter arquivo para base64
-      const reader = new FileReader();
-      reader.onload = () => {
-        materialData.fileData = reader.result;
-        materialData.fileName = newMaterial.file?.name;
-        mockCourseService.addMaterial(materialData);
-        loadContent();
-        setIsMaterialModalOpen(false);
-        toast.success('✅ Material adicionado com sucesso!');
-      };
-      reader.readAsDataURL(newMaterial.file);
-      return;
-    }
-
-    mockCourseService.addMaterial(materialData);
-    setNewMaterial({
-      type: 'text',
-      title: '',
-      content: '',
-      url: '',
-      file: null
-    });
-    loadContent();
-    setIsMaterialModalOpen(false);
-    toast.success('✅ Material adicionado com sucesso!');
+    toast.error('❌ Funcionalidade em desenvolvimento - API integration needed');
   };
 
   const getStatusIcon = (status: string) => {
@@ -454,7 +304,7 @@ export default function GerenciarConteudoNovo() {
                                 <div className="mt-4">
                                   <h4 className="text-sm font-medium text-gray-700 mb-2">Materiais:</h4>
                                   <div className="grid gap-2">
-                                    {task.materials.map(material => (
+                                    {task.materials.map((material: any) => (
                                       <div key={material.id} className="flex items-center gap-2 p-2 bg-white rounded border">
                                         {getTypeIcon(material.type)}
                                         <span className="text-sm">{material.title}</span>
@@ -545,11 +395,10 @@ export default function GerenciarConteudoNovo() {
                   <SelectValue placeholder="Selecione um semestre" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockCourseService.getCourseById(selectedCourseId)?.semesters.map(semester => (
-                    <SelectItem key={semester.number} value={semester.number.toString()}>
-                      {semester.number}º - {semester.title}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="1">1º - Semestre 1</SelectItem>
+                  <SelectItem value="2">2º - Semestre 2</SelectItem>
+                  <SelectItem value="3">3º - Semestre 3</SelectItem>
+                  <SelectItem value="4">4º - Semestre 4</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -730,5 +579,20 @@ export default function GerenciarConteudoNovo() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function GerenciarConteudoNovo() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Carregando gerenciador de conteúdo...</p>
+        </div>
+      </div>
+    }>
+      <GerenciarConteudoNovoContent />
+    </Suspense>
   );
 }

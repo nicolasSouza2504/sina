@@ -33,6 +33,7 @@ class MockSubmissionService {
 
   private loadFromStorage() {
     try {
+      if (typeof window === 'undefined') return;
       const data = localStorage.getItem(this.storageKey);
       if (data) {
         this.submissions = JSON.parse(data);
@@ -44,6 +45,7 @@ class MockSubmissionService {
 
   private saveToStorage() {
     try {
+      if (typeof window === 'undefined') return;
       localStorage.setItem(this.storageKey, JSON.stringify(this.submissions));
     } catch (error) {
       console.error('Erro ao salvar submissions:', error);
@@ -134,6 +136,7 @@ class MockSubmissionService {
   }
 
   createSampleData() {
+    if (typeof window === 'undefined') return;
     if (this.submissions.length > 0) return;
 
     const mockCourseService = require('./mockCourseService').mockCourseService;
@@ -209,6 +212,7 @@ class MockSubmissionService {
 
   clearAll() {
     this.submissions = [];
+    if (typeof window === 'undefined') return;
     localStorage.removeItem(this.storageKey);
   }
 
