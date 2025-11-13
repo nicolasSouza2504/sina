@@ -1,3 +1,4 @@
+"use client"
 import {UserFromToken} from "../interfaces/userInterfaces"
 
 export type AuthPayload = {

@@ -1,7 +1,6 @@
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
-import { decodeJwt, hasAnyRole, type AuthPayload } from "./lib/auth/jwtAuth";
-import getTokenFromSession from "./lib/auth/jwtAuth.server";
+import { decodeJwtServer, hasAnyRoleServer, type AuthPayload } from "./lib/auth/jwtAuth.middleware";
 
 const TOKEN_COOKIE = "token";
 
@@ -76,7 +75,7 @@ function authGuard(req: NextRequest): {
 
   const token = req.cookies.get(TOKEN_COOKIE)?.value;
 
-  const user = decodeJwt(token);
+  const user = decodeJwtServer(token);
 
   if (!user) {
     const url = req.nextUrl.clone();
@@ -102,7 +101,7 @@ function roleGuard(
   const needed = rolesFor(pathname);
   if (!needed) return null;
 
-  if (!user || !hasAnyRole(user, needed)) {
+  if (!user || !hasAnyRoleServer(user, needed)) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

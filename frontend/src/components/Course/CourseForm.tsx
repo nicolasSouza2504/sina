@@ -177,9 +177,9 @@ export function CourseForm({
         startDate: new Date(formData.startDate),
         endDate: new Date(formData.endDate),
         color: formData.color,
-        sessions: course?.sessions || [],
-        totalSessions: course?.totalSessions || 0,
-        completedSessions: course?.completedSessions || 0,
+        semesters: course?.semesters || [],
+        totalSemesters: course?.totalSemesters || 0,
+        completedSemesters: course?.completedSemesters || 0,
         progress: course?.progress || 0,
         instructor: {
           id: course?.instructor?.id || `instructor-${Date.now()}`,

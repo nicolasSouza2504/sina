@@ -1,5 +1,5 @@
+"use server"
 import {cookies} from "next/headers"
-import {AuthPayload} from "./jwtAuth"
 
 export default async function getTokenFromSession() {
     const cookiesStore = await cookies();
