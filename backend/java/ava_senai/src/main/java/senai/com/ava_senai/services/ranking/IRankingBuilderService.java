@@ -1,3 +1,4 @@
+
 package senai.com.ava_senai.services.ranking;
 
 import senai.com.ava_senai.domain.ranking.UserRankingCalculatorDTO;

@@ -9,41 +9,44 @@ import senai.com.ava_senai.domain.task.feedback.Feedback;
 import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 import senai.com.ava_senai.domain.task.userresponse.UserResponse;
 import senai.com.ava_senai.domain.user.User;
-import senai.com.ava_senai.repository.UserRepository;
+import senai.com.ava_senai.repository.TaskUserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class RankingBuilderService implements IRankingBuilderService {
 
-    private final UserRepository userRepository;
+    private final TaskUserRepository taskUserRepository;
 
     @Override
     public List<UserRankingCalculatorDTO> buildUsersRankingCalculator(Long classId, Long knowledgeTrailId) {
 
-        List<User> users = userRepository.findUsersWithTaskToRanking(classId, knowledgeTrailId);
+        List<TaskUser> taskUsers = taskUserRepository.findTaskUsersForRanking(classId, knowledgeTrailId);
 
-        return buildUserRankingCalculator(users);
+        // agrupa as tasks por usuário
+        Map<User, List<TaskUser>> tasksByUser = taskUsers.stream()
+                .collect(Collectors.groupingBy(TaskUser::getUser));
+
+        return buildUserRankingCalculator(tasksByUser);
 
     }
 
-    private List<UserRankingCalculatorDTO> buildUserRankingCalculator(List<User> users) {
+    private List<UserRankingCalculatorDTO> buildUserRankingCalculator(Map<User, List<TaskUser>> tasksByUser) {
 
         List<UserRankingCalculatorDTO> userRankingCalculatorDTOS = new ArrayList<>();
 
-        if (!users.isEmpty()) {
+        tasksByUser.forEach((user, tasks) -> {
 
-            for (User user : users) {
+            List<TaskRankingCalculatorDTO> taskRankingCalculatorDTOS = buildTasksRanking(tasks);
 
-                List<TaskRankingCalculatorDTO> taskRankingCalculatorDTOS = buildTasksRanking(user.getTaskUsers());
+            userRankingCalculatorDTOS.add(new UserRankingCalculatorDTO(taskRankingCalculatorDTOS, user));
 
-                userRankingCalculatorDTOS.add(new UserRankingCalculatorDTO(taskRankingCalculatorDTOS, user));
+        });
 
-            }
-
-        }
 
         return userRankingCalculatorDTOS;
 
