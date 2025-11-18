@@ -13,6 +13,7 @@ public class UserRankingCalculatorDTO {
 
     public UserRankingCalculatorDTO(List<TaskRankingCalculatorDTO> tasksCalculator, User user) {
         this.tasksCalculator = tasksCalculator;
+        this.user = user;
     }
 
 }

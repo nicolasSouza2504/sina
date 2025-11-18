@@ -25,7 +25,9 @@ public class GradeScoreCalculator implements IScoreCalculator {
                 .sum();
 
 
-        return (totalGrade / tasksReviewed.size()) * GRADE_POINTS_PERCENTAGE;
+        double averageGrade = (totalGrade / tasksReviewed.size()) / 10d;
+
+        return averageGrade * GRADE_POINTS_PERCENTAGE;
 
     }
 

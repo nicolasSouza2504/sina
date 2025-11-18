@@ -11,12 +11,11 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 @Component
-@RequiredArgsConstructor
 public class ScoreCalculatorStrategy {
 
-    private Map<ScoreCalculatorTypeEnum, IScoreCalculator> implementationsMap = new HashMap<>();
+    private final Map<ScoreCalculatorTypeEnum, IScoreCalculator> implementationsMap = new HashMap<>();
 
-    ScoreCalculatorStrategy(List<IScoreCalculator> scoreCalculators) {
+    public ScoreCalculatorStrategy(List<IScoreCalculator> scoreCalculators) {
 
         for (IScoreCalculator scoreCalculator : scoreCalculators) {
 
