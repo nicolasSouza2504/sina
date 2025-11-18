@@ -9,7 +9,6 @@ import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.repository.KnowledgeTrailRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,15 +30,9 @@ public class RankingService implements IRankingService {
     }
 
     private List<RankingResponseDTO> getRankings(List<KnowledgeTrail> knowledgeTrails, Long classId) {
-
-        List<RankingResponseDTO> rankings = new ArrayList<>();
-
-        for (KnowledgeTrail knowledgeTrail : knowledgeTrails) {
-            rankings.add(getRanking(knowledgeTrail, classId));
-        }
-
-        return rankings;
-
+        return knowledgeTrails.stream()
+                .map(rankedKnowledgeTrail -> getRanking(rankedKnowledgeTrail, classId))
+                .toList();
     }
 
     private RankingResponseDTO getRanking(KnowledgeTrail rankedKnowledgeTrail, Long classId) {
