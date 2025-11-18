@@ -85,7 +85,7 @@ export default function StudentDashboard() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header com Boas-vindas */}
-      <div className="bg-gradient-to-r from-sky-500 to-sky-700 text-white rounded-lg p-6 shadow-lg">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 text-white rounded-lg p-6 shadow-lg">
         <h1 className="text-3xl font-bold mb-2">Bem-vindo de volta! 👋</h1>
         <p className="text-sky-100 mb-4">
           Continue sua jornada de aprendizado em {studentData.currentCourse}

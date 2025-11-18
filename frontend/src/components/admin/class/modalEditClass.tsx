@@ -148,6 +148,7 @@ export default function ModalEditClass({
         const formData: ClassFormData = {
             code: data.code || "",
             name: data.name,
+            nome: data.name,
             startDate: data.startDate,
             endDate: data.endDate,
             semester: data.semester || null,
@@ -494,7 +495,7 @@ export default function ModalEditClass({
                             <Button
                                 type="submit"
                                 disabled={form.formState.isSubmitting || loadingCourses}
-                                className="w-full sm:w-auto order-1 sm:order-2 h-11 bg-green-600 hover:bg-green-700 rounded-xl font-semibold"
+                                className="w-full sm:w-auto order-1 sm:order-2 h-11 bg-green-600 hover:bg-green-700 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                             >
                                 {form.formState.isSubmitting
                                     ? "Salvando..."

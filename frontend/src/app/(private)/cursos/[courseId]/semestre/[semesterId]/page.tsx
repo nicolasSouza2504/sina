@@ -43,7 +43,7 @@ export default function SemesterPage({ params }: SemesterPageProps) {
   
   if (!course || !semester) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Curso ou Semestre não encontrado</h1>
           <p className="text-muted-foreground mb-4">O curso ou semestre solicitado não existe ou não está disponível.</p>
@@ -77,7 +77,7 @@ export default function SemesterPage({ params }: SemesterPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Placeholder content - will be implemented when API integration is ready */}
         <div className="text-center">

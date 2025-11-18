@@ -9,6 +9,7 @@ import {
   FolderOpen,
   BookOpen,
   BookOpenCheck,
+  UserStar,
 } from "lucide-react";
 
 import {
@@ -28,12 +29,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import getUserFromToken from "@/lib/auth/userToken";
 import { Button } from "./ui/button";
 import signOut from "@/lib/api/auth/signout";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { UserFromToken } from "@/lib/interfaces/userInterfaces";
 import { NotificationsBell } from '@/components/ui/notifications-bell';
 import { useSidebar } from "@/components/ui/sidebar";
-
 // Telas exclusivas do ADMIN (gerenciamento + professor)
 const adminItems = [
   {
@@ -44,7 +44,7 @@ const adminItems = [
   {
     title: "Admins",
     url: "/admin/admin",
-    icon: SettingsIcon,
+    icon: UserStar ,
   },
   {
     title: "Turmas",
@@ -164,6 +164,7 @@ export function AppSidebar() {
   const [user, setUser] = useState<UserFromToken | undefined | null>(null);
 
   const router = useRouter();
+  const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
 
   const closeSidebarOnNavigate = useCallback(() => {
@@ -233,6 +234,22 @@ export function AppSidebar() {
 
   const navigationItems = getNavigationItems();
 
+  // Função para verificar se a rota está ativa
+  const isActiveRoute = (url: string) => {
+    if (!pathname) return false;
+    
+    if (url === "/admin" && pathname === "/admin") return true;
+    if (url === "/ranking" && pathname === "/ranking") return true;
+    if (url === "/user/profile" && pathname === "/user/profile") return true;
+    
+    // Para rotas que começam com o caminho base
+    if (url !== "/admin" && url !== "/ranking" && url !== "/user/profile") {
+      return pathname.startsWith(url);
+    }
+    
+    return false;
+  };
+
   return (
     <Sidebar>
       <SidebarContent className="h-screen bg-sky-600 text-white">
@@ -243,30 +260,40 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent className="flex flex-col justify-center gap-5 pt-5">
               <SidebarMenu className="flex flex-col gap-3">
-                {navigationItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      className="text-center flex py-5"
-                    >
-                      <Link
-                        href={item.url}
-                        onClick={closeSidebarOnNavigate}
-                        className="flex items-center gap-2 p-2 hover:bg-sky-500 hover:text-white rounded-md text-xl text-center"
+                {navigationItems.map((item) => {
+                  const isActive = isActiveRoute(item.url);
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild={!isActive}
+                        className={`text-center flex py-5 ${isActive ? 'hover:bg-transparent hover:text-white' : ''}`}
                       >
-                        <item.icon className="size-2" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                        {isActive ? (
+                          <div className="flex items-center gap-2 p-2 bg-sky-700 text-white rounded-md text-xl text-center cursor-not-allowed">
+                            <item.icon className="size-6" />
+                            <span>{item.title}</span>
+                          </div>
+                        ) : (
+                          <Link
+                            href={item.url}
+                            onClick={closeSidebarOnNavigate}
+                            className="flex items-center gap-2 p-2 hover:bg-sky-500 hover:text-white rounded-md text-xl text-center"
+                          >
+                            <item.icon className="size-6" />
+                            <span>{item.title}</span>
+                          </Link>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
           <SidebarTrigger className="hover:bg-transparent hover:text-white"></SidebarTrigger>
         </div>
         <div className="mt-auto">
-          <div className="flex justify-between items-center py-3 mb-2 gap-6 px-3  rounded-2xl mx-1">
+          <div className="flex justify-between items-center py-3 mb-2 gap-6 px-3 rounded-2xl mx-1">
             <Avatar>
               <AvatarImage src="https://github.com/shadcn.png" />
               <AvatarFallback>CN</AvatarFallback>

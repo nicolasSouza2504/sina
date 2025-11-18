@@ -10,6 +10,7 @@ import {
   ArrowLeft, 
   BookOpen,
   Loader2,
+  Plus,
   CheckCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -116,11 +117,11 @@ export default function NovoCurso() {
         
         {/* Botões */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <Button variant="ghost" onClick={() => router.back()} className="w-full sm:w-auto">
+          <Button variant="outline" onClick={() => router.back()} className="w-full sm:w-auto h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
-          <Button onClick={handleSave} disabled={isSubmitting} className="w-full sm:w-auto sm:ml-auto">
+          <Button onClick={handleSave} disabled={isSubmitting} className="w-full sm:w-auto sm:ml-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200">
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -128,7 +129,7 @@ export default function NovoCurso() {
               </>
             ) : (
               <>
-                <CheckCircle className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-2" />
                 Criar Curso
               </>
             )}
@@ -139,26 +140,34 @@ export default function NovoCurso() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Formulário Principal */}
         <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
-          <Card>
-            <CardHeader className='ps-4'>
-              <CardTitle>Informações do Curso</CardTitle>
-              <CardDescription>
+          <Card className="bg-white border-2 border-gray-200">
+            <CardHeader className='p-4 sm:p-6'>
+              <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <BookOpen className="h-6 w-6 text-blue-600" />
+                Informações do Curso
+              </CardTitle>
+              <CardDescription className="text-sm text-gray-600">
                 Configure os detalhes principais do curso
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 ps-4">
+            <CardContent className="space-y-6 p-4 sm:p-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome do Curso *</Label>
+                <Label htmlFor="name" className="text-sm font-semibold text-gray-700">
+                  Nome do Curso <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="Ex: Análise e Desenvolvimento de Sistemas"
+                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="quantitySemester">Quantidade de Semestres *</Label>
+                <Label htmlFor="quantitySemester" className="text-sm font-semibold text-gray-700">
+                  Quantidade de Semestres <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="quantitySemester"
                   value={formData.quantitySemester}
@@ -167,6 +176,7 @@ export default function NovoCurso() {
                   type="number"
                   min="1"
                   max="12"
+                  className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
                 />
                 <p className="text-xs text-gray-500">
                   Duração estimada: {Math.ceil(formData.quantitySemester / 2)} ano(s)
@@ -176,24 +186,27 @@ export default function NovoCurso() {
           </Card>
 
           {/* Estrutura do Curso - Semestres */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Estrutura do Curso - {formData.quantitySemester} Semestres</CardTitle>
-              <CardDescription>
+          <Card className="bg-white border-2 border-gray-200">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <BookOpen className="h-6 w-6 text-blue-600" />
+                Estrutura do Curso - {formData.quantitySemester} Semestres
+              </CardTitle>
+              <CardDescription className="text-sm text-gray-600">
                 Organize os semestres do curso
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
                 {semesters.map((semester, index) => (
-                  <div key={semester.id} className="border rounded-lg p-4">
+                  <div key={semester.id} className="border-2 border-gray-200 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-gray-100 rounded-lg">
-                          <BookOpen className="h-4 w-4" />
+                        <div className="p-3 bg-blue-100 rounded-xl">
+                          <BookOpen className="h-5 w-5 text-blue-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold">{semester.title}</h3>
+                          <h3 className="font-semibold text-gray-900">{semester.title}</h3>
                           <p className="text-sm text-gray-600">
                             {index === 0 ? 'Ativo' : 'Bloqueado até conclusão do anterior'}
                           </p>
@@ -204,7 +217,7 @@ export default function NovoCurso() {
                       </Badge>
                     </div>
                     
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 space-y-1">
                       <p>📚 Disciplinas serão configuradas posteriormente</p>
                       <p>⏱️ Duração: 6 meses</p>
                     </div>
@@ -217,26 +230,29 @@ export default function NovoCurso() {
 
         {/* Sidebar com preview */}
         <div className="space-y-6 order-1 lg:order-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Resumo do Curso</CardTitle>
+          <Card className="bg-white border-2 border-gray-200">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <BookOpen className="h-6 w-6 text-blue-600" />
+                Resumo do Curso
+              </CardTitle>
             </CardHeader>
-            <CardContent className='ps-6'>
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
-                <div className="pb-3 border-b">
+                <div className="pb-3 border-b border-gray-200">
                   <h3 className="font-semibold text-lg text-gray-900">
                     {formData.name || 'Nome do curso'}
                   </h3>
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600 font-medium">Semestres:</span>
-                    <span className="text-sm font-semibold text-gray-900">{formData.quantitySemester}</span>
+                  <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <span className="text-sm font-semibold text-gray-700">Semestres:</span>
+                    <span className="text-sm font-bold text-gray-900">{formData.quantitySemester}</span>
                   </div>
-                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600 font-medium">Duração:</span>
-                    <span className="text-sm font-semibold text-gray-900">{Math.ceil(formData.quantitySemester / 2)} ano(s)</span>
+                  <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <span className="text-sm font-semibold text-gray-700">Duração:</span>
+                    <span className="text-sm font-bold text-gray-900">{Math.ceil(formData.quantitySemester / 2)} ano(s)</span>
                   </div>
                 </div>
               </div>

@@ -132,6 +132,7 @@ export default function ModalAddClass({
         const classData: CreateClass = {
             code: data.code,
             name: data.name,
+            nome: data.name,
             startDate: data.startDate || null,
             endDate: data.endDate || null,
             semester: data.semester || null,
@@ -463,7 +464,7 @@ export default function ModalAddClass({
                             <Button 
                                 type="submit" 
                                 disabled={form.formState.isSubmitting}
-                                className="w-full sm:w-auto order-1 sm:order-2 h-11 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold"
+                                className="w-full sm:w-auto order-1 sm:order-2 h-11 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                             >
                                 {form.formState.isSubmitting
                                     ? "Cadastrando..."

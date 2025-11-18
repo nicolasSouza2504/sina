@@ -168,74 +168,35 @@ export default function AvaliacaoConteudo() {
           const hasFeedback = task.feedback !== undefined && task.feedback !== null;
           
           return (
-            <div
-              key={index}
-              className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl transition-colors ${
-                hasFeedback 
-                  ? 'bg-green-50 border-green-200 hover:bg-green-100' 
-                  : 'bg-orange-50 border-orange-200 hover:bg-orange-100'
-              }`}
-            >
-              <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                <div className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${
-                  hasFeedback ? 'bg-green-600' : 'bg-orange-600'
-                }`}>
-                  {hasFeedback ? (
-                    <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
-                  ) : (
-                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
-                  )}
+            <div key={task.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <div className="p-1.5 sm:p-2 bg-white rounded-lg border border-gray-200 flex-shrink-0">
+                  <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-semibold text-sm sm:text-base ${
-                    hasFeedback ? 'text-green-900' : 'text-orange-900'
-                  }`}>
+                <div className="min-w-0 flex-1 max-w-full">
+                  <p className="font-medium text-xs sm:text-sm text-gray-900 break-words leading-tight">
                     Tarefa #{task.taskId}
                   </p>
-                  <p className={`text-xs sm:text-sm ${
-                    hasFeedback ? 'text-green-700' : 'text-orange-700'
-                  }`}>
-                    Entregue em {new Date(task.userResponse?.createdAt || '').toLocaleDateString('pt-BR')}
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Entregue em: {task.userResponse ? task.userResponse.createdAt : "N/A"}
                   </p>
-                  {task.userResponse?.comment && (
-                    <p className={`text-xs sm:text-sm mt-1 line-clamp-2 ${
-                      hasFeedback ? 'text-green-600' : 'text-orange-600'
-                    }`}>
-                      "{task.userResponse.comment}"
-                    </p>
-                  )}
-                  {hasFeedback && task.feedback && (
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
-                        <Star className="h-3 w-3 mr-1" />
-                        Nota: {task.feedback.grade.toFixed(1)}
-                      </Badge>
-                      <span className="text-xs text-green-600 truncate">
-                        por {task.feedback.teacher.nome}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <Badge 
-                  variant="outline" 
-                  className={`text-xs flex-1 sm:flex-none justify-center ${
-                    hasFeedback 
-                      ? 'bg-green-100 text-green-700 border-green-200' 
-                      : 'bg-orange-100 text-orange-700 border-orange-200'
-                  }`}
+                  variant={hasFeedback ? "default" : "secondary"}
+                  className={`text-xs ${hasFeedback ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'}`}
                 >
-                  {hasFeedback ? 'Avaliado' : 'Pendente'}
+                  {hasFeedback ? "Avaliada" : "Pendente"}
                 </Badge>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => task.userResponse && handleOpenEvaluation(task, student)}
-                  className={`h-8 w-8 p-0 flex-shrink-0 ${
+                  className={`h-9 w-9 p-0 flex-shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors ${
                     hasFeedback 
-                      ? 'hover:bg-green-100 text-green-600' 
-                      : 'hover:bg-orange-100 text-orange-600'
+                      ? 'hover:bg-green-100 text-green-600 border-green-200' 
+                      : 'hover:bg-orange-100 text-orange-600 border-orange-200'
                   }`}
                   title={hasFeedback ? 'Editar avaliação' : 'Avaliar entrega'}
                 >
@@ -250,41 +211,48 @@ export default function AvaliacaoConteudo() {
   };
 
   return (
-    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
-            <ClipboardList className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 flex-shrink-0" />
-            <span className="truncate">Avaliação de Entregas</span>
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
-            Visualize e avalie as tarefas entregues pelos alunos
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 sm:p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 max-w-full">
+              <div className="p-2 sm:p-3 bg-blue-600 rounded-xl flex-shrink-0">
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              </div>
+              <div className="min-w-0 flex-1 max-w-full">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words leading-tight">
+                  Avaliações
+                </h1>
+                <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
+                  Visualize e avalie as entregas dos alunos
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={loadCourses}
+              variant="outline"
+              className="w-full sm:w-auto h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 focus:border-gray-400 focus:ring-2 focus:ring-gray-400 focus:ring-opacity-20 transition-all duration-200 rounded-xl font-semibold"
+            >
+              <RefreshCcw className="h-4 w-4 mr-2" />
+              Atualizar
+            </Button>
+          </div>
         </div>
-        <Button
-          onClick={loadCourses}
-          variant="outline"
-          className="w-full sm:w-auto bg-white border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 h-10 sm:h-11"
-        >
-          <RefreshCcw className="h-4 w-4 mr-2" />
-          Atualizar
-        </Button>
-      </div>
 
       {/* Erro */}
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mb-4 sm:mb-6 border-2 border-red-200 rounded-xl">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {/* Filtros */}
-      <Card className="border-2 border-gray-200">
+      <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
+            <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
             <span className="truncate">Selecionar Turma</span>
           </CardTitle>
         </CardHeader>
@@ -300,7 +268,7 @@ export default function AvaliacaoConteudo() {
                 }}
                 disabled={isLoadingCourses}
               >
-                <SelectTrigger className="h-11 sm:h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-lg sm:rounded-xl text-sm sm:text-base">
+                <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 transition-all duration-200 rounded-xl text-sm sm:text-base">
                   <SelectValue placeholder="Selecione um curso" />
                 </SelectTrigger>
                 <SelectContent className="max-w-[calc(100vw-2rem)]">
@@ -320,7 +288,7 @@ export default function AvaliacaoConteudo() {
                 onValueChange={setSelectedClassId}
                 disabled={!selectedCourseId || isLoadingCourses}
               >
-                <SelectTrigger className="h-11 sm:h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-lg sm:rounded-xl text-sm sm:text-base">
+                <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 transition-all duration-200 rounded-xl text-sm sm:text-base">
                   <SelectValue placeholder="Selecione uma turma" />
                 </SelectTrigger>
                 <SelectContent className="max-w-[calc(100vw-2rem)]">
@@ -356,14 +324,14 @@ export default function AvaliacaoConteudo() {
 
       {/* Conteúdo Principal */}
       {isLoadingClassSummary ? (
-        <Card className="border-2 border-gray-200">
+        <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 p-4 sm:p-6">
-            <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-purple-600 mb-3 sm:mb-4" />
+            <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-blue-600 mb-3 sm:mb-4" />
             <p className="text-sm sm:text-base text-gray-600">Carregando dados da turma...</p>
           </CardContent>
         </Card>
       ) : !selectedClassId ? (
-        <Card className="border-2 border-gray-200">
+        <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 p-4 sm:p-6">
             <GraduationCap className="h-16 w-16 sm:h-24 sm:w-24 text-gray-300 mb-3 sm:mb-4" />
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
@@ -375,14 +343,14 @@ export default function AvaliacaoConteudo() {
           </CardContent>
         </Card>
       ) : classSummary ? (
-        <Card className="border-2 border-gray-200">
+        <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
               <CardTitle className="text-base sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
                 <span className="truncate">Alunos e Entregas</span>
               </CardTitle>
-              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs sm:text-sm flex-shrink-0">
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs sm:text-sm flex-shrink-0">
                 <span className="truncate max-w-[200px] sm:max-w-none">
                   {classSummary.nome} - {classSummary.code}
                 </span>
@@ -398,12 +366,12 @@ export default function AvaliacaoConteudo() {
             ) : (
               <Accordion type="multiple" className="space-y-3 sm:space-y-4">
                 {classSummary.users.map((user) => (
-                  <AccordionItem key={user.id} value={user.id.toString()} className="border-2 border-gray-200 rounded-lg sm:rounded-xl px-3 sm:px-4">
+                  <AccordionItem key={user.id} value={user.id.toString()} className="border-2 border-gray-200 rounded-xl px-3 sm:px-4">
                     <AccordionTrigger className="hover:no-underline py-3 sm:py-4">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-2 sm:gap-0 pr-2 sm:pr-4">
                         <div className="flex items-start gap-2 sm:gap-3 min-w-0 flex-1 max-w-full">
-                          <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg flex-shrink-0">
-                            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600" />
+                          <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
                           </div>
                           <div className="text-left min-w-0 flex-1 max-w-full overflow-hidden">
                             <p className="font-semibold text-sm sm:text-base text-gray-900 break-words leading-tight">
@@ -421,7 +389,7 @@ export default function AvaliacaoConteudo() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs flex-1 sm:flex-none justify-center whitespace-nowrap">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs flex-1 sm:flex-none justify-center whitespace-nowrap">
                             {(() => {
                               const tasksWithResponse = user.taskUser.filter(task => task.userResponse !== null);
                               const evaluatedTasks = tasksWithResponse.filter(task => task.feedback !== undefined && task.feedback !== null);
@@ -434,8 +402,63 @@ export default function AvaliacaoConteudo() {
                         </div>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="pt-3 sm:pt-4 pb-3 sm:pb-4">
-                      {renderStudentTasks(user)}
+                    <AccordionContent className="pt-0 pb-3 sm:pb-4">
+                      <div className="space-y-2 sm:space-y-3">
+                        {(() => {
+                          const tasksWithResponse = user.taskUser.filter(task => task.userResponse !== null);
+                          if (tasksWithResponse.length === 0) {
+                            return (
+                              <div className="text-center py-4 sm:py-6 px-2">
+                                <div className="p-2 sm:p-3 bg-gray-50 rounded-xl inline-flex mb-2 sm:mb-3">
+                                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+                                </div>
+                                <p className="text-xs sm:text-sm text-gray-500">Nenhuma entrega encontrada</p>
+                              </div>
+                            );
+                          }
+                          return tasksWithResponse.map((task) => {
+                            const hasFeedback = task.feedback !== undefined && task.feedback !== null;
+                            return (
+                              <div key={task.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                                  <div className="p-1.5 sm:p-2 bg-white rounded-lg border border-gray-200 flex-shrink-0">
+                                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" />
+                                  </div>
+                                  <div className="min-w-0 flex-1 max-w-full">
+                                    <p className="font-medium text-xs sm:text-sm text-gray-900 break-words leading-tight">
+                                      Tarefa #{task.taskId}
+                                    </p>
+                                    <p className="text-xs text-gray-600 mt-0.5">
+                                      Entregue em: {task.userResponse ? task.userResponse.createdAt : "N/A"}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <Badge 
+                                    variant={hasFeedback ? "default" : "secondary"}
+                                    className={`text-xs ${hasFeedback ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'}`}
+                                  >
+                                    {hasFeedback ? "Avaliada" : "Pendente"}
+                                  </Badge>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => task.userResponse && handleOpenEvaluation(task, user)}
+                                    className={`h-9 w-9 p-0 flex-shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors ${
+                                      hasFeedback 
+                                        ? 'hover:bg-green-100 text-green-600 border-green-200' 
+                                        : 'hover:bg-orange-100 text-orange-600 border-orange-200'
+                                    }`}
+                                    title={hasFeedback ? 'Editar avaliação' : 'Avaliar entrega'}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
                     </AccordionContent>
                   </AccordionItem>
                 ))}
@@ -444,24 +467,14 @@ export default function AvaliacaoConteudo() {
           </CardContent>
         </Card>
       ) : error ? (
-        <Card className="border-2 border-red-200">
-          <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 p-4 sm:p-6">
-            <AlertCircle className="h-12 w-12 sm:h-16 sm:w-16 text-red-400 mb-3 sm:mb-4" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
-              Erro ao carregar dados
-            </h3>
-            <p className="text-sm sm:text-base text-gray-600 text-center mb-3 sm:mb-4 px-4">{error}</p>
-            <Button
-              onClick={loadClassSummary}
-              className="bg-red-600 hover:bg-red-700 h-10 sm:h-11 text-sm sm:text-base"
-            >
-              Tentar Novamente
-            </Button>
-          </CardContent>
-        </Card>
+        <Alert variant="destructive" className="mb-4 sm:mb-6 border-2 border-red-200 rounded-xl">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
       
       <QuickActions />
+    </div>
     </div>
   );
 }
