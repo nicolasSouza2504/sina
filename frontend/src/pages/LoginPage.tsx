@@ -11,6 +11,7 @@ import {
   Twitter,
   X,
   Youtube,
+  AlertCircle,
 } from "lucide-react";
 import login from "@/lib/api/auth/login";
 import { UserLoginData } from "@/lib/interfaces/userInterfaces";
@@ -19,6 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { decodeJwt } from "@/lib/auth/jwtAuth";
 import { getDashboardRoute } from "@/lib/auth/roleRedirect";
+import { systemName } from "@/lib/systemName";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -64,63 +66,64 @@ export default function LoginPage() {
         <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 md:w-1/2 lg:w-1/3">
           <Alert
             variant="destructive"
-            className="relative pr-12 backdrop-blur-2xl text-md py-5 gap-1"
+            className="relative pr-12 backdrop-blur-2xl text-md py-5 gap-1 border-2 border-red-200"
           >
-            <AlertTitle className="font-bold text-1xl">Erro</AlertTitle>
-            <AlertDescription className="text-md ">{error}</AlertDescription>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle className="font-bold text-lg">Erro de Autenticação</AlertTitle>
+            <AlertDescription className="text-sm text-red-700">{error}</AlertDescription>
             <Button
               variant="ghost"
               size="sm"
               onClick={closeError}
-              className="absolute  top-2 right-2 h-6 w-6 p-0 hover:bg-destructive-foreground/10 hover:cursor-pointer"
+              className="absolute top-2 right-2 h-8 w-8 p-0 hover:bg-red-100 transition-colors rounded-lg"
+              title="Fechar alerta"
             >
-              <X className="size-5" />
+              <X className="h-4 w-4 text-red-600" />
             </Button>
           </Alert>
         </div>
       )}
-      <div className="hidden lg:flex w-3/5 items-center justify-center bg-gradient-to-br from-sky-500 to-sky-900 relative">
+      <div className="hidden lg:flex w-3/5 items-center justify-center bg-gradient-to-br from-blue-600 to-blue-900 relative">
         <div className="max-w-5xl max-h-full">
-          <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg text-center pb-5 stroke-3 ">
-            {" "}
-            Sistema de Controle de Conteúdo{" "}
-          </h1>{" "}
+          <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg text-center pb-5">
+            {systemName}
+          </h1>
           <img
             src="/img/Alunos-senai.png"
             alt="Unisenai Logo"
             className="w-full h-full object-contain drop-shadow-2xl"
           />
           <div className="flex gap-20 mt-10 justify-center">
-            <div className="flex flex-col items-center justify-center mt-5 ">
-              <div className="w-48 h-16 ">
+            <div className="flex flex-col items-center justify-center mt-5">
+              <div className="w-48 h-16">
                 <img
                   src="/img/sesi-branca.png"
-                  alt="Unisenai Logo"
-                  className="w-full h-full drop-shadow-2xl "
+                  alt="SESI Logo"
+                  className="w-full h-full drop-shadow-2xl"
                 />
               </div>
-              <div className="flex gap-3 items-center justify-center mt-5 text-white ">
-                <Instagram className="hover:cursor-pointer size-7" />
-                <Facebook className="hover:cursor-pointer size-7" />
-                <Twitter className="hover:cursor-pointer size-7" />
-                <Youtube className="hover:cursor-pointer size-7" />
-                <Linkedin className="hover:cursor-pointer size-7" />
+              <div className="flex gap-3 items-center justify-center mt-5 text-white">
+                <Instagram className="hover:cursor-pointer h-7 w-7 hover:text-blue-200 transition-colors" />
+                <Facebook className="hover:cursor-pointer h-7 w-7 hover:text-blue-200 transition-colors" />
+                <Twitter className="hover:cursor-pointer h-7 w-7 hover:text-blue-200 transition-colors" />
+                <Youtube className="hover:cursor-pointer h-7 w-7 hover:text-blue-200 transition-colors" />
+                <Linkedin className="hover:cursor-pointer h-7 w-7 hover:text-blue-200 transition-colors" />
               </div>
             </div>
             <div className="flex flex-col items-center justify-center mt-5">
-              <div className="w-58 h-16 justify-center ">
+              <div className="w-58 h-16 justify-center">
                 <img
                   src="/img/senai-branca.png"
-                  alt="Unisenai Logo"
-                  className="w-full h-full drop-shadow-2xl "
+                  alt="SENAI Logo"
+                  className="w-full h-full drop-shadow-2xl"
                 />
               </div>
-              <div className="flex gap-3 items-center justify-center mt-5 text-white ">
-                <Instagram className="hover:cursor-pointer size-7" />
-                <Facebook className="hover:cursor-pointer size-7" />
-                <Twitter className="hover:cursor-pointer size-7" />
-                <Youtube className="hover:cursor-pointer size-7" />
-                <Linkedin className="hover:cursor-pointer size-7" />
+              <div className="flex gap-3 items-center justify-center mt-5 text-white">
+                <Instagram className="hover:cursor-pointer h-7 w-7 hover:text-blue-200 transition-colors" />
+                <Facebook className="hover:cursor-pointer h-7 w-7 hover:text-blue-200 transition-colors" />
+                <Twitter className="hover:cursor-pointer h-7 w-7 hover:text-blue-200 transition-colors" />
+                <Youtube className="hover:cursor-pointer h-7 w-7 hover:text-blue-200 transition-colors" />
+                <Linkedin className="hover:cursor-pointer h-7 w-7 hover:text-blue-200 transition-colors" />
               </div>
             </div>
           </div>

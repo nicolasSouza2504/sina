@@ -13,7 +13,7 @@ import {
   BookOpen,
   Calendar,
   Users,
-  PlusCircle,
+  Plus,
   GraduationCap,
   Loader2,
   Edit
@@ -104,11 +104,9 @@ export default function GerenciarCursos() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gerenciar Cursos</h1>
             <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Gerencie cursos, semestres e controle de acesso</p>
           </div>
-          <Button asChild className="w-full sm:w-auto">
-            <button onClick={() => router.push('/professor/curso/novo')}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Novo Curso
-            </button>
+          <Button onClick={() => router.push('/professor/curso/novo')} className="w-full sm:w-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Curso
           </Button>
         </div>
       </div>
@@ -121,7 +119,7 @@ export default function GerenciarCursos() {
               placeholder="Buscar cursos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 text-sm sm:text-base"
+              className="h-12 pl-10 text-sm sm:text-base border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
               disabled={loading}
             />
             <BookOpen className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-gray-400" />
@@ -170,7 +168,7 @@ export default function GerenciarCursos() {
                           e.stopPropagation();
                           handleEditCourse(course);
                         }}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 flex-shrink-0"
+                        className="h-9 w-9 p-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors flex-shrink-0"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -209,18 +207,21 @@ export default function GerenciarCursos() {
           ) : (
             <div className="space-y-3 sm:space-y-4">
               {/* Informações do Curso */}
-              <Card>
+              <Card className="bg-white border-2 border-gray-200">
                 <CardHeader className="p-4 sm:p-6">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg sm:text-xl break-words">{selectedCourse.name}</CardTitle>
+                      <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2 break-words">
+                        <BookOpen className="h-5 w-5 text-blue-600" />
+                        {selectedCourse.name}
+                      </CardTitle>
                       <CardDescription className="text-xs sm:text-sm">Curso com {selectedCourse.quantitySemester} semestres</CardDescription>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleEditCourse(selectedCourse)}
-                      className="flex-shrink-0"
+                      className="h-9 w-9 p-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors flex-shrink-0"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -249,9 +250,12 @@ export default function GerenciarCursos() {
               </Card>
 
               {/* Seções do Curso */}
-              <Card>
+              <Card className="bg-white border-2 border-gray-200">
                 <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="text-base sm:text-lg">Seções do Curso</CardTitle>
+                  <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-blue-600" />
+                    Seções do Curso
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-2 sm:space-y-3">
                   {selectedCourse.sections && selectedCourse.sections.length > 0 ? (
@@ -276,9 +280,12 @@ export default function GerenciarCursos() {
               </Card>
 
               {/* Turmas do Curso */}
-              <Card>
+              <Card className="bg-white border-2 border-gray-200">
                 <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="text-base sm:text-lg">Turmas Vinculadas</CardTitle>
+                  <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <Users className="h-5 w-5 text-blue-600" />
+                    Turmas Vinculadas
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-2 sm:space-y-3">
                   {selectedCourse.classes && selectedCourse.classes.length > 0 ? (

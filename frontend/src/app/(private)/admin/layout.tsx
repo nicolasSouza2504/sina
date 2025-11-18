@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { systemName } from "@/lib/systemName";
+import { systemAbreviation } from "@/lib/systemName";
 
 export const metadata: Metadata = {
-  title: "Ava UniSenai - Admin",
-  description: "Ava UniSenai Admin",
-  generator: "Ava UniSenai",
-  icons: {
+    title: `${systemAbreviation} - ${systemName}`,
+    description: systemName,
+    generator: systemAbreviation,
+    icons: {
     icon: "/favicon.ico",
     shortcut: "/img/logo-senai.png",
   },
