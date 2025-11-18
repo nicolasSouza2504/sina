@@ -70,7 +70,6 @@ public class RankingCalculatorService implements IRankingCalculatorService {
 
     }
 
-
     private Double getPointsGrade(List<TaskRankingCalculatorDTO> tasksReviewed) {
 
         Integer totalTasks = tasksReviewed.size();
