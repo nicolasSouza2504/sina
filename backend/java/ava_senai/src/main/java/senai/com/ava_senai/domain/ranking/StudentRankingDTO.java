@@ -19,8 +19,4 @@ public class StudentRankingDTO {
     private Double pointsEarned;
     private Integer place;
 
-    public StudentRankingDTO() {
-
-    }
-
 }

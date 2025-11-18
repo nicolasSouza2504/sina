@@ -1,11 +1,10 @@
 package senai.com.ava_senai.services.ranking;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import senai.com.ava_senai.domain.ranking.StudentRankingDTO;
-import senai.com.ava_senai.domain.ranking.TaskRankingCalculatorDTO;
-import senai.com.ava_senai.domain.ranking.TimeConsumedScore;
-import senai.com.ava_senai.domain.ranking.UserRankingCalculatorDTO;
+import senai.com.ava_senai.domain.ranking.*;
 import senai.com.ava_senai.domain.user.User;
+import senai.com.ava_senai.services.ranking.calculatorstrategy.ScoreCalculatorStrategy;
 
 import java.util.Comparator;
 import java.util.Date;
@@ -13,10 +12,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class RankingCalculatorService implements IRankingCalculatorService {
 
-    private static final int GRADE_POINTS_PERCENTAGE = 75;
-    private static final int TIME_POINTS_PERCENTAGE = 25;
+    private final ScoreCalculatorStrategy scoreCalculatorStrategy;
 
     @Override
     public List<StudentRankingDTO> calculate(List<UserRankingCalculatorDTO> usersCalculator) {
@@ -40,12 +39,11 @@ public class RankingCalculatorService implements IRankingCalculatorService {
         Integer countTasksSent = countTasksSent(userCalculator).intValue();
         Integer countTasksReviewed = tasksReviewed.size();
 
-        Double conclusionPercent = (countTasksSent / totalTasks) * 100d;
+        Double conclusionPercent = (countTasksSent.doubleValue() / totalTasks.doubleValue()) * 100;
 
         User user = userCalculator.getUser();
 
-        return new StudentRankingDTO()
-                .builder()
+        return StudentRankingDTO.builder()
                 .name(user.getName())
                 .conclusionPercent(conclusionPercent)
                 .tasksReviewed(countTasksReviewed)
@@ -59,58 +57,15 @@ public class RankingCalculatorService implements IRankingCalculatorService {
 
     private Double calculatePointsEarned(List<TaskRankingCalculatorDTO> tasksReviewed) {
 
-        //max points 100
-        // 75% grade 25% time consumed
+        double gradePoints = scoreCalculatorStrategy
+                .getStrategy(ScoreCalculatorTypeEnum.GRADE)
+                .calculate(tasksReviewed);
 
-        Double points = getPointsGrade(tasksReviewed);
+        double timePoints = scoreCalculatorStrategy
+                .getStrategy(ScoreCalculatorTypeEnum.TIME)
+                .calculate(tasksReviewed);
 
-        points += getPointsTimeConsumed(tasksReviewed);
-
-        return points;
-
-    }
-
-    private Double getPointsGrade(List<TaskRankingCalculatorDTO> tasksReviewed) {
-
-        Integer totalTasks = tasksReviewed.size();
-
-
-        Double totalGrade = getTotalGrade(tasksReviewed);
-
-        Double mediumGradePercent = totalGrade / totalTasks * GRADE_POINTS_PERCENTAGE;
-
-        return mediumGradePercent;
-
-    }
-
-    private Integer getPointsTimeConsumed(List<TaskRankingCalculatorDTO> tasksReviewed) {
-
-        Double totalPercentResponseTimeConsumed = tasksReviewed.stream()
-                .mapToDouble(taskReviewed -> {
-
-                    Date creationDate = taskReviewed.getTask().getCreatedAt();
-                    Date dueDate = taskReviewed.getTask().getDueDate();
-
-                    Double totalDays = Long.valueOf(dueDate.getTime()).doubleValue()- Long.valueOf(creationDate.getTime()).doubleValue() / (1000 * 60 * 60 * 24);
-                    Double totalDaysToResponse = Long.valueOf(taskReviewed.getUserResponse().getCreatedAt().getTime()) - Long.valueOf(creationDate.getTime()).doubleValue() / (1000 * 60 * 60 * 24);
-
-                    Double percentTimeConsumed = (totalDaysToResponse / totalDays) * 100;
-
-                    return percentTimeConsumed;
-
-                })
-                .sum();
-
-        Double mediumPercentTimeConsumed = totalPercentResponseTimeConsumed / tasksReviewed.size() * 100;
-
-        return TimeConsumedScore.valueOf(mediumPercentTimeConsumed);
-
-    }
-
-    private Double getTotalGrade(List<TaskRankingCalculatorDTO> tasksReviewed) {
-        return tasksReviewed.stream()
-                .mapToDouble(taskReviewed -> taskReviewed.getFeedback().getGrade())
-                .sum();
+        return gradePoints + timePoints;
 
     }
 
