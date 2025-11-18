@@ -15,6 +15,7 @@ import senai.com.ava_senai.repository.SectionRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,6 +83,16 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
 
                 })
                 .orElseThrow(() -> new NotFoundException("Sessão não existe!"));
+
+    }
+
+    @Override
+    public List<KnowledgeTrailResponseDTO> getAllRankedKnowledgeTrailsByCourse(Long courseId) {
+
+        List<KnowledgeTrail> knowledgeTrailList = knowledgeTrailRepository.findRankedKnowledgeTrailsByCourseId(courseId)
+                .orElseThrow(() -> new NotFoundException("Nenhuma trilha de conhecimento ranqueada encontrada para o curso"));
+
+        return knowledgeTrailList.stream().map(KnowledgeTrailResponseDTO::new).collect(Collectors.toList());
 
     }
 

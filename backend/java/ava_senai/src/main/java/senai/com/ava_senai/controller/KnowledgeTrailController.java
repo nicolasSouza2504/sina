@@ -1,6 +1,7 @@
 package senai.com.ava_senai.controller;
 
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -83,5 +84,15 @@ public class KnowledgeTrailController {
 
     }
 
+    @GetMapping("ranked/by-course/{courseId}")
+    public ResponseEntity<ApiResponse> listAllRankedByCourse(@PathVariable("courseId") @Valid Long courseId) {
+
+        try {
+            return ResponseEntity.ok().body(new ApiResponse("Trilhas de conhecimento", knowledgeTrailService.getAllRankedKnowledgeTrailsByCourse(courseId)));
+        } catch (NullListException ex) {
+            return ResponseEntity.status(404).body(new ApiResponse(ex.getMessage(), null));
+        }
+
+    }
 
 }
