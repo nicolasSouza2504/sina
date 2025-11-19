@@ -20,10 +20,16 @@ public class RankingCalculatorService implements IRankingCalculatorService {
     @Override
     public List<StudentRankingDTO> calculate(List<UserRankingCalculatorDTO> usersCalculator) {
 
-        return usersCalculator.stream()
+        List<StudentRankingDTO> ranking = usersCalculator.stream()
                 .map(this::calculateInfos)
                 .sorted(sortUsersByPoints())
                 .toList();
+
+        for (int i = 0; i < ranking.size(); i++) {
+            ranking.get(i).setPlace(i + 1);
+        }
+
+        return ranking;
 
     }
 
@@ -51,7 +57,21 @@ public class RankingCalculatorService implements IRankingCalculatorService {
                 .totalTasks(totalTasks)
                 .lastResponseDate(getLastResponseDate(userCalculator))
                 .pointsEarned(calculatePointsEarned(tasksReviewed))
+                .mediumGrade(getMediumGrade(tasksReviewed))
                 .build();
+
+    }
+
+    private Double getMediumGrade(List<TaskRankingCalculatorDTO> tasksReviewed) {
+
+        if (tasksReviewed.size() == 0) {
+            return null;
+        }
+        Double totalGrade = tasksReviewed.stream()
+                .mapToDouble(task -> task.getFeedback().getGrade())
+                .sum();
+
+        return totalGrade / tasksReviewed.size();
 
     }
 

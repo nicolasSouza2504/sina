@@ -24,7 +24,6 @@ public class GradeScoreCalculator implements IScoreCalculator {
                 .mapToDouble(task -> task.getFeedback().getGrade())
                 .sum();
 
-
         double averageGrade = (totalGrade / tasksReviewed.size()) / 10d;
 
         return averageGrade * GRADE_POINTS_PERCENTAGE;
