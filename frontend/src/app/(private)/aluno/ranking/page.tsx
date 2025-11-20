@@ -14,29 +14,20 @@ import {
   Filter,
   Clock,
   Crown,
-  Star
+  Star,
+  AlertCircle
 } from 'lucide-react';
 import { UserData, UserFromToken } from '@/lib/interfaces/userInterfaces';
 import GetUserByIdService from '@/lib/api/user/getUserById';
 import ClassList from '@/lib/api/class/classList';
 import CourseListService from '@/lib/api/course/courseList';
 import GetRankedKnowledgeTrailsByCourseService, { KnowledgeTrailResponse } from '@/lib/api/knowledgetrail/getRankedKnowledgeTrailsByCourse';
+import GetRankingByClassService from '@/lib/api/ranking/getRankingByClass';
+import { RankingResponseDTO, StudentRankingDTO } from '@/lib/interfaces/rankingInterfaces';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-
-interface StudentRanking {
-  id: number;
-  studentName: string;
-  studentAvatar: string;
-  class: string;
-  tasksCompleted: number;
-  totalTasks: number;
-  completionRate: number;
-  lastSubmission: string;
-  averageGrade: number;
-  streak: number; // dias consecutivos com entregas
-}
 
 export default function RankingPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,7 +38,7 @@ export default function RankingPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [knowledgeTrails, setKnowledgeTrails] = useState<KnowledgeTrailResponse[]>([]);
-
+  
   // Estados de seleção
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [selectedClassId, setSelectedClassId] = useState<string>('');
@@ -57,142 +48,20 @@ export default function RankingPage() {
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
   const [isLoadingClasses, setIsLoadingClasses] = useState(false);
   const [isLoadingTrails, setIsLoadingTrails] = useState(false);
+  const [isLoadingRanking, setIsLoadingRanking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Estados de controle dos selects
   const [isClassDisabled, setIsClassDisabled] = useState(true);
   const [isTrailDisabled, setIsTrailDisabled] = useState(true);
 
+  // Estado para dados do ranking
+  const [rankingData, setRankingData] = useState<RankingResponseDTO[]>([]);
+  const [currentRanking, setCurrentRanking] = useState<RankingResponseDTO | null>(null);
 
   useEffect(() => {
     setUserData();
   }, []);
-
-  // Mock de dados expandido - em produção viria da API
-  const allStudents: StudentRanking[] = [
-    {
-      id: 1,
-      studentName: 'Maria Silva',
-      studentAvatar: 'MS',
-      class: 'ADS 2º Semestre',
-      tasksCompleted: 45,
-      totalTasks: 50,
-      completionRate: 90,
-      lastSubmission: '2h atrás',
-      averageGrade: 9.5,
-      streak: 15
-    },
-    {
-      id: 2,
-      studentName: 'João Santos',
-      studentAvatar: 'JS',
-      class: 'ADS 3º Semestre',
-      tasksCompleted: 42,
-      totalTasks: 50,
-      completionRate: 84,
-      lastSubmission: '5h atrás',
-      averageGrade: 8.8,
-      streak: 12
-    },
-    {
-      id: 3,
-      studentName: 'Ana Costa',
-      studentAvatar: 'AC',
-      class: 'ADS 2º Semestre',
-      tasksCompleted: 40,
-      totalTasks: 50,
-      completionRate: 80,
-      lastSubmission: '1 dia atrás',
-      averageGrade: 8.5,
-      streak: 10
-    },
-    {
-      id: 4,
-      studentName: 'Pedro Oliveira',
-      studentAvatar: 'PO',
-      class: 'ADS 4º Semestre',
-      tasksCompleted: 38,
-      totalTasks: 50,
-      completionRate: 76,
-      lastSubmission: '1 dia atrás',
-      averageGrade: 8.2,
-      streak: 8
-    },
-    {
-      id: 5,
-      studentName: 'Carla Mendes',
-      studentAvatar: 'CM',
-      class: 'ADS 3º Semestre',
-      tasksCompleted: 35,
-      totalTasks: 50,
-      completionRate: 70,
-      lastSubmission: '2 dias atrás',
-      averageGrade: 7.8,
-      streak: 6
-    },
-    {
-      id: 6,
-      studentName: 'Lucas Ferreira',
-      studentAvatar: 'LF',
-      class: 'ADS 2º Semestre',
-      tasksCompleted: 33,
-      totalTasks: 50,
-      completionRate: 66,
-      lastSubmission: '3 dias atrás',
-      averageGrade: 7.5,
-      streak: 5
-    },
-    {
-      id: 7,
-      studentName: 'Julia Rocha',
-      studentAvatar: 'JR',
-      class: 'ADS 4º Semestre',
-      tasksCompleted: 30,
-      totalTasks: 50,
-      completionRate: 60,
-      lastSubmission: '3 dias atrás',
-      averageGrade: 7.2,
-      streak: 4
-    },
-    {
-      id: 8,
-      studentName: 'Rafael Lima',
-      studentAvatar: 'RL',
-      class: 'ADS 3º Semestre',
-      tasksCompleted: 28,
-      totalTasks: 50,
-      completionRate: 56,
-      lastSubmission: '4 dias atrás',
-      averageGrade: 6.8,
-      streak: 3
-    },
-    {
-      id: 9,
-      studentName: 'Beatriz Alves',
-      studentAvatar: 'BA',
-      class: 'ADS 2º Semestre',
-      tasksCompleted: 25,
-      totalTasks: 50,
-      completionRate: 50,
-      lastSubmission: '5 dias atrás',
-      averageGrade: 6.5,
-      streak: 2
-    },
-    {
-      id: 10,
-      studentName: 'Gabriel Souza',
-      studentAvatar: 'GS',
-      class: 'ADS 4º Semestre',
-      tasksCompleted: 22,
-      totalTasks: 50,
-      completionRate: 44,
-      lastSubmission: '1 semana atrás',
-      averageGrade: 6.0,
-      streak: 1
-    }
-  ];
-
-
 
   const userDecoded = async () => {
     return await getUserFromToken();
@@ -356,13 +225,43 @@ export default function RankingPage() {
     });
   };
 
-  const handleTrailChange = (trailId: string) => {
+  const handleTrailChange = async (trailId: string) => {
     console.log('[Ranking] handleTrailChange - Trilha selecionada:', trailId);
     setSelectedTrailId(trailId);
-    console.log('[Ranking] Trilha selecionada:', trailId);
     
-    // Aqui será a próxima integração para carregar os dados do ranking
-    // TODO: Implementar carga dos dados do ranking com os filtros selecionados
+    // Carrega os dados do ranking quando todos os filtros estão selecionados
+    if (selectedClassId && trailId) {
+      await loadRankingData(parseInt(selectedClassId), [parseInt(trailId)]);
+    }
+  };
+
+  const loadRankingData = async (classId: number, knowledgeTrailIds: number[]) => {
+    try {
+      setIsLoadingRanking(true);
+      setError(null);
+      
+      console.log('[Ranking] Carregando dados do ranking:', { classId, knowledgeTrailIds });
+      const data = await GetRankingByClassService(classId, knowledgeTrailIds);
+      
+      setRankingData(data);
+      
+      // Define o ranking atual (primeiro item da lista)
+      if (data.length > 0) {
+        setCurrentRanking(data[0]);
+        console.log('[Ranking] Ranking carregado:', data[0]);
+      } else {
+        setCurrentRanking(null);
+        toast.info('Nenhum dado de ranking encontrado para os filtros selecionados');
+      }
+      
+    } catch (err) {
+      console.error('[Ranking] Erro ao carregar dados do ranking:', err);
+      setError('Erro ao carregar dados do ranking');
+      setRankingData([]);
+      setCurrentRanking(null);
+    } finally {
+      setIsLoadingRanking(false);
+    }
   };
 
   useEffect(() => {
@@ -408,23 +307,30 @@ export default function RankingPage() {
     }
   }, [selectedCourseId, selectedClassId, selectedTrailId, courses, classes, knowledgeTrails]);
 
-  // Filtrar estudantes (só funciona quando trilha está selecionada)
-  const filteredStudents = selectedTrailId ? allStudents.filter(student => {
-    const matchesSearch = student.studentName.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch; // Removido filtro de turma pois agora usa selects específicos
+  // Filtrar estudantes (só funciona quando há dados de ranking)
+  const filteredStudents = currentRanking ? currentRanking.studentsRanking.filter((student: StudentRankingDTO) => {
+    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   }) : [];
 
-  // Estatísticas gerais (só calcula quando há filtros selecionados)
-  const stats = selectedFilters ? {
-    totalStudents: allStudents.length,
-    averageCompletion: Math.round(allStudents.reduce((acc, s) => acc + s.completionRate, 0) / allStudents.length),
-    topPerformer: allStudents[0]?.studentName || 'N/A',
-    averageGrade: (allStudents.reduce((acc, s) => acc + s.averageGrade, 0) / allStudents.length).toFixed(1)
+  // Estatísticas gerais (calculadas dos dados reais do ranking)
+  const stats = currentRanking ? {
+    totalStudents: currentRanking.studentsRanking.length,
+    averageCompletion: Math.round(
+      currentRanking.studentsRanking.reduce((acc: number, s: StudentRankingDTO) => acc + (s.conclusionPercent || 0), 0) / currentRanking.studentsRanking.length
+    ),
+    topPerformer: currentRanking.studentsRanking[0]?.name || 'N/A',
+    averageGrade: (() => {
+      const studentsWithGrades = currentRanking.studentsRanking.filter((s: StudentRankingDTO) => s.mediumGrade !== null);
+      if (studentsWithGrades.length === 0) return 0;
+      const sum = studentsWithGrades.reduce((acc: number, s: StudentRankingDTO) => acc + (s.mediumGrade || 0), 0);
+      return Math.round((sum / studentsWithGrades.length) * 10) / 10;
+    })()
   } : {
     totalStudents: 0,
     averageCompletion: 0,
     topPerformer: 'N/A',
-    averageGrade: '0.0'
+    averageGrade: 0
   };
 
   // Obter cor da taxa de conclusão
@@ -435,30 +341,46 @@ export default function RankingPage() {
   };
 
   // Obter cor da nota média
-  const getGradeColor = (grade: number) => {
-    if (grade >= 8.5) return 'text-green-600';
-    if (grade >= 7.0) return 'text-yellow-600';
+  const getGradeColor = (grade: number | null) => {
+    if (grade === null) return 'text-gray-500';
+    if (grade >= 8) return 'text-green-600';
+    if (grade >= 6) return 'text-yellow-600';
     return 'text-red-600';
   };
 
-  // Obter ícone de medalha baseado na posição
-  const getRankIcon = (position: number) => {
-    switch (position) {
-      case 1: return <Crown className="h-6 w-6 text-yellow-500" />;
-      case 2: return <Medal className="h-6 w-6 text-gray-400" />;
-      case 3: return <Award className="h-6 w-6 text-orange-600" />;
-      default: return <span className="text-lg font-bold text-gray-500">#{position}</span>;
-    }
+  // Obter background baseado na posição
+  const getRankBackground = (place: number) => {
+    if (place === 1) return 'bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300';
+    if (place === 2) return 'bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-300';
+    if (place === 3) return 'bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-300';
+    return 'bg-white border-2 border-gray-200 hover:border-gray-300';
   };
 
-  // Obter cor de fundo baseado na posição
-  const getRankBackground = (position: number) => {
-    switch (position) {
-      case 1: return 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-300 shadow-md';
-      case 2: return 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-300 shadow-sm';
-      case 3: return 'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-300 shadow-sm';
-      default: return 'bg-white border-gray-200 hover:bg-gray-50';
-    }
+  // Obter ícone da posição
+  const getRankIcon = (place: number) => {
+    if (place === 1) return <div className="text-xl md:text-2xl">🥇</div>;
+    if (place === 2) return <div className="text-xl md:text-2xl">🥈</div>;
+    if (place === 3) return <div className="text-xl md:text-2xl">🥉</div>;
+    return (
+      <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs md:text-sm font-bold">
+        {place}
+      </div>
+    );
+  };
+
+  // Formatar data
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Nunca';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Hoje';
+    if (diffDays === 1) return 'Ontem';
+    if (diffDays <= 7) return `${diffDays} dias atrás`;
+    if (diffDays <= 30) return `${Math.ceil(diffDays / 7)} semanas atrás`;
+    return date.toLocaleDateString('pt-BR');
   };
 
   return (
@@ -466,78 +388,79 @@ export default function RankingPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Trophy className="h-8 w-8 text-yellow-500" />
-            Ranking de Atividades EAD
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2 md:gap-3">
+            <Trophy className="h-6 w-6 md:h-8 md:w-8 text-yellow-500" />
+            <span className="hidden sm:inline">Ranking de Atividades EAD</span>
+            <span className="sm:hidden">Ranking EAD</span>
           </h1>
-          <p className="text-gray-600 mt-2">
-            Acompanhe o desempenho dos alunos nas atividades à distância
+          <p className="text-sm md:text-base text-gray-600 mt-2">
+            Acompanhe o desempenho dos alunos
           </p>
         </div>
 
         {/* Estatísticas Gerais */}
         {!selectedFilters ? (
           <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Filter className="h-16 w-16 text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            <CardContent className="flex flex-col items-center justify-center py-8 md:py-12">
+              <Filter className="h-12 w-12 md:h-16 md:w-16 text-gray-300 mb-4" />
+              <h3 className="text-base md:text-lg font-semibold text-gray-700 mb-2 text-center">
                 Selecione os Filtros
               </h3>
-              <p className="text-sm text-gray-500 text-center max-w-md">
+              <p className="text-xs md:text-sm text-gray-500 text-center max-w-md px-4">
                 Escolha um curso, turma e trilha de conhecimento para visualizar as estatísticas do ranking
               </p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Alunos</CardTitle>
-                <Trophy className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-xs md:text-sm font-medium">Total de Alunos</CardTitle>
+                <Trophy className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalStudents}</div>
-                <p className="text-xs text-muted-foreground">
-                  Participando do ranking
+                <div className="text-xl md:text-2xl font-bold">{stats.totalStudents}</div>
+                <p className="text-[10px] md:text-xs text-muted-foreground">
+                  Participando
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Taxa Média de Conclusão</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-xs md:text-sm font-medium">Taxa Média</CardTitle>
+                <Target className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.averageCompletion}%</div>
-                <p className="text-xs text-muted-foreground">
-                  De todas as atividades
+                <div className="text-xl md:text-2xl font-bold">{stats.averageCompletion}%</div>
+                <p className="text-[10px] md:text-xs text-muted-foreground">
+                  Conclusão
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Melhor Desempenho</CardTitle>
-                <Crown className="h-4 w-4 text-yellow-500" />
+                <CardTitle className="text-xs md:text-sm font-medium">Melhor</CardTitle>
+                <Crown className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold truncate">{stats.topPerformer}</div>
-                <p className="text-xs text-muted-foreground">
-                  Líder do ranking
+                <div className="text-sm md:text-2xl font-bold truncate">{stats.topPerformer}</div>
+                <p className="text-[10px] md:text-xs text-muted-foreground">
+                  Líder
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Nota Média Geral</CardTitle>
-                <Star className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-xs md:text-sm font-medium">Nota Média</CardTitle>
+                <Star className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.averageGrade}</div>
-                <p className="text-xs text-muted-foreground">
-                  De todas as atividades
+                <div className="text-xl md:text-2xl font-bold">{stats.averageGrade.toFixed(1)}</div>
+                <p className="text-[10px] md:text-xs text-muted-foreground">
+                  Geral
                 </p>
               </CardContent>
             </Card>
@@ -547,36 +470,36 @@ export default function RankingPage() {
         {/* Filtros */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <Filter className="h-4 w-4 md:h-5 md:w-5" />
               Filtros do Ranking
             </CardTitle>
-            <CardDescription>
-              Selecione curso, turma e trilha para visualizar o ranking específico
+            <CardDescription className="text-xs md:text-sm">
+              Selecione curso, turma e trilha
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {/* Select de Curso */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-xs md:text-sm font-medium text-gray-700">
                   Curso {user?.role.name !== 'ADMIN' && <span className="text-red-500">*</span>}
                 </label>
                 <Select value={selectedCourseId} onValueChange={handleCourseChange} disabled={isLoadingCourses}>
-                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
+                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 transition-all duration-200 rounded-xl text-sm sm:text-base">
                     {isLoadingCourses ? (
                       <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Carregando...</span>
+                        <Loader2 className="h-3 w-3 md:h-4 md:w-4 animate-spin" />
+                        <span className="text-xs md:text-sm">Carregando...</span>
                       </div>
                     ) : (
                       <SelectValue placeholder="Selecione um curso" />
                     )}
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-w-[calc(100vw-2rem)]">
                     {courses.map((course) => (
-                      <SelectItem key={course.id} value={course.id.toString()} className="py-3">
-                        {course.name}
+                      <SelectItem key={course.id} value={course.id.toString()} className="text-sm sm:text-base">
+                        <span className="block whitespace-normal sm:whitespace-nowrap text-left">{course.name}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -585,7 +508,7 @@ export default function RankingPage() {
 
               {/* Select de Turma */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-xs md:text-sm font-medium text-gray-700">
                   Turma {user?.role.name !== 'ADMIN' && <span className="text-red-500">*</span>}
                 </label>
                 <Select
@@ -593,24 +516,24 @@ export default function RankingPage() {
                   onValueChange={handleClassChange}
                   disabled={isClassDisabled || isLoadingClasses}
                 >
-                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
+                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 transition-all duration-200 rounded-xl text-sm sm:text-base">
                     {isLoadingClasses ? (
                       <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Carregando...</span>
+                        <Loader2 className="h-3 w-3 md:h-4 md:w-4 animate-spin" />
+                        <span className="text-xs md:text-sm">Carregando...</span>
                       </div>
-                    ) : isClassDisabled ? (
-                      <SelectValue placeholder="Selecione um curso primeiro" />
                     ) : (
-                      <SelectValue placeholder="Selecione uma turma" />
+                      <SelectValue placeholder={isClassDisabled ? "Selecione um curso primeiro" : "Selecione uma turma"} />
                     )}
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-w-[calc(100vw-2rem)]">
                     {user?.role.name === 'ADMIN' ? (
                       // Admin: mostra todas as turmas
                       classes.map((classItem) => (
-                        <SelectItem key={classItem.id} value={classItem.id.toString()} className="py-3">
-                          {classItem.nome} ({classItem.code})
+                        <SelectItem key={classItem.id} value={classItem.id.toString()} className="text-sm sm:text-base">
+                          <span className="block whitespace-normal sm:whitespace-nowrap text-left">
+                            {classItem.nome} ({classItem.code})
+                          </span>
                         </SelectItem>
                       ))
                     ) : (
@@ -620,8 +543,10 @@ export default function RankingPage() {
                           !selectedCourseId || classItem.course?.id.toString() === selectedCourseId
                         )
                         .map((classItem) => (
-                          <SelectItem key={classItem.id} value={classItem.id.toString()} className="py-3">
-                            {classItem.nome} ({classItem.code})
+                          <SelectItem key={classItem.id} value={classItem.id.toString()} className="text-sm sm:text-base">
+                            <span className="block whitespace-normal sm:whitespace-nowrap text-left">
+                              {classItem.nome} ({classItem.code})
+                            </span>
                           </SelectItem>
                         ))
                     )}
@@ -631,7 +556,7 @@ export default function RankingPage() {
 
               {/* Select de Trilha de Conhecimento */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-xs md:text-sm font-medium text-gray-700">
                   Trilha de Conhecimento <span className="text-red-500">*</span>
                 </label>
                 <Select
@@ -639,11 +564,11 @@ export default function RankingPage() {
                   onValueChange={handleTrailChange}
                   disabled={isTrailDisabled || isLoadingTrails}
                 >
-                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl">
+                  <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 transition-all duration-200 rounded-xl text-sm sm:text-base">
                     {isLoadingTrails ? (
                       <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Carregando...</span>
+                        <Loader2 className="h-3 w-3 md:h-4 md:w-4 animate-spin" />
+                        <span className="text-xs md:text-sm">Carregando...</span>
                       </div>
                     ) : isTrailDisabled ? (
                       <SelectValue placeholder="Selecione uma turma primeiro" />
@@ -651,10 +576,10 @@ export default function RankingPage() {
                       <SelectValue placeholder="Selecione uma trilha" />
                     )}
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-w-[calc(100vw-2rem)]">
                     {knowledgeTrails.map((trail) => (
-                      <SelectItem key={trail.id} value={trail.id.toString()} className="py-3">
-                        {trail.name}
+                      <SelectItem key={trail.id} value={trail.id.toString()} className="text-sm sm:text-base">
+                        <span className="block whitespace-normal sm:whitespace-nowrap text-left">{trail.name}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -664,29 +589,44 @@ export default function RankingPage() {
 
             {/* Informações de Seleção */}
             {selectedCourseId && selectedClassId && selectedTrailId && (
-              <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <Trophy className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-semibold text-blue-900">Filtros Selecionados</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Curso:</span>
-                    <span className="ml-2 font-medium text-gray-900">
-                      {courses.find(c => c.id.toString() === selectedCourseId)?.name}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Turma:</span>
-                    <span className="ml-2 font-medium text-gray-900">
-                      {classes.find(c => c.id.toString() === selectedClassId)?.nome}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Trilha:</span>
-                    <span className="ml-2 font-medium text-gray-900">
-                      {knowledgeTrails.find(t => t.id.toString() === selectedTrailId)?.name}
-                    </span>
+              <div className="mt-4 md:mt-6 p-3 md:p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <Filter className="h-4 w-4 md:h-5 md:w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs md:text-sm font-semibold text-blue-900 mb-2">
+                      Filtros Aplicados:
+                    </p>
+                    <div className="space-y-1.5 md:space-y-2">
+                      {/* Curso */}
+                      <div className="flex items-start gap-2">
+                        <span className="text-[10px] md:text-xs font-medium text-blue-700 flex-shrink-0 mt-0.5">
+                          Curso:
+                        </span>
+                        <span className="inline-flex items-center px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium bg-blue-100 text-blue-800 break-words">
+                          {courses.find(c => c.id.toString() === selectedCourseId)?.name}
+                        </span>
+                      </div>
+                      
+                      {/* Turma */}
+                      <div className="flex items-start gap-2">
+                        <span className="text-[10px] md:text-xs font-medium text-green-700 flex-shrink-0 mt-0.5">
+                          Turma:
+                        </span>
+                        <span className="inline-flex items-center px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium bg-green-100 text-green-800 break-words">
+                          {classes.find(c => c.id.toString() === selectedClassId)?.nome}
+                        </span>
+                      </div>
+                      
+                      {/* Trilha */}
+                      <div className="flex items-start gap-2">
+                        <span className="text-[10px] md:text-xs font-medium text-purple-700 flex-shrink-0 mt-0.5">
+                          Trilha:
+                        </span>
+                        <span className="inline-flex items-center px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium bg-purple-100 text-purple-800 break-words">
+                          {knowledgeTrails.find(t => t.id.toString() === selectedTrailId)?.name}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -694,160 +634,191 @@ export default function RankingPage() {
           </CardContent>
         </Card>
 
-        {/* Barra de Busca e Filtros Adicionais */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Search className="h-5 w-5" />
-              Busca Rápida
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    type="text"
-                    placeholder="Buscar por nome do aluno..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
-                    disabled={!selectedTrailId}
-                  />
-                </div>
+        {/* Busca */}
+        {selectedTrailId && (
+          <Card>
+            <CardContent className="pt-4 md:pt-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Buscar aluno..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  disabled={!selectedTrailId}
+                  className="pl-9 md:pl-10 h-10 md:h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl text-sm md:text-base"
+                />
                 {!selectedTrailId && (
-                  <p className="text-xs text-gray-500 mt-1">Selecione uma trilha para habilitar a busca</p>
+                  <p className="text-[10px] md:text-xs text-gray-500 mt-1">Selecione uma trilha para habilitar a busca</p>
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Ranking Completo */}
         {!selectedTrailId ? (
           <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Trophy className="h-16 w-16 text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            <CardContent className="flex flex-col items-center justify-center py-8 md:py-12">
+              <Trophy className="h-12 w-12 md:h-16 md:w-16 text-gray-300 mb-4" />
+              <h3 className="text-base md:text-lg font-semibold text-gray-700 mb-2 text-center">
                 Nenhuma Trilha Selecionada
               </h3>
-              <p className="text-sm text-gray-500 text-center max-w-md">
+              <p className="text-xs md:text-sm text-gray-500 text-center max-w-md px-4">
                 Selecione uma trilha de conhecimento nos filtros acima para visualizar o ranking dos alunos
+              </p>
+            </CardContent>
+          </Card>
+        ) : isLoadingRanking ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-8 md:py-12">
+              <Loader2 className="h-12 w-12 md:h-16 md:w-16 animate-spin text-blue-600 mb-4" />
+              <h3 className="text-base md:text-lg font-semibold text-gray-700 mb-2 text-center">
+                Carregando Ranking
+              </h3>
+              <p className="text-xs md:text-sm text-gray-500 text-center max-w-md px-4">
+                Buscando dados do ranking para os filtros selecionados...
+              </p>
+            </CardContent>
+          </Card>
+        ) : error ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-8 md:py-12">
+              <AlertCircle className="h-12 w-12 md:h-16 md:w-16 text-red-500 mb-4" />
+              <h3 className="text-base md:text-lg font-semibold text-red-700 mb-2 text-center">
+                Erro ao Carregar Ranking
+              </h3>
+              <p className="text-xs md:text-sm text-red-600 text-center max-w-md mb-4 px-4">
+                {error}
+              </p>
+              <Button 
+                onClick={() => {
+                  if (selectedClassId && selectedTrailId) {
+                    loadRankingData(parseInt(selectedClassId), [parseInt(selectedTrailId)]);
+                  }
+                }}
+                variant="outline"
+                className="border-red-200 text-red-700 hover:bg-red-50 text-sm md:text-base h-9 md:h-10"
+              >
+                Tentar Novamente
+              </Button>
+            </CardContent>
+          </Card>
+        ) : !currentRanking ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-8 md:py-12">
+              <Trophy className="h-12 w-12 md:h-16 md:w-16 text-gray-300 mb-4" />
+              <h3 className="text-base md:text-lg font-semibold text-gray-700 mb-2 text-center">
+                Nenhum Dado Encontrado
+              </h3>
+              <p className="text-xs md:text-sm text-gray-500 text-center max-w-md px-4">
+                Não há dados de ranking disponíveis para a trilha selecionada
               </p>
             </CardContent>
           </Card>
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle>Ranking Completo</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-base md:text-lg">Ranking - {currentRanking.name}</CardTitle>
+              <CardDescription className="text-xs md:text-sm">
                 {filteredStudents.length} aluno(s) encontrado(s)
                 {selectedFilters && (
                   <span className="ml-2 text-blue-600">
-                    • {selectedFilters.className} • {selectedFilters.trailName}
+                    • {selectedFilters.className}
                   </span>
                 )}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {filteredStudents.map((student, index) => (
+              <div className="space-y-2 md:space-y-3">
+                {filteredStudents.map((student: StudentRankingDTO) => (
                   <div
-                    key={student.id}
-                    className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${getRankBackground(index + 1)}`}
+                    key={student.place}
+                    className={`flex items-center gap-2 md:gap-4 p-2 md:p-4 rounded-lg border-2 transition-all ${getRankBackground(student.place)}`}
                   >
                     {/* Posição/Medalha */}
-                    <div className="flex items-center justify-center min-w-[50px]">
-                      {getRankIcon(index + 1)}
+                    <div className="flex items-center justify-center min-w-[35px] md:min-w-[50px]">
+                      {getRankIcon(student.place)}
                     </div>
 
-                    {/* Avatar */}
-                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold shadow-md">
-                      {student.studentAvatar}
+                    {/* Avatar - Oculto em mobile */}
+                    <div className="hidden sm:flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm md:text-base font-bold shadow-md">
+                      {student.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
                     </div>
 
                     {/* Informações do Aluno */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-bold text-lg text-gray-900 truncate">
-                          {student.studentName}
+                      <div className="flex items-center gap-1 md:gap-2 mb-0.5 md:mb-1">
+                        <p className="font-bold text-sm md:text-lg text-gray-900 truncate">
+                          {student.name}
                         </p>
-                        {student.streak >= 7 && (
-                          <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 text-xs">
-                            🔥 {student.streak} dias
+                        {student.pointsEarned > 0 && (
+                          <Badge variant="outline" className="hidden sm:inline-flex bg-green-50 text-green-700 border-green-200 text-[10px] md:text-xs">
+                            ⭐ {student.pointsEarned} pts
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 truncate">
-                        {student.class}
+                      <p className="text-[10px] md:text-sm text-gray-600">
+                        {student.tasksSent}/{student.totalTasks} atividades
                       </p>
                     </div>
 
-                    {/* Estatísticas */}
-                    <div className="hidden md:flex items-center gap-6">
-                      {/* Atividades */}
-                      <div className="flex flex-col items-center">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Target className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm font-semibold text-gray-700">
-                            {student.tasksCompleted}/{student.totalTasks}
-                          </span>
-                        </div>
-                        <span className="text-xs text-gray-500">Atividades</span>
-                      </div>
-
+                    {/* Estatísticas Desktop */}
+                    <div className="hidden lg:flex items-center gap-6">
                       {/* Taxa de Conclusão */}
                       <div className="flex flex-col items-center">
                         <Badge
                           variant="outline"
-                          className={`text-sm font-bold border-2 ${getCompletionColor(student.completionRate)} mb-1`}
+                          className={`text-sm font-bold border-2 ${getCompletionColor(student.conclusionPercent)} mb-1`}
                         >
-                          {student.completionRate}%
+                          {Math.round(student.conclusionPercent)}%
                         </Badge>
                         <span className="text-xs text-gray-500">Conclusão</span>
                       </div>
 
                       {/* Nota Média */}
                       <div className="flex flex-col items-center">
-                        <div className={`text-lg font-bold mb-1 ${getGradeColor(student.averageGrade)}`}>
-                          {student.averageGrade.toFixed(1)}
+                        <div className={`text-lg font-bold mb-1 ${getGradeColor(student.mediumGrade)}`}>
+                          {student.mediumGrade?.toFixed(1) || '-'}
                         </div>
                         <span className="text-xs text-gray-500">Nota Média</span>
                       </div>
 
-                      {/* Última Entrega */}
-                      <div className="flex flex-col items-center min-w-[100px]">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Clock className="h-4 w-4 text-gray-500" />
-                          <span className="text-xs font-medium text-gray-700">
-                            {student.lastSubmission}
-                          </span>
+                      {/* Pontos */}
+                      <div className="flex flex-col items-center">
+                        <div className="text-lg font-bold text-blue-600 mb-1">
+                          {student.pointsEarned}
                         </div>
-                        <span className="text-xs text-gray-500">Última entrega</span>
+                        <span className="text-xs text-gray-500">Pontos</span>
                       </div>
                     </div>
 
-                    {/* Estatísticas Mobile */}
-                    <div className="md:hidden flex flex-col items-end gap-1">
+                    {/* Estatísticas Mobile/Tablet */}
+                    <div className="lg:hidden flex flex-col items-end gap-0.5 md:gap-1">
                       <Badge
                         variant="outline"
-                        className={`text-xs font-semibold ${getCompletionColor(student.completionRate)}`}
+                        className={`text-[10px] md:text-xs font-semibold ${getCompletionColor(student.conclusionPercent)}`}
                       >
-                        {student.completionRate}%
+                        {Math.round(student.conclusionPercent)}%
                       </Badge>
-                      <span className="text-xs text-gray-600">
-                        {student.tasksCompleted}/{student.totalTasks}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] md:text-xs text-gray-600 font-medium">
+                          {student.mediumGrade?.toFixed(1) || '-'}
+                        </span>
+                        <span className="text-[10px] md:text-xs text-gray-400">•</span>
+                        <span className="text-[10px] md:text-xs text-blue-600 font-semibold">
+                          {student.pointsEarned} pts
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
 
                 {filteredStudents.length === 0 && (
-                  <div className="text-center py-12 text-gray-500">
-                    <Trophy className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-medium">Nenhum aluno encontrado</p>
-                    <p className="text-sm">Tente ajustar os filtros de busca</p>
+                  <div className="text-center py-8 md:py-12 text-gray-500">
+                    <Trophy className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 text-gray-300" />
+                    <p className="text-base md:text-lg font-medium">Nenhum aluno encontrado</p>
+                    <p className="text-xs md:text-sm">Tente ajustar os filtros de busca</p>
                   </div>
                 )}
               </div>
@@ -858,21 +829,21 @@ export default function RankingPage() {
         {/* Legenda */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Legenda</CardTitle>
+            <CardTitle className="text-xs md:text-sm">Legenda</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 text-xs md:text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-100 border-2 border-green-200"></div>
-                <span>≥ 80% - Excelente desempenho</span>
+                <div className="w-3 h-3 md:w-4 md:h-4 rounded bg-green-100 border-2 border-green-200 flex-shrink-0"></div>
+                <span className="truncate">≥ 80% - Excelente</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-yellow-100 border-2 border-yellow-200"></div>
-                <span>60-79% - Bom desempenho</span>
+                <div className="w-3 h-3 md:w-4 md:h-4 rounded bg-yellow-100 border-2 border-yellow-200 flex-shrink-0"></div>
+                <span className="truncate">60-79% - Bom</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-red-100 border-2 border-red-200"></div>
-                <span>&lt; 60% - Precisa melhorar</span>
+                <div className="w-3 h-3 md:w-4 md:h-4 rounded bg-red-100 border-2 border-red-200 flex-shrink-0"></div>
+                <span className="truncate">&lt; 60% - Melhorar</span>
               </div>
             </div>
           </CardContent>
