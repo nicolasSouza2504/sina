@@ -11,4 +11,9 @@ public interface ClassRepository extends JpaRepository<Class, Long> {
 
     boolean existsByNameLikeAndIdNot(String nome, Long turmaId);
 
+    @Query(" SELECT c FROM Class c " +
+           " JOIN FETCH c.course co " +
+           " WHERE c.id = :classId ")
+    Class findClassAssessment(Long classId);
+
 }

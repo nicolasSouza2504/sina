@@ -9,14 +9,14 @@ import org.springframework.util.StringUtils;
 import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
 import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
+import senai.com.ava_senai.domain.course.clazz.classassessment.ClassAssessmentResponseDTO;
+import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.exception.AlreadyExistsException;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.Validation;
-import senai.com.ava_senai.repository.ClassRepository;
-import senai.com.ava_senai.repository.CourseRepository;
-import senai.com.ava_senai.repository.UserClassRepository;
-import senai.com.ava_senai.repository.UserResponseRepository;
+import senai.com.ava_senai.mapper.ClassAssessmentMapper;
+import senai.com.ava_senai.repository.*;
 import senai.com.ava_senai.domain.course.clazz.ClassResponseSummaryDTO;
 import senai.com.ava_senai.domain.task.userresponse.UserResponse;
 
@@ -33,7 +33,8 @@ public class ClassService implements IClassService {
 
     private final UserClassRepository userClassRepository;
     private final CourseRepository courseRepository;
-    private final UserResponseRepository userResponseRepository;
+    private final ClassAssessmentMapper classAssessmentMapper;
+    private final UserRepository userRepository;
 
     @Override
     public ClassResponseDTO createClass(ClassRegisterDTO classRegisterDTO) {
@@ -92,28 +93,17 @@ public class ClassService implements IClassService {
     }
 
     @Override
-    public ClassResponseSummaryDTO getTurmaSummaryById(Long turmaId) {
+    public ClassAssessmentResponseDTO getClassAssessment(Long turmaId) {
 
         return Optional.of(turmaId)
                 .filter(turma -> classRepository.existsById(turmaId))
                 .map(turma -> {
-                    Class clazz = classRepository.getReferenceById(turmaId);
-                    
-                    // Busca todos os TaskUser IDs dos alunos da turma
-                    List<Long> taskUserIds = clazz.getUserClasses().stream()
-                            .filter(userClass -> userClass.getUser() != null && userClass.getUser().getTaskUsers() != null)
-                            .flatMap(userClass -> userClass.getUser().getTaskUsers().stream())
-                            .map(taskUser -> taskUser.getId())
-                            .collect(Collectors.toList());
-                    
-                    // Busca todos os UserResponse correspondentes
-                    List<UserResponse> userResponses = taskUserIds.stream()
-                            .map(taskUserId -> userResponseRepository.findUserResponseByTaskUserId(taskUserId))
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .collect(Collectors.toList());
-                    
-                    return new ClassResponseSummaryDTO(clazz, userResponses);
+
+                    Class clazz = classRepository.findClassAssessment(turmaId);
+                    List<User> users = userRepository.findUsersClassAssessment(turmaId);
+
+                    return classAssessmentMapper.mapClassAssessment(clazz, users);
+
                 })
                 .orElseThrow(() -> new NotFoundException("Turma não econtrada pelo id:" + turmaId + "!"));
 

@@ -77,5 +77,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
             " AND kt.id = :knowledgeTrailId ")
     List<User> findUsersWithTaskToRanking(Long classId, Long knowledgeTrailId);
 
+    @Query( " SELECT usr FROM User usr " +
+            " JOIN UserClass uc ON uc.classId = :classId AND uc.userId = usr.id " +
+            " LEFT JOIN FETCH usr.taskUsers tu " +
+            " LEFT JOIN FETCH tu.task ta " +
+            " LEFT JOIN FETCH tu.userResponse ur " +
+            " LEFT JOIN FETCH ur.userResponseContents uct " +
+            " LEFT JOIN FETCH ur.feedback fd " +
+            " LEFT JOIN FETCH fd.teacher tch ")
+    List<User> findUsersClassAssessment(Long classId);
 }
 
