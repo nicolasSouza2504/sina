@@ -20,7 +20,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         {/* Botões flutuantes - aparecem quando sidebar está colapsada */}
         {isCollapsed && (
-          <div className="fixed left-0 top-0 flex flex-col gap-2 bg-sky-600 p-2 z-40 h-screen">
+          <div className="fixed left-0 top-0 flex flex-col gap-2 bg-sky-600 md:p-2 z-40 h-screen">
             {/* Botão de abrir a sidebar */}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
@@ -34,7 +34,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
+
             {/* Botões de navegação flutuantes */}
             <FloatingNavButtons />
           </div>

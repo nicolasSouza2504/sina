@@ -121,12 +121,12 @@ const studentItems = [
     icon: BookOpen,
   },
   {
-    title: "EAD",
+    title: "Trilhas Rankeadas",
     url: "/aluno/ead",
     icon: School,
   },
   {
-    title: "Ranking EAD",
+    title: "Ranking",
     url: "/aluno/ranking",
     icon: ChartBarDecreasing,
   },
@@ -193,20 +193,20 @@ export function FloatingNavButtons() {
   // Get navigation items based on user role
   const getNavigationItems = () => {
     if (!user?.role) return studentItems; // Fallback para student
-    
+
     switch (user.role.name) {
       case "ADMIN":
         // ADMIN tem acesso a TODAS as telas (admin + professor)
         return adminItems;
-      
+
       case "TEACHER":
         // PROFESSOR tem apenas suas telas específicas
         return teacherItems;
-      
+
       case "STUDENT":
         // ESTUDANTE tem acesso limitado
         return studentItems;
-      
+
       default:
         // USER ou outros roles não utilizados
         return studentItems;
@@ -218,16 +218,16 @@ export function FloatingNavButtons() {
   // Função para verificar se a rota está ativa
   const isActiveRoute = (url: string) => {
     if (!pathname) return false;
-    
+
     if (url === "/admin" && pathname === "/admin") return true;
     if (url === "/ranking" && pathname === "/ranking") return true;
     if (url === "/user/profile" && pathname === "/user/profile") return true;
-    
+
     // Para rotas que começam com o caminho base
     if (url !== "/admin" && url !== "/ranking" && url !== "/user/profile") {
       return pathname.startsWith(url);
     }
-    
+
     return false;
   };
 
@@ -244,11 +244,10 @@ export function FloatingNavButtons() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={`${
-                      isActive 
-                        ? 'bg-sky-700 text-white cursor-not-allowed' 
+                    className={`${isActive
+                        ? 'bg-sky-700 text-white cursor-not-allowed'
                         : 'bg-transparent hover:bg-sky-500 text-white hover:text-white'
-                    } rounded-lg p-4`}
+                      } rounded-lg p-4`}
                     asChild={!isActive}
                     disabled={isActive}
                   >

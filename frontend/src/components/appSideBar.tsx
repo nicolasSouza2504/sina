@@ -44,7 +44,7 @@ const adminItems = [
   {
     title: "Admins",
     url: "/admin/admin",
-    icon: UserStar ,
+    icon: UserStar,
   },
   {
     title: "Turmas",
@@ -130,12 +130,12 @@ const studentItems = [
     icon: BookOpen,
   },
   {
-    title: "EAD",
+    title: "Trilhas Rankeadas",
     url: "/aluno/ead",
     icon: School,
   },
   {
-    title: "Ranking EAD",
+    title: "Ranking",
     url: "/aluno/ranking",
     icon: ChartBarDecreasing,
   },
@@ -212,20 +212,20 @@ export function AppSidebar() {
   // Get navigation items based on user role
   const getNavigationItems = () => {
     if (!user?.role) return studentItems; // Fallback para student
-    
+
     switch (user.role.name) {
       case "ADMIN":
         // ADMIN tem acesso a TODAS as telas (admin + professor)
         return adminItems;
-      
+
       case "TEACHER":
         // PROFESSOR tem apenas suas telas específicas
         return teacherItems;
-      
+
       case "STUDENT":
         // ESTUDANTE tem acesso limitado
         return studentItems;
-      
+
       default:
         // USER ou outros roles não utilizados
         return studentItems;
@@ -237,16 +237,16 @@ export function AppSidebar() {
   // Função para verificar se a rota está ativa
   const isActiveRoute = (url: string) => {
     if (!pathname) return false;
-    
+
     if (url === "/admin" && pathname === "/admin") return true;
     if (url === "/ranking" && pathname === "/ranking") return true;
     if (url === "/user/profile" && pathname === "/user/profile") return true;
-    
+
     // Para rotas que começam com o caminho base
     if (url !== "/admin" && url !== "/ranking" && url !== "/user/profile") {
       return pathname.startsWith(url);
     }
-    
+
     return false;
   };
 
@@ -301,17 +301,17 @@ export function AppSidebar() {
             <div>
               <h2>{user?.nome}</h2>
               <p className="text-xs text-gray-300">
-                {user?.role?.name === 'TEACHER' ? 'PROFESSOR' : 
-                 user?.role?.name === 'ADMIN' ? 'ADMIN' :
-                 user?.role?.name === 'STUDENT' ? 'ALUNO' :
-                 user?.role?.name || 'USER'}
+                {user?.role?.name === 'TEACHER' ? 'PROFESSOR' :
+                  user?.role?.name === 'ADMIN' ? 'ADMIN' :
+                    user?.role?.name === 'STUDENT' ? 'ALUNO' :
+                      user?.role?.name || 'USER'}
               </p>
             </div>
             <div className="flex items-center gap-2">
               {/* Sininho de notificações - apenas para professores */}
               {user?.role?.name === "TEACHER" && <NotificationsBell />}
               <Button className="bg-transparent hover:bg-transparent hover:cursor-pointer"
-              onClick={handleProfileClick}
+                onClick={handleProfileClick}
               >
                 <UserPen className=" size-6" />
               </Button>
