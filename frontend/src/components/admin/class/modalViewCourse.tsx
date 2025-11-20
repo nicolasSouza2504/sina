@@ -23,7 +23,7 @@ export default function ModalViewCourse({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="w-[95vw] max-w-[400px] sm:max-w-[500px]">
+            <DialogContent className="w-[95vw] max-w-[400px] sm:max-w-[500px] p-4 sm:p-6">
                 <DialogHeader className="pb-6">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-3 bg-indigo-600 rounded-xl">

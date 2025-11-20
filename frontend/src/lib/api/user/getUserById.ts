@@ -5,6 +5,7 @@ import { UserData } from "@/lib/interfaces/userInterfaces";
 import getApiBaseUrl from "@/lib/api/api";
 
 export default async function GetUserByIdService(userId: number): Promise<UserData> {
+  console.log(userId);
   const token = await getTokenFromSession();
   const base = getApiBaseUrl();
 
@@ -36,7 +37,7 @@ export default async function GetUserByIdService(userId: number): Promise<UserDa
   }
 
   const result = await response.json();
-  
+
   // O backend retorna { message: "Sucesso!", data: UserResponseDTO }
   return result.data;
 }

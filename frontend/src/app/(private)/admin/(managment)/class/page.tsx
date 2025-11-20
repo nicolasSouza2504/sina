@@ -293,7 +293,7 @@ const renderClassStatusChip = (status: string) => {
 
 
     return (
-        <div className="min-h-screen bg-background w-full">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 w-full">
             {error && (
                 <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 md:w-1/2 lg:w-1/3">
                     <Alert
@@ -405,7 +405,7 @@ const renderClassStatusChip = (status: string) => {
                             <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Buscar Turmas</CardTitle>
                             <Button 
                                 onClick={() => setIsCreateModalOpen(true)}
-                                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl h-10 px-4"
+                                className="w-full sm:w-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                             >
                                 <Plus className="h-4 w-4 mr-2"/>
                                 Nova Turma
@@ -451,7 +451,7 @@ const renderClassStatusChip = (status: string) => {
                             <Button 
                                 onClick={reloadClassList} 
                                 variant="outline"
-                                className="flex items-center gap-2 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 rounded-xl h-10 w-full sm:w-auto"
+                                className="flex items-center gap-2 h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl w-full sm:w-auto transition-colors"
                                 size="sm"
                             >
                                 <RefreshCcw className="h-4 w-4" />
@@ -487,7 +487,7 @@ const renderClassStatusChip = (status: string) => {
                                             <div className="mt-6">
                                                 <Button 
                                                     onClick={() => setIsCreateModalOpen(true)}
-                                                    className="w-full sm:w-auto"
+                                                    className="w-full sm:w-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                                                 >
                                                     <Plus className="h-4 w-4 mr-2"/>
                                                     Nova Turma
@@ -575,14 +575,14 @@ const renderClassStatusChip = (status: string) => {
                                                                     variant="outline"
                                                                     size="sm"
                                                                     onClick={() => openEditModal(cls)}
-                                                                    className="flex-1 h-8"
+                                                                    className="flex-1 h-9 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors"
                                                                 >
                                                                     <Edit className="h-3 w-3 mr-1"/>
                                                                     <span className="text-xs">Editar</span>
                                                                 </Button>
                                                                 <AlertDialog>
                                                                     <AlertDialogTrigger asChild>
-                                                                        <Button variant="outline" size="sm" className="flex-1 h-8">
+                                                                        <Button variant="outline" size="sm" className="flex-1 h-9 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg transition-colors">
                                                                             <Trash2 className="h-3 w-3 mr-1"/>
                                                                             <span className="text-xs">Excluir</span>
                                                                         </Button>
@@ -686,12 +686,13 @@ const renderClassStatusChip = (status: string) => {
                                                                             variant="outline"
                                                                             size="sm"
                                                                             onClick={() => openEditModal(cls)}
+                                                                            className="h-9 w-9 p-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors"
                                                                         >
                                                                             <Edit className="h-4 w-4"/>
                                                                         </Button>
                                                                         <AlertDialog>
                                                                             <AlertDialogTrigger asChild>
-                                                                                <Button variant="outline" size="sm">
+                                                                                <Button variant="outline" size="sm" className="h-9 w-9 p-0 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg transition-colors">
                                                                                     <Trash2 className="h-4 w-4"/>
                                                                                 </Button>
                                                                             </AlertDialogTrigger>

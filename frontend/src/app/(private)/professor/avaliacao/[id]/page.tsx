@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertCircle,
+  BookOpen,
   CheckCircle,
   Star,
   User,
@@ -213,243 +214,321 @@ export default function AvaliacaoIndividualPage() {
   }
 
   return (
-    <div className="container mx-auto p-3 sm:p-6 max-w-5xl">
-      {/* Header com Botão Voltar */}
-      <div className="mb-4 sm:mb-6">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          className="mb-3 sm:mb-4 w-full sm:w-auto border-2 border-gray-200 hover:border-gray-300 h-10 sm:h-11"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
-        
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="p-2 sm:p-3 bg-purple-600 rounded-lg sm:rounded-xl flex-shrink-0">
-            <Star className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
-              {feedback ? 'Avaliação Realizada' : 'Avaliar Entrega'}
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1 line-clamp-2">
-              {feedback ? 'Visualize os dados da avaliação já realizada' : 'Adicione nota e comentário para a entrega do aluno'}
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 sm:p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 max-w-full">
+              <div className="p-2 sm:p-3 bg-blue-600 rounded-xl flex-shrink-0">
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              </div>
+              <div className="min-w-0 flex-1 max-w-full">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words leading-tight">
+                  Avaliações
+                </h1>
+                <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
+                  Visualize e avalie as entregas dos alunos
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={handleBack}
+              variant="outline"
+              className="w-full sm:w-auto h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl font-semibold"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Coluna Principal - Formulário (order-2 em mobile, order-1 em desktop) */}
-        <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-2 lg:order-1">
-          {/* Informações do Aluno */}
-          <Card className="border-2 border-gray-200">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <User className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
-                <span className="truncate">Informações do Aluno</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 sm:space-y-3 p-4 sm:p-6 pt-0">
-              <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="p-1.5 sm:p-2 bg-purple-600 rounded-lg flex-shrink-0">
-                  <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Aluno</p>
-                  <p className="text-sm font-bold text-purple-900 truncate">{studentName}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="p-1.5 sm:p-2 bg-gray-600 rounded-lg flex-shrink-0">
-                  <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Tarefa</p>
-                  <p className="text-sm font-bold text-gray-900">Tarefa #{taskId}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Comentário do Aluno */}
-          {userResponse.comment && (
-            <Card className="border-2 border-blue-200">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Coluna Principal - Formulário (order-2 em mobile, order-1 em desktop) */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-2 lg:order-1">
+            {/* Informações do Aluno */}
+            <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
-                  Comentário do Aluno
+                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <div className="p-2 bg-blue-600 rounded-xl flex-shrink-0">
+                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
+                  <span className="truncate">Informações do Aluno</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 pt-0">
-                <p className="text-sm sm:text-base text-gray-700 italic bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200 break-words">
-                  "{userResponse.comment}"
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Arquivos Enviados */}
-          {userResponse.contents && userResponse.contents.length > 0 && (
-            <Card className="border-2 border-gray-200">
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
-                  Arquivos Enviados ({userResponse.contents.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0">
-                <div className="space-y-2">
-                  {userResponse.contents.map((content, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors group"
-                    >
-                      <div className="flex-shrink-0">
-                        {content.taskContentType === 'PDF' && <FileText className="h-4 w-4 text-red-500" />}
-                        {content.taskContentType === 'VIDEO' && <Video className="h-4 w-4 text-purple-500" />}
-                        {content.taskContentType === 'LINK' && <Link className="h-4 w-4 text-blue-500" />}
-                        {content.taskContentType === 'IMAGE' && <ImageIcon className="h-4 w-4 text-green-500" />}
-                        {!['PDF', 'VIDEO', 'LINK', 'IMAGE'].includes(content.taskContentType) && <FileText className="h-4 w-4 text-gray-500" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {content.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {content.taskContentType}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        {/* Mobile: Mostra botões sempre visíveis */}
-                        {/* Desktop: Mostra apenas no hover */}
-                        {(!isMobile || content.taskContentType === 'LINK') && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={`h-8 w-8 p-0 ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}
-                            onClick={() => handleViewContent(content)}
-                            title="Visualizar conteúdo"
-                          >
-                            <Eye className="h-4 w-4 text-purple-600" />
-                          </Button>
-                        )}
-                        {isMobile && content.taskContentType !== 'LINK' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 opacity-100"
-                            onClick={async () => {
-                              try {
-                                const response = await fetch(`/api/user-response-content/download?url=${encodeURIComponent(content.url)}`);
-                                if (!response.ok) throw new Error('Erro ao baixar');
-                                const blob = await response.blob();
-                                const url = window.URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = content.name || 'download';
-                                document.body.appendChild(a);
-                                a.click();
-                                window.URL.revokeObjectURL(url);
-                                document.body.removeChild(a);
-                                toast.success('Download iniciado!');
-                              } catch (error) {
-                                console.error('Erro ao baixar:', error);
-                                toast.error('Erro ao baixar arquivo');
-                              }
-                            }}
-                            title="Baixar arquivo"
-                          >
-                            <Download className="h-4 w-4 text-blue-600" />
-                          </Button>
-                        )}
-                        {!isMobile && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={async () => {
-                              try {
-                                const response = await fetch(`/api/user-response-content/download?url=${encodeURIComponent(content.url)}`);
-                                if (!response.ok) throw new Error('Erro ao baixar');
-                                const blob = await response.blob();
-                                const url = window.URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = content.name || 'download';
-                                document.body.appendChild(a);
-                                a.click();
-                                window.URL.revokeObjectURL(url);
-                                document.body.removeChild(a);
-                                toast.success('Download iniciado!');
-                              } catch (error) {
-                                console.error('Erro ao baixar:', error);
-                                toast.error('Erro ao baixar arquivo');
-                              }
-                            }}
-                            title="Baixar arquivo"
-                          >
-                            <Download className="h-4 w-4 text-blue-600" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <div className="p-1.5 sm:p-2 bg-purple-600 rounded-lg flex-shrink-0">
+                    <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Aluno</p>
+                    <p className="text-sm font-bold text-purple-900 truncate">{studentName}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="p-1.5 sm:p-2 bg-gray-600 rounded-lg flex-shrink-0">
+                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Tarefa</p>
+                    <p className="text-sm font-bold text-gray-900">Tarefa #{taskId}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* Avaliação - Exibição ou Formulário */}
-          <Card className={`border-2 ${feedback ? 'border-green-200' : 'border-purple-200'}`}>
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className={`text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2 ${feedback ? 'text-green-900' : ''}`}>
-                <Star className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 ${feedback ? 'text-green-600' : 'text-purple-600'}`} />
-                <span className="truncate">{feedback ? 'Avaliação Realizada' : 'Avaliação'}</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6 pt-0">
-              {feedback ? (
-                /* Exibição dos dados da avaliação */
-                <div className="space-y-4 sm:space-y-6">
-                  {/* Nota */}
-                  <div className="p-4 sm:p-6 bg-green-50 rounded-lg sm:rounded-xl border-2 border-green-200">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm font-semibold text-green-700 uppercase tracking-wide mb-1">Nota Atribuída</p>
-                        <div className="flex items-center gap-2">
-                          <Star className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                          <span className="text-3xl sm:text-4xl font-bold text-green-900">
-                            {feedback.grade.toFixed(1)}
-                          </span>
-                          <span className="text-base sm:text-lg text-green-700">/10.0</span>
+            {/* Comentário do Aluno */}
+            {userResponse.comment && (
+              <Card className="border-2 border-blue-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
+                    Comentário do Aluno
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <p className="text-sm sm:text-base text-gray-700 italic bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200 break-words">
+                    "{userResponse.comment}"
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Arquivos Enviados */}
+            {userResponse.contents && userResponse.contents.length > 0 && (
+              <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
+                    Arquivos Enviados ({userResponse.contents.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <div className="space-y-2">
+                    {userResponse.contents.map((content, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all"
+                      >
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                          <div className="flex-shrink-0">
+                            {content.taskContentType === 'PDF' && <FileText className="h-4 w-4 text-red-500" />}
+                            {content.taskContentType === 'VIDEO' && <Video className="h-4 w-4 text-purple-500" />}
+                            {content.taskContentType === 'LINK' && <Link className="h-4 w-4 text-blue-500" />}
+                            {content.taskContentType === 'IMAGE' && <ImageIcon className="h-4 w-4 text-green-500" />}
+                            {!['PDF', 'VIDEO', 'LINK', 'IMAGE'].includes(content.taskContentType) && <FileText className="h-4 w-4 text-gray-500" />}
+                          </div>
+                          <div className="min-w-0 flex-1 max-w-full">
+                            <p className="font-medium text-xs sm:text-sm text-gray-900 break-words leading-tight">
+                              {content.name}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-0.5">
+                              {content.taskContentType}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {/* Mobile: Mostra botões sempre visíveis */}
+                          {/* Desktop: Mostra apenas no hover */}
+                          {(!isMobile || content.taskContentType === 'LINK') && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-9 p-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors"
+                              onClick={() => handleViewContent(content)}
+                              title="Visualizar conteúdo"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {isMobile && content.taskContentType !== 'LINK' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-9 p-0 bg-gray-800 hover:bg-gray-900 text-white hover:text-white border border-gray-800 rounded-lg transition-colors"
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch(`/api/user-response-content/download?url=${encodeURIComponent(content.url)}`);
+                                  if (!response.ok) throw new Error('Erro ao baixar');
+                                  const blob = await response.blob();
+                                  const url = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = content.name || 'download';
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  window.URL.revokeObjectURL(url);
+                                  document.body.removeChild(a);
+                                  toast.success('Download iniciado!');
+                                } catch (error) {
+                                  console.error('Erro ao baixar:', error);
+                                  toast.error('Erro ao baixar arquivo');
+                                }
+                              }}
+                              title="Baixar arquivo"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {!isMobile && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-9 p-0 bg-gray-800 hover:bg-gray-200 text-white hover:text-black border border-gray-800 rounded-lg transition-colors"
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch(`/api/user-response-content/download?url=${encodeURIComponent(content.url)}`);
+                                  if (!response.ok) throw new Error('Erro ao baixar');
+                                  const blob = await response.blob();
+                                  const url = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = content.name || 'download';
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  window.URL.revokeObjectURL(url);
+                                  document.body.removeChild(a);
+                                  toast.success('Download iniciado!');
+                                } catch (error) {
+                                  console.error('Erro ao baixar:', error);
+                                  toast.error('Erro ao baixar arquivo');
+                                }
+                              }}
+                              title="Baixar arquivo"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
-                      <Badge className="bg-green-100 text-green-700 border-green-200 flex-shrink-0">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Avaliado
-                      </Badge>
-                    </div>
-                    
-                    {/* Professor que avaliou */}
-                    <div className="pt-3 sm:pt-4 border-t border-green-200">
-                      <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Avaliado por</p>
-                      <p className="text-sm font-medium text-green-900 truncate">{feedback.teacher.nome}</p>
-                      <p className="text-xs text-green-600 truncate">{feedback.teacher.email}</p>
-                    </div>
+                    ))}
                   </div>
+                </CardContent>
+              </Card>
+            )}
 
-                  {/* Comentário */}
-                  {feedback.comment && (
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm font-semibold text-gray-700">
-                        Comentário do Professor
-                      </Label>
-                      <div className="p-3 sm:p-4 bg-gray-50 border-2 border-gray-200 rounded-lg sm:rounded-xl">
-                        <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{feedback.comment}</p>
+            {/* Avaliação - Exibição ou Formulário */}
+            <Card className={`border-2 ${feedback ? 'border-green-200' : 'border-purple-200'} rounded-xl shadow-sm hover:shadow-md transition-shadow`}>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className={`text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2 ${feedback ? 'text-green-900' : ''}`}>
+                  <div className="p-2 bg-blue-600 rounded-xl flex-shrink-0">
+                    <Star className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 ${feedback ? 'text-green-600' : 'text-purple-600'}`} />
+                  </div>
+                  <span className="truncate">{feedback ? 'Avaliação Realizada' : 'Avaliação'}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6 pt-0">
+                {feedback ? (
+                  /* Exibição dos dados da avaliação */
+                  <div className="space-y-4 sm:space-y-6">
+                    {/* Nota */}
+                    <div className="p-4 sm:p-6 bg-green-50 rounded-lg sm:rounded-xl border-2 border-green-200">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs sm:text-sm font-semibold text-green-700 uppercase tracking-wide mb-1">Nota Atribuída</p>
+                          <div className="flex items-center gap-2">
+                            <Star className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                            <span className="text-3xl sm:text-4xl font-bold text-green-900">
+                              {feedback.grade.toFixed(1)}
+                            </span>
+                            <span className="text-base sm:text-lg text-green-700">/10.0</span>
+                          </div>
+                        </div>
+                        <Badge className="bg-green-100 text-green-700 border-green-200 flex-shrink-0">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Avaliado
+                        </Badge>
+                      </div>
+                      
+                      {/* Professor que avaliou */}
+                      <div className="pt-3 sm:pt-4 border-t border-green-200">
+                        <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Avaliado por</p>
+                        <p className="text-sm font-medium text-green-900 truncate">{feedback.teacher.nome}</p>
+                        <p className="text-xs text-green-600 truncate">{feedback.teacher.email}</p>
                       </div>
                     </div>
-                  )}
+
+                    {/* Comentário */}
+                    {feedback.comment && (
+                      <div className="space-y-2">
+                        <Label className="text-xs sm:text-sm font-semibold text-gray-700">
+                          Comentário do Professor
+                        </Label>
+                        <div className="p-3 sm:p-4 bg-gray-50 border-2 border-gray-200 rounded-lg sm:rounded-xl">
+                          <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{feedback.comment}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Botão Voltar */}
+                    <div className="pt-3 sm:pt-4 border-t border-gray-200">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleBack}
+                        className="w-full sm:w-auto order-2 sm:order-1 h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl font-semibold text-sm sm:text-base"
+                      >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Voltar para Avaliações
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Formulário de avaliação */
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Nota */}
+                      <div className="space-y-2">
+                        <Label htmlFor="grade" className="text-xs sm:text-sm font-semibold text-gray-700">
+                          Nota <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="grade"
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="10"
+                          value={grade}
+                          onChange={(e) => setGrade(e.target.value)}
+                          placeholder="0.0 a 10.0"
+                          required
+                          className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 transition-all duration-200 rounded-xl text-sm sm:text-base"
+                        />
+                        <p className="text-xs text-gray-500">
+                          Digite uma nota de 0 a 10
+                        </p>
+                      </div>
+                      
+                      {/* Preview da Nota */}
+                      <div className="space-y-2">
+                        <Label className="text-xs sm:text-sm font-semibold text-gray-700">
+                          Preview
+                        </Label>
+                        <div className="h-12 flex items-center justify-center bg-blue-50 border-2 border-blue-200 rounded-xl">
+                          <div className="flex items-center gap-2">
+                            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                            <span className="text-xl sm:text-2xl font-bold text-blue-900">
+                              {grade || '0.0'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  {/* Comentário */}
+                  <div className="space-y-2">
+                    <Label htmlFor="comment" className="text-xs sm:text-sm font-semibold text-gray-700">
+                      Comentário
+                    </Label>
+                    <Textarea
+                      id="comment"
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Adicione um comentário sobre a entrega do aluno..."
+                      rows={4}
+                      className="border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 transition-all duration-200 rounded-xl resize-none text-sm sm:text-base"
+                    />
+                  </div>
 
                   {/* Botão Voltar */}
                   <div className="pt-3 sm:pt-4 border-t border-gray-200">
@@ -457,102 +536,29 @@ export default function AvaliacaoIndividualPage() {
                       type="button"
                       variant="outline"
                       onClick={handleBack}
-                      className="w-full h-11 sm:h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base"
+                      className="w-full h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl font-semibold text-sm sm:text-base"
                     >
                       <ArrowLeft className="h-4 w-4 mr-2" />
                       Voltar para Avaliações
                     </Button>
+                    <Button
+                      type="submit"
+                      disabled={isSaving || !grade}
+                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 transition-colors rounded-xl font-semibold text-sm sm:text-base"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          {userResponse.feedback ? 'Atualizar' : 'Salvar'}
+                        </>
+                      )}
+                    </Button>
                   </div>
-                </div>
-              ) : (
-                /* Formulário de avaliação */
-                <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Nota */}
-                  <div className="space-y-2">
-                    <Label htmlFor="grade" className="text-xs sm:text-sm font-semibold text-gray-700">
-                      Nota <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="grade"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="10"
-                      value={grade}
-                      onChange={(e) => setGrade(e.target.value)}
-                      placeholder="0.0 a 10.0"
-                      required
-                      className="h-11 sm:h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-lg sm:rounded-xl text-sm sm:text-base"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Digite uma nota de 0 a 10
-                    </p>
-                  </div>
-
-                  {/* Preview da Nota */}
-                  <div className="space-y-2">
-                    <Label className="text-xs sm:text-sm font-semibold text-gray-700">
-                      Preview da Nota
-                    </Label>
-                    <div className="h-11 sm:h-12 flex items-center justify-center bg-purple-50 border-2 border-purple-200 rounded-lg sm:rounded-xl">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 fill-yellow-500" />
-                        <span className="text-xl sm:text-2xl font-bold text-purple-900">
-                          {grade || '0.0'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Comentário */}
-                <div className="space-y-2">
-                  <Label htmlFor="comment" className="text-xs sm:text-sm font-semibold text-gray-700">
-                    Comentário (opcional)
-                  </Label>
-                  <Textarea
-                    id="comment"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Adicione um comentário sobre a entrega do aluno..."
-                    rows={4}
-                    className="border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 transition-colors rounded-lg sm:rounded-xl resize-none text-sm sm:text-base"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Forneça feedback construtivo para o aluno
-                  </p>
-                </div>
-
-                {/* Botões de Ação */}
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-200">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleBack}
-                    disabled={isSaving}
-                    className="w-full sm:w-auto order-2 sm:order-1 h-11 sm:h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isSaving || !grade}
-                    className="w-full sm:w-auto order-1 sm:order-2 h-11 sm:h-12 bg-purple-600 hover:bg-purple-700 rounded-lg sm:rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all text-sm sm:text-base"
-                  >
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Salvando...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        {userResponse.feedback ? 'Atualizar' : 'Salvar'}
-                      </>
-                    )}
-                  </Button>
-                </div>
               </form>
               )}
             </CardContent>
@@ -660,6 +666,7 @@ export default function AvaliacaoIndividualPage() {
           contentUrl={selectedContent.url}
         />
       )}
+    </div>
     </div>
   );
 }

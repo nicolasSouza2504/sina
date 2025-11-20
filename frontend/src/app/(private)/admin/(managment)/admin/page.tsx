@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {Search, Plus, Edit, Users, Shield, Filter, X, RefreshCcw, Rotate3d, Eye, Copy} from "lucide-react"
+import {Search, Plus, Edit, Users, Shield, Filter, X, RefreshCcw, Rotate3d, Eye, Copy, CheckCircle2, XCircle} from "lucide-react"
 import React, {useEffect, useState} from "react"
 import {AdminFormModal} from "@/components/admin/admin/AdminFormModal";
 import {UserData} from "@/lib/interfaces/userInterfaces";
@@ -150,7 +150,7 @@ export default function AdminsManagement() {
     }
 
     return (
-        <div className="min-h-screen bg-background w-full">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 w-full">
             {error && (
                 <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 md:w-1/2 lg:w-1/3">
                     <Alert
@@ -171,16 +171,16 @@ export default function AdminsManagement() {
                 </div>
             )}
 
-            <header className="border-b bg-white mb-8">
+            <header className="bg-white border-b">
                 <div className="flex flex-col sm:flex-row h-auto sm:h-20 items-start sm:items-center justify-between px-4 md:px-2 lg:px-8 max-w-[95%] mx-auto w-full py-4 sm:py-0 gap-4 sm:gap-0">
-                    <div>
+                    <div className="space-y-1">
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gerenciamento de Administradores</h1>
-                        <p className="text-sm text-gray-600 hidden sm:block mt-1">Universidade de Tecnologia - Sistema de Gestão</p>
+                        <p className="text-sm text-gray-600 hidden sm:block">Universidade de Tecnologia - Sistema de Gestão</p>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Badge className="flex items-center gap-2 bg-blue-100 text-blue-700 border-blue-300 px-3 py-1.5">
+                        <Badge className="flex items-center gap-2 bg-blue-100 text-blue-700 border border-blue-300 px-3 py-1.5">
                             <Shield className="h-4 w-4" />
-                            <span className="hidden sm:inline font-semibold">{admins.length} Administradores Cadastrados</span>
+                            <span className="hidden sm:inline font-semibold">{admins.length} Administradores</span>
                             <span className="sm:hidden font-semibold">{admins.length}</span>
                         </Badge>
                     </div>
@@ -244,12 +244,12 @@ export default function AdminsManagement() {
                                     <CardDescription className="text-gray-600 mt-1">Gerencie os administradores cadastrados no sistema</CardDescription>
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-3 w-full">
-                                    <Button onClick={getAdmins} className="flex items-center justify-center gap-2 h-12 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
+                                    <Button onClick={getAdmins} className="flex items-center justify-center gap-2 h-12 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto">
                                         <RefreshCcw className="h-4 w-4" />
-                                        <span className="hidden sm:inline">Recarregar Administradores</span>
+                                        <span className="hidden sm:inline">Recarregar</span>
                                         <span className="sm:hidden">Recarregar</span>
                                     </Button>
-                                    <Button onClick={() => setIsModalOpen(true)} className="flex items-center justify-center gap-2 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all w-full sm:w-auto">
+                                    <Button onClick={() => setIsModalOpen(true)} className="flex items-center justify-center gap-2 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto">
                                         <Plus className="h-4 w-4" />
                                         Novo Administrador
                                     </Button>
@@ -284,24 +284,24 @@ export default function AdminsManagement() {
                                 <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
                                     <Button
                                         onClick={() => setStatusFilter(statusFilter === "ATIVO" ? null : "ATIVO")}
-                                        className={`flex items-center gap-2 h-12 font-semibold rounded-xl transition-all w-full sm:w-auto ${
+                                        className={`flex items-center gap-2 h-12 font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto ${
                                             statusFilter === "ATIVO"
-                                                ? "bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg"
+                                                ? "bg-green-600 hover:bg-green-700 text-white"
                                                 : "bg-white border-2 border-gray-200 text-gray-700 hover:border-green-300 hover:bg-green-50"
                                         }`}
                                     >
-                                        <Filter className="h-4 w-4" />
+                                        <CheckCircle2 className="h-4 w-4" />
                                         Ativos
                                     </Button>
                                     <Button
                                         onClick={() => setStatusFilter(statusFilter === "INATIVO" ? null : "INATIVO")}
-                                        className={`flex items-center gap-2 h-12 font-semibold rounded-xl transition-all w-full sm:w-auto ${
+                                        className={`flex items-center gap-2 h-12 font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto ${
                                             statusFilter === "INATIVO"
-                                                ? "bg-red-600 hover:bg-red-700 text-white shadow-md hover:shadow-lg"
+                                                ? "bg-red-600 hover:bg-red-700 text-white"
                                                 : "bg-white border-2 border-gray-200 text-gray-700 hover:border-red-300 hover:bg-red-50"
                                         }`}
                                     >
-                                        <Filter className="h-4 w-4" />
+                                        <XCircle className="h-4 w-4" />
                                         Inativos
                                     </Button>
                                 </div>
@@ -311,10 +311,13 @@ export default function AdminsManagement() {
                     <CardContent>
                         {loading ? (
                             <div className="flex items-center justify-center py-12">
-                                <div className="text-center">
-                                    <div className="text-lg font-medium">Carregando Administradores...</div>
-                                    <div className="text-sm text-muted-foreground mt-2">
-                                        Por favor, aguarde
+                                <div className="text-center space-y-3">
+                                    <div className="flex justify-center">
+                                        <RefreshCcw className="h-8 w-8 text-blue-600 animate-spin" />
+                                    </div>
+                                    <div className="text-lg font-medium text-gray-900">Carregando administradores...</div>
+                                    <div className="text-sm text-gray-600">
+                                        Por favor, aguarde um momento
                                     </div>
                                 </div>
                             </div>
@@ -358,7 +361,7 @@ export default function AdminsManagement() {
                                                         <TableCell>{formatCPF(admin?.cpf)}</TableCell>
                                                         <TableCell>
                                                             <Badge className="bg-indigo-100 text-indigo-700 border border-indigo-300 font-semibold">
-                                                                {admin?.role.name === "ADMIN" ? "Administrador" : admin?.role.name}
+                                                                Administrador
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell>
@@ -378,7 +381,9 @@ export default function AdminsManagement() {
                                                                             <Button
                                                                                 size="sm"
                                                                                 onClick={() => handleViewDetails(admin)}
-                                                                                className="h-9 w-9 p-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors">
+                                                                                className="h-9 w-9 p-0 bg-purple-50 hover:bg-purple-100 text-purple-600 border border-purple-200 rounded-lg transition-colors"
+                                                                                title="Ver Detalhes"
+                                                                            >
                                                                                 <Eye className="h-4 w-4" />
                                                                             </Button>
                                                                         </TooltipTrigger>
@@ -391,7 +396,9 @@ export default function AdminsManagement() {
                                                                             <Button
                                                                                 size="sm"
                                                                                 onClick={() => handleEdit(admin)}
-                                                                                className="h-9 w-9 p-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors">
+                                                                                className="h-9 w-9 p-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors"
+                                                                                title="Editar Dados do Administrador"
+                                                                            >
                                                                                 <Edit className="h-4 w-4" />
                                                                             </Button>
                                                                         </TooltipTrigger>
@@ -403,7 +410,8 @@ export default function AdminsManagement() {
                                                                         <TooltipTrigger asChild>
                                                                             <Button size="sm" 
                                                                             onClick={() => handleAdminSituationEdit(admin)}
-                                                                            className="h-9 w-9 p-0 bg-green-50 hover:bg-green-100 text-green-600 border border-green-200 rounded-lg transition-colors">
+                                                                            className="h-9 w-9 p-0 bg-green-50 hover:bg-green-100 text-green-600 border border-green-200 rounded-lg transition-colors"
+                                                                            title="Alterar Situação">
                                                                                 <Rotate3d className="h-4 w-4" />
                                                                             </Button>
                                                                         </TooltipTrigger>
@@ -438,7 +446,7 @@ export default function AdminsManagement() {
                                                         <p className="font-medium text-base truncate">{admin?.nome}</p>
                                                         <p className="text-sm text-muted-foreground">ID: {admin?.id}</p>
                                                         <Badge className="mt-1 bg-indigo-100 text-indigo-700 border border-indigo-300 font-semibold">
-                                                            {admin?.role.name === "ADMIN" ? "Administrador" : admin?.role.name}
+                                                            Administrador
                                                         </Badge>
                                                     </div>
                                                 </div>
@@ -481,7 +489,7 @@ export default function AdminsManagement() {
                                                     <Button
                                                         size="sm"
                                                         onClick={() => handleViewDetails(admin)}
-                                                        className="flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 font-semibold rounded-lg transition-colors"
+                                                        className="flex-1 flex items-center justify-center gap-2 h-10 bg-purple-50 hover:bg-purple-100 text-purple-600 border border-purple-200 font-semibold rounded-lg transition-colors"
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                         Ver
@@ -509,16 +517,30 @@ export default function AdminsManagement() {
                                 </div>
 
                                 {filteredAdmins.length === 0 && (
-                                    <div className="text-center py-8">
-                                        <p className="text-muted-foreground">
-                                            {statusFilter || searchTerm
-                                                ? "Nenhum administrador encontrado com os filtros aplicados."
-                                                : "Nenhum administrador cadastrado no sistema."}
-                                        </p>
-                                        {(statusFilter || searchTerm) && (
-                                            <p className="text-sm text-muted-foreground mt-2">
-                                                Tente remover alguns filtros ou alterar os critérios de busca.
+                                    <div className="text-center py-12 space-y-4">
+                                        <div className="flex justify-center">
+                                            <Shield className="h-16 w-16 text-gray-300" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <p className="text-gray-600 font-medium">
+                                                {statusFilter || searchTerm
+                                                    ? "Nenhum administrador encontrado"
+                                                    : "Nenhum administrador cadastrado"}
                                             </p>
+                                            {(statusFilter || searchTerm) && (
+                                                <p className="text-sm text-gray-500">
+                                                    Tente remover os filtros ou alterar os critérios de busca
+                                                </p>
+                                            )}
+                                        </div>
+                                        {!(statusFilter || searchTerm) && (
+                                            <Button 
+                                                onClick={() => setIsModalOpen(true)}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                                            >
+                                                <Plus className="h-4 w-4 mr-2" />
+                                                Cadastrar Primeiro Administrador
+                                            </Button>
                                         )}
                                     </div>
                                 )}
@@ -527,7 +549,7 @@ export default function AdminsManagement() {
                     </CardContent>
                 </Card>
 
-                {<QuickActions></QuickActions>}
+                <QuickActions />
             </main>
 
             <AdminFormModal
