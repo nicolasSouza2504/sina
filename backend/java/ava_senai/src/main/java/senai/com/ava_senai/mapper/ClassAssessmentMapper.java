@@ -7,8 +7,6 @@ import senai.com.ava_senai.domain.course.clazz.classassessment.*;
 import senai.com.ava_senai.domain.task.Task;
 import senai.com.ava_senai.domain.task.feedback.Feedback;
 import senai.com.ava_senai.domain.task.feedback.FeedbackResponseDTO;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContentResponseDTO;
 import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 import senai.com.ava_senai.domain.task.userresponse.UserResponse;
 import senai.com.ava_senai.domain.task.userresponsecontent.UserResponseContentDTO;
@@ -39,7 +37,8 @@ public class ClassAssessmentMapper implements IClassAssessmentMapper {
 
     }
 
-    private List<UserAssessmentDTO> mapUserAssessment(List<User> users) {
+    @Override
+    public List<UserAssessmentDTO> mapUserAssessment(List<User> users) {
 
         List<UserAssessmentDTO> usersAssessmentDTO = new ArrayList<>();
 
@@ -68,7 +67,8 @@ public class ClassAssessmentMapper implements IClassAssessmentMapper {
 
     }
 
-    private List<TaskUserAssessmentDTO> mapUserTaskAssessment(User user) {
+    @Override
+    public List<TaskUserAssessmentDTO> mapUserTaskAssessment(User user) {
 
         List<TaskUserAssessmentDTO> tasksAssessmentDTO = new ArrayList<>();
 
@@ -94,7 +94,8 @@ public class ClassAssessmentMapper implements IClassAssessmentMapper {
 
     }
 
-    private TaskAssessmentDTO mapTaskAssessment(Task task) {
+    @Override
+    public TaskAssessmentDTO mapTaskAssessment(Task task) {
 
         TaskAssessmentDTO taskAssessmentDTO = null;
 
@@ -111,23 +112,8 @@ public class ClassAssessmentMapper implements IClassAssessmentMapper {
 
     }
 
-    private List<TaskContentResponseDTO> mapTaskContents(Task task) {
-
-        List<TaskContentResponseDTO> taskContentResponseDTOS = new ArrayList<>();
-
-        if (task != null && !CollectionUtils.isEmpty(task.getContents())) {
-
-            for (TaskContent content : task.getContents()) {
-                taskContentResponseDTOS.add(new TaskContentResponseDTO(content));
-            }
-
-        }
-
-        return taskContentResponseDTOS;
-
-    }
-
-    private FeedbackResponseDTO mapFeedback(TaskUser taskUser) {
+    @Override
+    public FeedbackResponseDTO mapFeedback(TaskUser taskUser) {
 
         FeedbackResponseDTO feedbackResponseDTO = null;
 
@@ -143,7 +129,8 @@ public class ClassAssessmentMapper implements IClassAssessmentMapper {
 
     }
 
-    private UserResponseAssessmentDTO mapUserResponse(TaskUser taskUser) {
+    @Override
+    public UserResponseAssessmentDTO mapUserResponse(TaskUser taskUser) {
 
         UserResponseAssessmentDTO userResponseAssessmentDTO = null;
 
@@ -162,7 +149,8 @@ public class ClassAssessmentMapper implements IClassAssessmentMapper {
 
     }
 
-    private List<UserResponseContentDTO> mapUserResponseContents(UserResponse userResponse) {
+    @Override
+    public List<UserResponseContentDTO> mapUserResponseContents(UserResponse userResponse) {
 
         List<UserResponseContentDTO> userResponseContents = new ArrayList<>();
 
@@ -178,7 +166,8 @@ public class ClassAssessmentMapper implements IClassAssessmentMapper {
 
     }
 
-    private ClassAssessmentResponseDTO.CourseSimpleResponseDTO mapCourse(Class clazz) {
+    @Override
+    public ClassAssessmentResponseDTO.CourseSimpleResponseDTO mapCourse(Class clazz) {
 
         ClassAssessmentResponseDTO.CourseSimpleResponseDTO courseSimpleResponseDTO = null;
 
