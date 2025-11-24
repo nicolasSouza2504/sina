@@ -45,6 +45,7 @@ export default function AvaliacaoIndividualPage() {
   const [userResponse, setUserResponse] = useState<UserResponseResponse | null>(null);
   const [studentName, setStudentName] = useState<string>('');
   const [taskId, setTaskId] = useState<number | null>(null);
+  const [taskName, setTaskName] = useState<string>(''); // ✅ Nome da tarefa
   const [teacherId, setTeacherId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<FeedbackResponseDTO | null>(null); // ✅ Estado para feedback existente
   const [isLoading, setIsLoading] = useState(true);
@@ -87,6 +88,7 @@ export default function AvaliacaoIndividualPage() {
           setUserResponse(data.userResponse);
           setStudentName(data.studentName);
           setTaskId(data.taskId);
+          setTaskName(data.taskName || `Tarefa #${data.taskId}`); // ✅ Nome da tarefa
           
           // ✅ Carrega feedback se existir (vem do nível raiz)
           if (data.feedback) {
@@ -273,7 +275,7 @@ export default function AvaliacaoIndividualPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Tarefa</p>
-                    <p className="text-sm font-bold text-gray-900">Tarefa #{taskId}</p>
+                    <p className="text-sm font-bold text-gray-900">{taskName}</p>
                   </div>
                 </div>
               </CardContent>
