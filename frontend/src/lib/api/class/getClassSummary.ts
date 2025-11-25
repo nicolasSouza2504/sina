@@ -1,13 +1,13 @@
 "use server";
 import getTokenFromSession from "@/lib/auth/jwtAuth.server";
 import getApiBaseUrl from "@/lib/api/api";
-import { ClassSummary } from "@/lib/interfaces/classSummaryInterfaces";
+import type { ClassAssessment } from "@/lib/interfaces/classSummaryInterfaces";
 
-export default async function GetClassSummaryService(classId: number): Promise<ClassSummary> {
+export default async function GetClassAssessmentService(classId: number): Promise<ClassAssessment> {
     const token = await getTokenFromSession();
     const baseURL = getApiBaseUrl();
 
-    const response = await fetch(`${baseURL}/class/${classId}/class-summary`, {
+    const response = await fetch(`${baseURL}/class/${classId}/class-assessment`, {
         method: "GET",
         cache: "no-store",
         headers: {

@@ -24,164 +24,31 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    LineChart,
-    Line,
-    BarChart,
-    Bar,
 } from "recharts";
 import {
     Users,
-    Calendar,
-    TrendingUp,
     GraduationCap,
     AlertCircle,
     Code,
     Database,
     Monitor,
-    CheckCircle2,
-    XCircle,
-    Eye,
-    Edit,
-    Trash2,
-    Plus,
-    Search,
-    Filter,
     Clock,
-    Star,
-    ArrowUp,
+    Loader2,
+    BookOpen,
+    RefreshCcw,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import QuickActions, {
-    QuickActionsProps,
-} from "@/components/admin/quickActions";
+import QuickActions from "@/components/admin/quickActions";
+import { Class } from "@/lib/interfaces/classInterfaces";
+import { CourseContentSummary } from "@/lib/interfaces/courseContentInterfaces";
+import { UserData } from "@/lib/interfaces/userInterfaces";
+import ClassList from "@/lib/api/class/classList";
+import CourseContentSummaryService from "@/lib/api/course/courseContentSummary";
+import UserListService from "@/lib/api/user/userListService";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-const cursostecnologia = [
-    { id: "cs101", name: "Fundamentos da Ciência da Computação", code: "CC101" },
-    { id: "web201", name: "Desenvolvimento Web", code: "DW201" },
-    { id: "db301", name: "Sistemas de Banco de Dados", code: "BD301" },
-    { id: "se401", name: "Engenharia de Software", code: "ES401" },
-    { id: "ai501", name: "Inteligência Artificial", code: "IA501" },
-];
-
-const dadosTrilhasConhecimento = {
-    cs101: [
-        { topic: "Lógica de Programação", students: 145, eads: 23 },
-        { topic: "Estruturas de Dados", students: 132, eads: 18 },
-        { topic: "Algoritmos", students: 128, eads: 21 },
-        { topic: "Programação Orientada a Objetos", students: 140, eads: 25 },
-    ],
-    web201: [
-        { topic: "HTML/CSS", students: 156, eads: 28 },
-        { topic: "JavaScript", students: 142, eads: 24 },
-        { topic: "React", students: 138, eads: 22 },
-        { topic: "Desenvolvimento Backend", students: 134, eads: 20 },
-        { topic: "PHP", students: 125, eads: 19 },
-    ],
-    db301: [
-        { topic: "Fundamentos SQL", students: 118, eads: 16 },
-        { topic: "Design de Banco de Dados", students: 112, eads: 14 },
-        { topic: "NoSQL", students: 108, eads: 13 },
-        { topic: "Administração de Banco de Dados", students: 105, eads: 12 },
-    ],
-    se401: [
-        { topic: "Arquitetura de Software", students: 95, eads: 11 },
-        { topic: "Testes", students: 92, eads: 10 },
-        { topic: "DevOps", students: 88, eads: 9 },
-        { topic: "Gerenciamento de Projetos", students: 85, eads: 8 },
-    ],
-    ai501: [
-        { topic: "Aprendizado de Máquina", students: 78, eads: 7 },
-        { topic: "Redes Neurais", students: 75, eads: 6 },
-        { topic: "Processamento de Linguagem Natural", students: 72, eads: 5 },
-        { topic: "Visão Computacional", students: 70, eads: 4 },
-    ],
-};
-
-const dadosMatriculaEstudantes = [
-    { month: "Jan", students: 1200 },
-    { month: "Fev", students: 1350 },
-    { month: "Mar", students: 1280 },
-    { month: "Abr", students: 1420 },
-    { month: "Mai", students: 1380 },
-    { month: "Jun", students: 1500 },
-];
-
-const professoresTecnologia = [
-    {
-        id: 1,
-        name: "Dra. Sarah Johnson",
-        specialization: "Desenvolvimento Full-Stack",
-        courses: 3,
-        students: 245,
-    },
-    {
-        id: 2,
-        name: "Prof. Mike Chen",
-        specialization: "Sistemas de Banco de Dados",
-        courses: 2,
-        students: 180,
-    },
-    {
-        id: 3,
-        name: "Dra. Emma Davis",
-        specialization: "IA e Aprendizado de Máquina",
-        courses: 4,
-        students: 320,
-    },
-    {
-        id: 4,
-        name: "Prof. Alex Rodriguez",
-        specialization: "Engenharia de Software",
-        courses: 2,
-        students: 165,
-    },
-    {
-        id: 5,
-        name: "Dra. Lisa Wang",
-        specialization: "Desenvolvimento Frontend",
-        courses: 3,
-        students: 210,
-    },
-];
-
-const alunosAtivos = [
-    {
-        id: 1,
-        name: "João Silva",
-        course: "Desenvolvimento Web",
-        progress: 85,
-        eadsCompleted: 12,
-    },
-    {
-        id: 2,
-        name: "Maria Santos",
-        course: "Sistemas de Banco de Dados",
-        progress: 92,
-        eadsCompleted: 15,
-    },
-    {
-        id: 3,
-        name: "Pedro Costa",
-        course: "IA e AM",
-        progress: 78,
-        eadsCompleted: 8,
-    },
-    {
-        id: 4,
-        name: "Ana Oliveira",
-        course: "Engenharia de Software",
-        progress: 88,
-        eadsCompleted: 11,
-    },
-    {
-        id: 5,
-        name: "Carlos Ferreira",
-        course: "Ciência da Computação",
-        progress: 95,
-        eadsCompleted: 18,
-    },
-];
 
 const eadsRecentes = [
     {
@@ -215,10 +82,103 @@ const eadsRecentes = [
 ];
 
 export default function DashboardAdmin() {
-    const [cursoSelecionado, setCursoSelecionado] = useState("cs101");
-    const trilhasConhecimentoAtual =
-        dadosTrilhasConhecimento[cursoSelecionado as keyof typeof dadosTrilhasConhecimento] ||
-        [];
+
+    // Estados para integração com API
+    const [classes, setClasses] = useState<Class[]>([]);
+    const [selectedClassId, setSelectedClassId] = useState<string>('');
+    const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+    const [selectedClassData, setSelectedClassData] = useState<Class | null>(null);
+    const [selectedCourseData, setSelectedCourseData] = useState<CourseContentSummary | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
+    const [isLoadingCourseContent, setIsLoadingCourseContent] = useState(false);
+
+    // Estados para professores
+    const [teachers, setTeachers] = useState<UserData[]>([]);
+    const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
+    const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+
+    // Carrega turmas e professores ao montar o componente
+    useEffect(() => {
+        loadClasses();
+        loadTeachers();
+    }, []);
+
+    // Atualiza dados da turma e carrega conteúdo do curso
+    useEffect(() => {
+        if (selectedClassId && selectedClassId !== "all") {
+            const classData = classes.find(c => c.id.toString() === selectedClassId);
+            setSelectedClassData(classData || null);
+
+            if (classData?.courseId) {
+                // Guarda o courseId da turma selecionada
+                setSelectedCourseId(classData.courseId);
+                loadCourseContent(classData.courseId);
+                // Recarrega professores filtrados pela turma
+                loadTeachers(Number(selectedClassId));
+            } else {
+                setSelectedCourseData(null);
+                setSelectedCourseId(null);
+            }
+        } else {
+            setSelectedClassData(null);
+            setSelectedCourseData(null);
+            setSelectedCourseId(null);
+            // Recarrega todos os professores quando "Todas as turmas" está selecionado
+            loadTeachers();
+        }
+    }, [selectedClassId, classes]);
+
+    const loadClasses = async () => {
+        setIsLoadingClasses(true);
+        try {
+            const classesData = await ClassList();
+            setClasses(classesData);
+        } catch (error) {
+            console.error('Erro ao carregar turmas:', error);
+            toast.error('Erro ao carregar turmas');
+        } finally {
+            setIsLoadingClasses(false);
+        }
+    };
+
+    const loadCourseContent = async (courseId: number) => {
+        setIsLoadingCourseContent(true);
+        try {
+            const courseContent = await CourseContentSummaryService(courseId);
+            setSelectedCourseData(courseContent);
+        } catch (error) {
+            console.error('Erro ao carregar conteúdo do curso:', error);
+            toast.error('Erro ao carregar conteúdo do curso');
+            setSelectedCourseData(null);
+        } finally {
+            setIsLoadingCourseContent(false);
+        }
+    };
+
+    const loadTeachers = async (classId?: number) => {
+        setIsLoadingTeachers(true);
+        try {
+            const response = await UserListService(
+                null, // nameFilter
+                2,    // roleFilter (2 = professor)
+                null, // courseIdFilter
+                classId || null // classIdFilter
+            );
+            setTeachers(response.data || []);
+        } catch (error) {
+            console.error('Erro ao carregar professores:', error);
+            toast.error('Erro ao carregar professores');
+            setTeachers([]);
+        } finally {
+            setIsLoadingTeachers(false);
+        }
+    };
+
+    const handleOpenSemesterModal = (semester: number) => {
+        setSelectedSemester(semester);
+        setIsModalOpen(true);
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -233,17 +193,10 @@ export default function DashboardAdmin() {
                             Gestão de Tecnologia e Ciência da Computação
                         </p>
                     </div>
-                    <div className="flex items-center gap-3 sm:gap-4">
-                        <Button variant="outline" className="h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl">
-                            <Calendar className="h-4 w-4 mr-2" />
-                            <span className="hidden sm:inline">Ano Letivo 2024-25</span>
-                            <span className="sm:hidden">2024-25</span>
-                        </Button>
-                        <Avatar>
-                            <AvatarImage src="/admin-avatar.png" />
-                            <AvatarFallback>AD</AvatarFallback>
-                        </Avatar>
-                    </div>
+                    <Avatar>
+                        <AvatarImage src="/admin-avatar.png" />
+                        <AvatarFallback>AD</AvatarFallback>
+                    </Avatar>
                 </div>
             </header>
 
@@ -316,88 +269,76 @@ export default function DashboardAdmin() {
                     </Card>
                 </div>
 
-                {/* Seção de Gráficos */}
-                <div className="space-y-4 sm:space-y-6">
-                    {/* Filtro de Curso */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900">Análise por Curso</h2>
-                            <p className="text-sm text-gray-600 mt-1">Visualize dados específicos de cada curso de tecnologia</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Select value={cursoSelecionado} onValueChange={setCursoSelecionado}>
-                                <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl w-full sm:w-[250px]">
-                                    <SelectValue placeholder="Selecione um curso" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {cursostecnologia.map((curso) => (
-                                        <SelectItem key={curso.id} value={curso.id} className="py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Code className="h-4 w-4 text-purple-600" />
-                                                <div>
-                                                    <div className="font-medium">{curso.name}</div>
-                                                    <div className="text-xs text-gray-500">{curso.code}</div>
-                                                </div>
-                                            </div>
+                {/* Seção de Filtros */}
+                <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="p-4 sm:p-6">
+                        <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                            <span className="truncate">Selecionar Turma</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 sm:p-6 pt-0">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            <div className="flex-1 space-y-2">
+                                <label className="text-xs sm:text-sm font-medium text-gray-700">Turma</label>
+                                <Select
+                                    value={selectedClassId}
+                                    onValueChange={setSelectedClassId}
+                                    disabled={isLoadingClasses}
+                                >
+                                    <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 transition-all duration-200 rounded-xl text-sm sm:text-base">
+                                        <SelectValue placeholder={isLoadingClasses ? "Carregando turmas..." : "Selecione uma turma"} />
+                                    </SelectTrigger>
+                                    <SelectContent className="max-w-[calc(100vw-2rem)]">
+                                        <SelectItem value="all" className="text-sm sm:text-base">
+                                            <span className="block whitespace-normal sm:whitespace-nowrap text-left font-semibold">
+                                                Todas as turmas
+                                            </span>
                                         </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Button className="h-12 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200">
-                                <Search className="h-4 w-4 mr-2" />
-                                <span className="hidden sm:inline">Filtrar</span>
+                                        {classes.map((cls) => (
+                                            <SelectItem key={cls.id} value={cls.id.toString()} className="text-sm sm:text-base">
+                                                <span className="block whitespace-normal sm:whitespace-nowrap text-left">
+                                                    {cls.nome} {cls.code ? `(${cls.code})` : ''}
+                                                </span>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <Button
+                                onClick={loadClasses}
+                                variant="outline"
+                                className="h-12 sm:mt-7 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
+                            >
+                                <RefreshCcw className="h-4 w-4 mr-2" />
+                                Atualizar
                             </Button>
                         </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                        {/* Tendência de Matrículas */}
-                        <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                            <CardHeader>
-                                <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                    <TrendingUp className="h-5 w-5 text-blue-600" />
-                                    Tendência de Matrículas de Estudantes
-                                </CardTitle>
-                                <CardDescription className="text-sm text-gray-600">
-                                    Números mensais de matrículas para programas de tecnologia
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <LineChart data={dadosMatriculaEstudantes}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis dataKey="month" stroke="#6b7280" />
-                                        <YAxis stroke="#6b7280" />
-                                        <Tooltip 
-                                            contentStyle={{ 
-                                                backgroundColor: '#ffffff',
-                                                border: '2px solid #e5e7eb',
-                                                borderRadius: '8px'
-                                            }} 
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="students"
-                                            stroke="#2563eb"
-                                            strokeWidth={2}
-                                            dot={{ fill: '#2563eb', r: 4 }}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </CardContent>
-                        </Card>
+                        {(!selectedClassId || selectedClassId === "all") && classes.length > 0 && (
+                            <div className="mt-3 sm:mt-4 p-2.5 sm:p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                <p className="text-xs sm:text-sm text-blue-800">
+                                    Selecione uma turma para visualizar os semestres do curso ou "Todas as turmas" para ver todos os professores
+                                </p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
 
-                        <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                            <CardHeader>
-                                <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                    <Database className="h-5 w-5 text-purple-600" />
-                                    EADs Recentes (Atividades de Ensino a Distância)
-                                </CardTitle>
-                                <CardDescription className="text-sm text-gray-600">
-                                    Tarefas atuais e status de submissão
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
+                {/* EADs Recentes e Professores */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                        <CardHeader>
+                            <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                                <Database className="h-5 w-5 text-purple-600" />
+                                EADs Recentes (Atividades de Ensino a Distância)
+                            </CardTitle>
+                            <CardDescription className="text-sm text-gray-600">
+                                Tarefas atuais e status de submissão
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="max-h-100 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
                                 {eadsRecentes.map((ead) => (
                                     <div
                                         key={ead.id}
@@ -421,226 +362,197 @@ export default function DashboardAdmin() {
                                                     <span>{ead.deadline}</span>
                                                 </div>
                                             </div>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="h-8 w-8 p-0 hover:bg-blue-100 group-hover:bg-blue-100 transition-colors"
-                                                title="Visualizar detalhes"
-                                            >
-                                                <Eye className="h-4 w-4 text-blue-600" />
-                                            </Button>
                                         </div>
                                     </div>
                                 ))}
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                    {/* Professores de Tecnologia */}
                     <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader>
-                            <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                <GraduationCap className="h-5 w-5 text-green-600" />
-                                Professores de Tecnologia
-                            </CardTitle>
-                            <CardDescription className="text-sm text-gray-600">
-                                Especializações do corpo docente e carga de cursos
-                            </CardDescription>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                                        <GraduationCap className="h-5 w-5 text-green-600" />
+                                        Professores de Tecnologia
+                                    </CardTitle>
+                                    <CardDescription className="text-sm text-gray-600">
+                                        Especializações do corpo docente e carga de cursos
+                                    </CardDescription>
+                                </div>
+                                <Link href="/admin/teachers">
+                                    <Button
+                                        size="sm"
+                                        className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm transition-colors"
+                                    >
+                                        Gerenciar Professores
+                                    </Button>
+                                </Link>
+                            </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            {professoresTecnologia.map((professor) => (
-                                <div
-                                    key={professor.id}
-                                    className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 hover:bg-green-50 border border-gray-200 hover:border-green-300 rounded-lg transition-all group"
-                                >
-                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                        <Avatar className="h-10 w-10 flex-shrink-0">
-                                            <AvatarFallback className="text-xs font-semibold bg-green-100 text-green-700">
-                                                {professor.name
-                                                    .split(" ")
-                                                    .map((n) => n[0])
-                                                    .join("")}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold text-gray-900 group-hover:text-green-700 transition-colors truncate">
-                                                {professor.name}
-                                            </p>
-                                            <p className="text-xs text-gray-600 truncate">
-                                                {professor.specialization}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 ml-4">
-                                        <div className="text-right">
-                                            <p className="text-sm font-semibold text-gray-900">
-                                                {professor.courses} <span className="text-xs text-gray-600 font-normal">cursos</span>
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                                {professor.students} alunos
-                                            </p>
-                                        </div>
-                                        <div className="flex gap-1">
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="h-8 w-8 p-0 hover:bg-blue-100 transition-colors"
-                                                title="Visualizar detalhes"
-                                            >
-                                                <Eye className="h-4 w-4 text-blue-600" />
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="h-8 w-8 p-0 hover:bg-green-100 transition-colors"
-                                                title="Editar professor"
-                                            >
-                                                <Edit className="h-4 w-4 text-green-600" />
-                                            </Button>
-                                        </div>
-                                    </div>
+                            {isLoadingTeachers ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                                 </div>
-                            ))}
+                            ) : teachers.length === 0 ? (
+                                <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                                    <GraduationCap className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                    <p className="text-sm text-gray-600">Nenhum professor encontrado</p>
+                                </div>
+                            ) : (
+                                <div className="max-h-100 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
+                                    {teachers.map((professor) => (
+                                        <div
+                                            key={professor.id}
+                                            className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 hover:bg-green-50 border border-gray-200 hover:border-green-300 rounded-lg transition-all group"
+                                        >
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                <Avatar className="h-10 w-10 flex-shrink-0">
+                                                    <AvatarFallback className="text-xs font-semibold bg-green-100 text-green-700">
+                                                        {professor.nome
+                                                            ?.split(" ")
+                                                            .map((n: string) => n[0])
+                                                            .join("") || "PR"}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold text-gray-900 group-hover:text-green-700 transition-colors truncate">
+                                                        {professor.nome}
+                                                    </p>
+                                                    <p className="text-xs text-gray-600 truncate">
+                                                        {professor.email || 'Email não informado'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 ml-4">
+                                                <div className="text-right">
+                                                    <p className="text-sm font-semibold text-gray-900">
+                                                        ID: {professor.id}
+                                                    </p>
+                                                    <p className="text-xs text-gray-600">
+                                                        {professor.role?.id === 2 ? 'Professor' : 'Usuário'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
-                    {/* Alunos Ativos */}
+                </div>
+
+                {/* Semestres do Curso */}
+                {selectedCourseData ? (
                     <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader>
                             <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                <Users className="h-5 w-5 text-blue-600" />
-                                Ranking de Entregas dos Alunos
+                                <BookOpen className="h-5 w-5 text-purple-600" />
+                                Semestres - {selectedCourseData.name}
                             </CardTitle>
                             <CardDescription className="text-sm text-gray-600">
-                                Progresso dos estudantes e conclusão de EADs
+                                Clique em um semestre para visualizar as trilhas de conhecimento
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            {alunosAtivos.map((aluno, index) => (
-                                <div key={aluno.id} className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm flex-shrink-0">
-                                                {index + 1}
-                                            </div>
-                                            <Avatar className="h-8 w-8 flex-shrink-0">
-                                                <AvatarFallback className="text-xs font-semibold bg-blue-100 text-blue-700">
-                                                    {aluno.name
-                                                        .split(" ")
-                                                        .map((n) => n[0])
-                                                        .join("")}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-gray-900 truncate">
-                                                    {aluno.name}
-                                                </p>
-                                                <p className="text-xs text-gray-600 truncate">
-                                                    {aluno.course}
-                                                </p>
-                                            </div>
+                        <CardContent>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+                                {Array.from({ length: selectedCourseData.quantitySemester || 0 }, (_, index) => index + 1).map((semester) => (
+                                    <Button
+                                        key={semester}
+                                        onClick={() => handleOpenSemesterModal(semester)}
+                                        className="h-24 sm:h-28 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-2 border-blue-200 hover:border-blue-400 text-blue-900 hover:text-blue-950 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
+                                    >
+                                        <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+                                        <div className="text-center">
+                                            <p className="text-xs sm:text-sm font-semibold">Semestre</p>
+                                            <p className="text-lg sm:text-2xl font-bold">{semester}</p>
                                         </div>
-                                        <div className="flex items-center gap-2 ml-4">
-                                            <div className="text-right">
-                                                <div className="flex items-center gap-1">
-                                                    <span className="text-sm font-semibold text-gray-900">{aluno.progress}%</span>
-                                                    {aluno.progress >= 90 && (
-                                                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                                                    )}
-                                                </div>
-                                                <p className="text-xs text-gray-600">
-                                                    {aluno.eadsCompleted} EADs
-                                                </p>
-                                            </div>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="h-8 w-8 p-0 hover:bg-blue-100 transition-colors"
-                                                title="Visualizar progresso"
-                                            >
-                                                <Eye className="h-4 w-4 text-blue-600" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <div className="flex items-center justify-between text-xs text-gray-600">
-                                            <span>Progresso</span>
-                                            <span className="font-semibold">{aluno.progress}%</span>
-                                        </div>
-                                        <Progress 
-                                            value={aluno.progress} 
-                                            className="h-2" 
-                                        />
-                                    </div>
-                                </div>
-                            ))}
+                                    </Button>
+                                ))}
+                            </div>
                         </CardContent>
                     </Card>
-                </div>
+                ) : (
+                    <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                        <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 p-4 sm:p-6">
+                            <BookOpen className="h-16 w-16 sm:h-24 sm:w-24 text-gray-300 mb-3 sm:mb-4" />
+                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                                {selectedClassId === "all" ? "Todas as turmas selecionadas" : "Selecione uma turma"}
+                            </h3>
+                            <p className="text-sm sm:text-base text-gray-600 text-center px-4">
+                                {selectedClassId === "all"
+                                    ? "Para visualizar os semestres, selecione uma turma específica"
+                                    : "Escolha uma turma para visualizar os semestres do curso"
+                                }
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
 
-                {/* Trilhas de Conhecimento por Curso */}
-                <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader>
-                        <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                            <Database className="h-5 w-5 text-purple-600" />
-                            Trilhas de Conhecimento - {cursostecnologia.find(c => c.id === cursoSelecionado)?.name}
-                        </CardTitle>
-                        <CardDescription className="text-sm text-gray-600">
-                            Progresso dos estudantes nas trilhas do curso selecionado
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {trilhasConhecimentoAtual.map((trilha, index) => (
-                                <div key={index} className="space-y-3">
-                                    <div className="flex items-center justify-between p-4 bg-gray-50 hover:bg-purple-50 border border-gray-200 hover:border-purple-300 rounded-lg transition-all group">
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate">
-                                                {trilha.topic}
-                                            </p>
-                                            <div className="flex items-center gap-4 mt-2">
-                                                <div className="flex items-center gap-1 text-xs text-gray-600">
-                                                    <Users className="h-3 w-3" />
-                                                    <span>{trilha.students} alunos</span>
-                                                </div>
-                                                <div className="flex items-center gap-1 text-xs text-gray-600">
-                                                    <Monitor className="h-3 w-3" />
-                                                    <span>{trilha.eads} EADs</span>
-                                                </div>
+                {/* Modal de Trilhas do Semestre */}
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                                <BookOpen className="h-5 w-5 text-blue-600" />
+                                Trilhas de Conhecimento - Semestre {selectedSemester}
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-4">
+                            {selectedCourseData?.sections
+                                ?.filter(section => section.semester === selectedSemester)
+                                .map((section) => (
+                                    <div key={section.id} className="mb-6">
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                                            {section.name}
+                                        </h3>
+                                        {section.knowledgeTrails && section.knowledgeTrails.length > 0 ? (
+                                            <div className="space-y-2">
+                                                {section.knowledgeTrails.map((trail) => (
+                                                    <div
+                                                        key={trail.id}
+                                                        className="p-4 bg-blue-50 border-2 border-blue-200 rounded-xl hover:bg-blue-100 transition-colors"
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-blue-600 rounded-lg">
+                                                                    <BookOpen className="h-4 w-4 text-white" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-semibold text-gray-900">{trail.name}</p>
+                                                                    <p className="text-xs text-gray-600">
+                                                                        {trail.tasks?.length || 0} tarefas
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                                                                Trilha {trail.id}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-2 ml-4">
-                                            <div className="text-right">
-                                                <p className="text-sm font-semibold text-gray-900">{trilha.students}</p>
-                                                <p className="text-xs text-gray-600">estudantes</p>
+                                        ) : (
+                                            <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
+                                                <AlertCircle className="h-10 w-10 mx-auto mb-2 text-gray-300" />
+                                                <p className="text-sm text-gray-600">Nenhuma trilha cadastrada nesta seção</p>
                                             </div>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="h-8 w-8 p-0 hover:bg-purple-100 transition-colors"
-                                                title="Visualizar trilha"
-                                            >
-                                                <Eye className="h-4 w-4 text-purple-600" />
-                                            </Button>
-                                        </div>
+                                        )}
                                     </div>
-                                    <div className="space-y-1">
-                                        <div className="flex items-center justify-between text-xs text-gray-600">
-                                            <span>Taxa de Progresso</span>
-                                            <span className="font-semibold">{Math.round((trilha.eads / trilha.students) * 100)}%</span>
-                                        </div>
-                                        <Progress 
-                                            value={(trilha.eads / trilha.students) * 100} 
-                                            className="h-2" 
-                                        />
+                                ))}
+                            {(!selectedCourseData?.sections ||
+                                selectedCourseData.sections.filter(s => s.semester === selectedSemester).length === 0) && (
+                                    <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                                        <AlertCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                        <p className="text-base text-gray-600">Nenhuma seção cadastrada para este semestre</p>
                                     </div>
-                                </div>
-                            ))}
+                                )}
                         </div>
-                    </CardContent>
-                </Card>
+                    </DialogContent>
+                </Dialog>
 
                 {/* Ações Rápidas */}
                 <div className="mt-8">
