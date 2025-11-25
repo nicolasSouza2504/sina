@@ -118,4 +118,9 @@ public class ClassController {
 
     }
 
+    @GetMapping("/{classId}/ranked-knowledge-trails")
+    public ResponseEntity<ApiResponse> getRankedKnowledgeTrails(@PathVariable Long classId) {
+        return ResponseEntity.ok().body(new ApiResponse("Sucesso", classService.getRankedKnowledgeTrails(classId)));
+    }
+
 }

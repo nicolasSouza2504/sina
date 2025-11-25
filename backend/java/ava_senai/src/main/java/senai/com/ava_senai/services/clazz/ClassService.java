@@ -1,7 +1,6 @@
 package senai.com.ava_senai.services.clazz;
 
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -10,6 +9,8 @@ import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
 import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 import senai.com.ava_senai.domain.course.clazz.classassessment.ClassAssessmentResponseDTO;
+import senai.com.ava_senai.domain.task.rankedtask.RankedKnowledgeTrail;
+import senai.com.ava_senai.domain.task.rankedtask.RankedTask;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.exception.AlreadyExistsException;
 import senai.com.ava_senai.exception.NotFoundException;
@@ -17,11 +18,9 @@ import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.mapper.ClassAssessmentMapper;
 import senai.com.ava_senai.repository.*;
-import senai.com.ava_senai.domain.course.clazz.ClassResponseSummaryDTO;
-import senai.com.ava_senai.domain.task.userresponse.UserResponse;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -35,6 +34,8 @@ public class ClassService implements IClassService {
     private final CourseRepository courseRepository;
     private final ClassAssessmentMapper classAssessmentMapper;
     private final UserRepository userRepository;
+    private final KnowledgeTrailRepository knowledgeTrailRepository;
+    private final TaskRepository taskRepository;
 
     @Override
     public ClassResponseDTO createClass(ClassRegisterDTO classRegisterDTO) {
@@ -106,6 +107,46 @@ public class ClassService implements IClassService {
 
                 })
                 .orElseThrow(() -> new NotFoundException("Turma não econtrada pelo id:" + turmaId + "!"));
+
+    }
+
+    @Override
+    public List<RankedKnowledgeTrail> getRankedKnowledgeTrails(Long classId) {
+
+        List<RankedTask> rankedTasks = taskRepository.findRankedTasksByClassId(classId);
+
+        if (rankedTasks.isEmpty()) {
+            throw new NotFoundException("Não encontradas tarefas rankeadas para a turma ");
+        }
+
+        Map<Long, List<RankedTask>> rankedKnowledgeTrails = rankedTasks.stream()
+                .collect(Collectors.groupingBy(RankedTask::getKnowledgeTrailId));
+
+        return rankedKnowledgeTrails
+                .entrySet()
+                .stream()
+                .filter(entry -> !entry.getValue().isEmpty())
+                .map((entry) -> {
+
+                    List<RankedTask> tasks = entry.getValue();
+
+                    if (!tasks.isEmpty()) {
+
+                        RankedKnowledgeTrail rankedKnowledgeTrail = new RankedKnowledgeTrail();
+
+                        rankedKnowledgeTrail.setId(tasks.get(0).getKnowledgeTrailId());
+                        rankedKnowledgeTrail.setName(tasks.get(0).getKnowledgeTrailName());
+                        rankedKnowledgeTrail.setTasks(tasks);
+
+                        return rankedKnowledgeTrail;
+
+                    } else {
+                        return null;
+                    }
+
+                })
+                .collect(Collectors.toList());
+
 
     }
 

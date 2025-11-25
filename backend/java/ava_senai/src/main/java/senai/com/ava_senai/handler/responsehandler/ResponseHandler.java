@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.Validation;
 
@@ -18,6 +19,11 @@ public class ResponseHandler {
 
     @ExceptionHandler(NullListException.class)
     public ResponseEntity<Object> handleNullListException(NullListException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.valueOf(404));
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Object> handleNotFoundException(NotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.valueOf(404));
     }
 

@@ -84,7 +84,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
             " LEFT JOIN FETCH tu.userResponse ur " +
             " LEFT JOIN FETCH ur.userResponseContents uct " +
             " LEFT JOIN FETCH ur.feedback fd " +
-            " LEFT JOIN FETCH fd.teacher tch ")
+            " LEFT JOIN FETCH fd.teacher tch " +
+            " JOIN usr.role r ON r.id = usr.roleId AND r.name = 'STUDENT'")
     List<User> findUsersClassAssessment(Long classId);
 }
 
