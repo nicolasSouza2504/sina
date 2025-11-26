@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,14 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   BookOpen, 
-  PlusCircle, 
   Edit3, 
   Users, 
   School, 
-  TrendingUp,
   Clock,
-  CheckCircle2,
-  AlertCircle,
   StickyNote,
   Plus,
   X,

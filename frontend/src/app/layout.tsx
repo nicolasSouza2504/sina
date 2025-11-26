@@ -6,8 +6,7 @@ import { GeistMono } from "geist/font/mono";
 import "@/app/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
-import { systemName } from "@/lib/systemName";
-import { systemAbreviation } from "@/lib/systemName";
+import { systemName, systemAbreviation } from "@/lib/systemName";
 
 export const metadata: Metadata = {
     title: `${systemAbreviation} - ${systemName}`,

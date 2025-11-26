@@ -1,6 +1,5 @@
 "use client"
 
-import React from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { CourseForm } from '@/components/Course/CourseForm'
 import { Course } from '@/lib/types/courseTypes'

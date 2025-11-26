@@ -1,9 +1,8 @@
-import type React from "react";
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
-import { systemName } from "@/lib/systemName";
-import { systemAbreviation } from "@/lib/systemName";
+import { systemName, systemAbreviation } from "@/lib/systemName";
 
 export const metadata: Metadata = {
     title: `${systemAbreviation} - ${systemName}`,
@@ -18,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,6 @@ import QuickActionsAluno from '@/components/admin/quickActionsAluno';
 
 export default function RankingPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClass, setSelectedClass] = useState('all');
   const [user, setUser] = useState<UserData | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
 

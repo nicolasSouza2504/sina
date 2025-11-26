@@ -25,7 +25,6 @@ import {
     Code,
     Database,
     Monitor,
-    Clock,
     Loader2,
     BookOpen,
     RefreshCcw,
