@@ -25,14 +25,14 @@ export default function QuickActionsAluno() {
         },
         {
             key: 3,
-            title: "EAD",
+            title: "Atividades Rankeadas",
             link: "/aluno/ead",
             icon: <School className="w-8 h-8" />,
         },
         {
             key: 4,
-            title: "Ranking EAD",
-            link: "/aluno/ranking",
+            title: "Ranking",
+            link: "/ranking",
             icon: <ChartBarDecreasing className="w-8 h-8" />,
         },
     ];

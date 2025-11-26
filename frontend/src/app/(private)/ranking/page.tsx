@@ -25,11 +25,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import QuickActions from '@/components/admin/quickActions';
+import QuickActionsAluno from '@/components/admin/quickActionsAluno';
 
 export default function RankingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('all');
   const [user, setUser] = useState<UserData | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   // Estados dos selects
   const [courses, setCourses] = useState<any[]>([]);
@@ -141,6 +143,7 @@ export default function RankingPage() {
         loadClasses()
       ]);
       setUser(user);
+      setUserRole(user.role.name);
     } else {
       // Professor e Aluno: busca dados do próprio usuário
       console.log('[Ranking] Carregando dados para Professor/Aluno');
@@ -148,6 +151,7 @@ export default function RankingPage() {
         const userData = await GetUserByIdService(user?.id!);
         console.log("[Ranking] User data from API:", userData);
         setUser(userData);
+        setUserRole(userData.role.name);
 
         // Extrai cursos únicos das turmas do usuário
         if (userData.classes && userData.classes.length > 0) {
@@ -847,7 +851,11 @@ export default function RankingPage() {
         </Card>
 
         {/* Quick Actions */}
-        <QuickActions />
+        {userRole === 'STUDENT' ? (
+          <QuickActionsAluno />
+        ) : (
+          <QuickActions />
+        )}
       </div>
     </div>
   );

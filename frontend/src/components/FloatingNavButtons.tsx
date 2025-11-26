@@ -127,7 +127,7 @@ const studentItems = [
   },
   {
     title: "Ranking",
-    url: "/aluno/ranking",
+    url: "/ranking",
     icon: ChartBarDecreasing,
   },
 ];
@@ -245,8 +245,8 @@ export function FloatingNavButtons() {
                     variant="ghost"
                     size="icon"
                     className={`${isActive
-                        ? 'bg-sky-700 text-white cursor-not-allowed'
-                        : 'bg-transparent hover:bg-sky-500 text-white hover:text-white'
+                      ? 'bg-sky-700 text-white cursor-not-allowed'
+                      : 'bg-transparent hover:bg-sky-500 text-white hover:text-white'
                       } rounded-lg p-4`}
                     asChild={!isActive}
                     disabled={isActive}
