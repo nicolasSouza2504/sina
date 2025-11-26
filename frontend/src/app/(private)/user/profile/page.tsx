@@ -281,11 +281,15 @@ export default function ProfilePage() {
 
                             {/* Submit Button */}
                             <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
-                                <Link href="/" className="w-full sm:w-auto">
-                                    <Button variant="outline" type="button" className="w-full sm:w-auto" size="sm">
-                                        Cancelar
-                                    </Button>
-                                </Link>
+                                <Button 
+                                    variant="outline" 
+                                    type="button" 
+                                    className="w-full sm:w-auto" 
+                                    size="sm"
+                                    onClick={() => window.history.back()}
+                                >
+                                    Cancelar
+                                </Button>
                                 <Button type="submit" disabled={saving} className="w-full sm:w-auto" size="sm">
                                     {saving ? (
                                         <>
