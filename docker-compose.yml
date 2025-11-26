@@ -41,9 +41,13 @@ services:
     image: nginx:latest
     container_name: nginx-sesi-senai
     ports:
-      - "8732:80"
+      - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - main-frontend
+      - main-backend
+      - main-backend-2
     networks:
       - sesi-senai
 
@@ -57,7 +61,7 @@ services:
     volumes:
       - ./frontend:/app
     ports:
-    - "80:3000"
+      - "3000:3000"
     networks:
       - sesi-senai
 
@@ -70,6 +74,21 @@ services:
       - ./backend/java/ava_senai:/app
     ports:
       - "9000:8080"
+    depends_on:
+      - postgres-sesi-senai
+      - mongodb-sesi-senai
+    networks:
+      - sesi-senai
+
+  main-backend-2:
+    build:
+      context: ./backend/java/ava_senai
+      dockerfile: Dockerfile
+    container_name: main-backend-2
+    volumes:
+      - ./backend/java/ava_senai:/app
+    ports:
+      - "9009:8080"
     depends_on:
       - postgres-sesi-senai
       - mongodb-sesi-senai
