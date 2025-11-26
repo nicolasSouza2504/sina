@@ -19,13 +19,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import {
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-} from "recharts";
-import {
     Users,
     GraduationCap,
     AlertCircle,
@@ -43,43 +36,16 @@ import QuickActions from "@/components/admin/quickActions";
 import { Class } from "@/lib/interfaces/classInterfaces";
 import { CourseContentSummary } from "@/lib/interfaces/courseContentInterfaces";
 import { UserData } from "@/lib/interfaces/userInterfaces";
+import { RankedKnowledgeTrail } from "@/lib/interfaces/rankedKnowledgeTrailInterfaces";
 import ClassList from "@/lib/api/class/classList";
 import CourseContentSummaryService from "@/lib/api/course/courseContentSummary";
 import UserListService from "@/lib/api/user/userListService";
+import GetRankedKnowledgeTrailsService from "@/lib/api/class/getRankedKnowledgeTrails";
 import { toast } from "sonner";
+import RankedActivitiesModal from "@/components/admin/RankedActivitiesModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 
-const eadsRecentes = [
-    {
-        id: 1,
-        title: "Desenvolvimento de Componentes React",
-        course: "Desenvolvimento Web",
-        submissions: 142,
-        deadline: "20 Dez 2024",
-    },
-    {
-        id: 2,
-        title: "Projeto de Otimização de Banco de Dados",
-        course: "Sistemas de Banco de Dados",
-        submissions: 98,
-        deadline: "22 Dez 2024",
-    },
-    {
-        id: 3,
-        title: "Modelo de Aprendizado de Máquina",
-        course: "IA e AM",
-        submissions: 76,
-        deadline: "25 Dez 2024",
-    },
-    {
-        id: 4,
-        title: "Framework de Testes de Software",
-        course: "Engenharia de Software",
-        submissions: 89,
-        deadline: "28 Dez 2024",
-    },
-];
 
 export default function DashboardAdmin() {
 
@@ -92,6 +58,12 @@ export default function DashboardAdmin() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
     const [isLoadingCourseContent, setIsLoadingCourseContent] = useState(false);
+
+    // Estados para atividades ranqueadas
+    const [rankedTrails, setRankedTrails] = useState<RankedKnowledgeTrail[]>([]);
+    const [isLoadingRankedTrails, setIsLoadingRankedTrails] = useState(false);
+    const [selectedRankedTrail, setSelectedRankedTrail] = useState<RankedKnowledgeTrail | null>(null);
+    const [isRankedModalOpen, setIsRankedModalOpen] = useState(false);
 
     // Estados para professores
     const [teachers, setTeachers] = useState<UserData[]>([]);
@@ -116,14 +88,18 @@ export default function DashboardAdmin() {
                 loadCourseContent(classData.courseId);
                 // Recarrega professores filtrados pela turma
                 loadTeachers(Number(selectedClassId));
+                // Carrega atividades ranqueadas
+                loadRankedTrails(Number(selectedClassId));
             } else {
                 setSelectedCourseData(null);
                 setSelectedCourseId(null);
+                setRankedTrails([]);
             }
         } else {
             setSelectedClassData(null);
             setSelectedCourseData(null);
             setSelectedCourseId(null);
+            setRankedTrails([]);
             // Recarrega todos os professores quando "Todas as turmas" está selecionado
             loadTeachers();
         }
@@ -175,9 +151,32 @@ export default function DashboardAdmin() {
         }
     };
 
+    const loadRankedTrails = async (classId: number) => {
+        setIsLoadingRankedTrails(true);
+        try {
+            const trails = await GetRankedKnowledgeTrailsService(classId);
+            setRankedTrails(trails);
+        } catch (error) {
+            console.error('Erro ao carregar atividades ranqueadas:', error);
+            // Não mostra toast de erro se não houver atividades ranqueadas
+            const errorMessage = error instanceof Error ? error.message : '';
+            if (!errorMessage.includes('Não encontradas')) {
+                toast.error('Erro ao carregar atividades ranqueadas');
+            }
+            setRankedTrails([]);
+        } finally {
+            setIsLoadingRankedTrails(false);
+        }
+    };
+
     const handleOpenSemesterModal = (semester: number) => {
         setSelectedSemester(semester);
         setIsModalOpen(true);
+    };
+
+    const handleOpenRankedModal = (trail: RankedKnowledgeTrail) => {
+        setSelectedRankedTrail(trail);
+        setIsRankedModalOpen(true);
     };
 
     return (
@@ -325,68 +324,92 @@ export default function DashboardAdmin() {
                     </CardContent>
                 </Card>
 
-                {/* EADs Recentes e Professores */}
+                {/* Atividades Ranqueadas e Professores */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader>
-                            <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                <Database className="h-5 w-5 text-purple-600" />
-                                EADs Recentes (Atividades de Ensino a Distância)
-                            </CardTitle>
-                            <CardDescription className="text-sm text-gray-600">
-                                Tarefas atuais e status de submissão
-                            </CardDescription>
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+                                        <Database className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
+                                        Atividades Ranqueadas
+                                    </CardTitle>
+                                    <CardDescription className="text-xs sm:text-sm text-gray-600">
+                                        Trilhas de conhecimento com atividades ranqueadas da turma
+                                    </CardDescription>
+                                </div>
+                                <Link href="/professor/conteudo">
+                                    <Button
+                                        size="sm"
+                                        className="w-full sm:w-auto h-9 sm:h-8 px-3 sm:px-4 bg-yellow-600 hover:bg-yellow-700 text-white text-xs sm:text-sm transition-colors flex items-center justify-center"
+                                    >
+                                        <span className="hidden sm:inline">Gerenciamento de Conteúdo</span>
+                                        <span className="sm:hidden">Conteúdo</span>
+                                    </Button>
+                                </Link>
+                            </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <div className="max-h-100 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
-                                {eadsRecentes.map((ead) => (
-                                    <div
-                                        key={ead.id}
-                                        className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group"
-                                    >
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors truncate">
-                                                {ead.title}
-                                            </p>
-                                            <p className="text-xs text-gray-600 mt-1">
-                                                {ead.course}
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center gap-2 ml-4">
-                                            <div className="text-right">
-                                                <p className="text-sm font-semibold text-gray-900">
-                                                    {ead.submissions} <span className="text-xs text-gray-600 font-normal">submissões</span>
+                            {isLoadingRankedTrails ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                                </div>
+                            ) : rankedTrails.length === 0 ? (
+                                <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                                    <Database className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                    <p className="text-sm text-gray-600">
+                                        {selectedClassId && selectedClassId !== "all"
+                                            ? "Nenhuma atividade ranqueada encontrada para esta turma"
+                                            : "Selecione uma turma para visualizar as atividades ranqueadas"}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className={`${rankedTrails.length > 5 ? 'max-h-[400px] overflow-y-auto' : ''} space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400`}>
+                                    {rankedTrails.map((trail) => (
+                                        <div
+                                            key={trail.id}
+                                            onClick={() => handleOpenRankedModal(trail)}
+                                            className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-yellow-50 to-amber-50 hover:from-yellow-100 hover:to-amber-100 border-2 border-yellow-200 hover:border-yellow-400 rounded-lg transition-all group cursor-pointer"
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-semibold text-gray-900 group-hover:text-yellow-700 transition-colors truncate">
+                                                    {trail.name}
                                                 </p>
-                                                <div className="flex items-center gap-1 text-xs text-gray-600">
-                                                    <Clock className="h-3 w-3" />
-                                                    <span>{ead.deadline}</span>
-                                                </div>
+                                                <p className="text-xs text-gray-600 mt-1">
+                                                    {trail.tasks.length} {trail.tasks.length === 1 ? 'atividade' : 'atividades'}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2 ml-4">
+                                                <Badge variant="outline" className="bg-yellow-100 text-yellow-700 border-yellow-300">
+                                                    Ranqueada
+                                                </Badge>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
                     <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader>
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                 <div>
-                                    <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                        <GraduationCap className="h-5 w-5 text-green-600" />
+                                    <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+                                        <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                                         Professores de Tecnologia
                                     </CardTitle>
-                                    <CardDescription className="text-sm text-gray-600">
+                                    <CardDescription className="text-xs sm:text-sm text-gray-600">
                                         Especializações do corpo docente e carga de cursos
                                     </CardDescription>
                                 </div>
                                 <Link href="/admin/teachers">
                                     <Button
                                         size="sm"
-                                        className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm transition-colors"
+                                        className="w-full sm:w-auto h-9 sm:h-8 px-3 sm:px-4 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm transition-colors flex items-center justify-center"
                                     >
-                                        Gerenciar Professores
+                                        <span className="hidden sm:inline">Gerenciar Professores</span>
+                                        <span className="sm:hidden">Professores</span>
                                     </Button>
                                 </Link>
                             </div>
@@ -449,13 +472,26 @@ export default function DashboardAdmin() {
                 {selectedCourseData ? (
                     <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader>
-                            <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                <BookOpen className="h-5 w-5 text-purple-600" />
-                                Semestres - {selectedCourseData.name}
-                            </CardTitle>
-                            <CardDescription className="text-sm text-gray-600">
-                                Clique em um semestre para visualizar as trilhas de conhecimento
-                            </CardDescription>
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+                                        <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                                        Dados do Curso
+                                    </CardTitle>
+                                    <CardDescription className="text-xs sm:text-sm text-gray-600">
+                                        Estrutura e organização do curso selecionado
+                                    </CardDescription>
+                                </div>
+                                <Link href="/professor/cursos">
+                                    <Button
+                                        size="sm"
+                                        className="w-full sm:w-auto h-9 sm:h-8 px-3 sm:px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm transition-colors flex items-center justify-center"
+                                    >
+                                        <span className="hidden sm:inline">Gerenciar Cursos</span>
+                                        <span className="sm:hidden">Cursos</span>
+                                    </Button>
+                                </Link>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
@@ -491,6 +527,13 @@ export default function DashboardAdmin() {
                         </CardContent>
                     </Card>
                 )}
+
+                {/* Modal de Atividades Ranqueadas */}
+                <RankedActivitiesModal
+                    open={isRankedModalOpen}
+                    onOpenChange={setIsRankedModalOpen}
+                    trail={selectedRankedTrail}
+                />
 
                 {/* Modal de Trilhas do Semestre */}
                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
