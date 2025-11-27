@@ -2,7 +2,10 @@ package senai.com.ava_senai.services.user;
 
 import jakarta.validation.Valid;
 import senai.com.ava_senai.domain.course.CourseContentSummaryDTO;
-import senai.com.ava_senai.domain.user.*;
+import senai.com.ava_senai.domain.user.UserFinderDTO;
+import senai.com.ava_senai.domain.user.UserRegisterDTO;
+import senai.com.ava_senai.domain.user.UserResponseDTO;
+import senai.com.ava_senai.domain.user.UserStatus;
 
 import java.util.List;
 

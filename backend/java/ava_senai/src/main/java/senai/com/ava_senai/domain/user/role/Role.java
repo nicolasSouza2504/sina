@@ -4,9 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import senai.com.ava_senai.domain.DefaultEntity;
-
-import java.util.Date;
 
 @Entity
 @Getter

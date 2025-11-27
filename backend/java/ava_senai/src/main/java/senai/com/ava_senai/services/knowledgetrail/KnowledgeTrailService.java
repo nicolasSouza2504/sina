@@ -2,8 +2,6 @@ package senai.com.ava_senai.services.knowledgetrail;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import senai.com.ava_senai.domain.course.section.Section;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrailRegisterDTO;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrailResponseDTO;

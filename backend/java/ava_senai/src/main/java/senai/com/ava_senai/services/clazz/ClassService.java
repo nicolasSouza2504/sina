@@ -9,6 +9,7 @@ import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
 import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 import senai.com.ava_senai.domain.course.clazz.classassessment.ClassAssessmentResponseDTO;
+import senai.com.ava_senai.domain.course.clazz.sectionclass.SectionClass;
 import senai.com.ava_senai.domain.task.rankedtask.RankedKnowledgeTrail;
 import senai.com.ava_senai.domain.task.rankedtask.RankedTask;
 import senai.com.ava_senai.domain.user.User;
@@ -34,8 +35,8 @@ public class ClassService implements IClassService {
     private final CourseRepository courseRepository;
     private final ClassAssessmentMapper classAssessmentMapper;
     private final UserRepository userRepository;
-    private final KnowledgeTrailRepository knowledgeTrailRepository;
     private final TaskRepository taskRepository;
+    private final SectionClassRepository sectionClassRepository;
 
     @Override
     public ClassResponseDTO createClass(ClassRegisterDTO classRegisterDTO) {
@@ -50,9 +51,20 @@ public class ClassService implements IClassService {
 
                     clazz = classRepository.save(clazz);
 
+                    createSections(clazz, classRegisterDTO);
+
                     return new ClassResponseDTO(clazz);
 
                 }).orElseThrow(() -> new AlreadyExistsException("Turma ja Existente"));
+
+    }
+
+    @Transactional
+    public void createSections(Class clazz, ClassRegisterDTO classRegisterDTO) {
+
+        classRegisterDTO.sections().forEach(section -> {
+            sectionClassRepository.save(new SectionClass(section, clazz.getId()));
+        });
 
     }
 
@@ -169,6 +181,8 @@ public class ClassService implements IClassService {
 
         classRepository.save(clazz);
 
+        updateSections(clazz, clazzEdit);
+
         return new ClassResponseDTO(clazz);
 
     }
@@ -235,7 +249,29 @@ public class ClassService implements IClassService {
             validation.add("code", "Código é obrigatório");
         }
 
+        if (CollectionUtils.isEmpty(classRegisterDTO.sections())) {
+            validation.add("sections", "Ao menos uma seção deve ser associada à turma");
+        }
+
         validation.throwIfHasErrors();
+
+    }
+
+    public void updateSections(Class clazz, ClassRegisterDTO clazzEdit) {
+
+        removeOldSectionClassData(clazz);
+
+        createSections(clazz, clazzEdit);
+
+    }
+
+    public void removeOldSectionClassData(Class clazz) {
+
+        List<SectionClass> sectionClasses = sectionClassRepository.findByClassId(clazz.getId());
+
+        sectionClasses.forEach(sectionClass -> {
+            sectionClassRepository.delete(sectionClass);
+        });
 
     }
 

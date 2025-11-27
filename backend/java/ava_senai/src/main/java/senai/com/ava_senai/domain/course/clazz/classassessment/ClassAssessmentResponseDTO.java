@@ -1,6 +1,7 @@
 package senai.com.ava_senai.domain.course.clazz.classassessment;
 
 import lombok.Data;
+
 import java.time.LocalDate;
 import java.util.List;
 

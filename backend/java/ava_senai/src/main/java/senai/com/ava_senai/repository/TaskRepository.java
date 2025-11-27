@@ -3,12 +3,9 @@ package senai.com.ava_senai.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import senai.com.ava_senai.domain.task.Task;
-import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.rankedtask.RankedTask;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContent;
 
 import java.util.List;
-import java.util.Set;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
 

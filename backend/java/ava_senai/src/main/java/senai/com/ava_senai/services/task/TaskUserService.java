@@ -1,12 +1,8 @@
 package senai.com.ava_senai.services.task;
 
-import lombok.RequiredArgsConstructor;
-
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 import senai.com.ava_senai.domain.task.taskuser.TaskUserRegister;
 import senai.com.ava_senai.domain.task.taskuser.TaskUserResponseDTO;
@@ -17,6 +13,8 @@ import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.repository.TaskUserRepository;
 import senai.com.ava_senai.repository.UserRepository;
 import senai.com.ava_senai.repository.UserResponseRepository;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

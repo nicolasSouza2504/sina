@@ -9,7 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import senai.com.ava_senai.domain.course.institution.Institution;
 import senai.com.ava_senai.domain.user.User;
-import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.UserStatus;
 import senai.com.ava_senai.domain.user.role.Role;
 

@@ -5,8 +5,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import senai.com.ava_senai.services.ranking.IRankingService;
 import senai.com.ava_senai.response.ApiResponse;
+import senai.com.ava_senai.services.ranking.IRankingService;
 
 import java.util.List;
 
