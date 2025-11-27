@@ -27,9 +27,9 @@ public class SectionClass extends DefaultEntity {
 
     public SectionClass() {}
 
-    public SectionClass(Long sectionId, Long classId) {
-        this.sectionId = sectionId;
-        this.classId = classId;
+    public SectionClass(Section section, Class classEntity) {
+        this.section = section;
+        this.classEntity = classEntity;
     }
 
     @PrePersist

@@ -10,6 +10,7 @@ import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
 import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
 import senai.com.ava_senai.domain.course.clazz.classassessment.ClassAssessmentResponseDTO;
 import senai.com.ava_senai.domain.course.clazz.sectionclass.SectionClass;
+import senai.com.ava_senai.domain.course.section.Section;
 import senai.com.ava_senai.domain.task.rankedtask.RankedKnowledgeTrail;
 import senai.com.ava_senai.domain.task.rankedtask.RankedTask;
 import senai.com.ava_senai.domain.user.User;
@@ -20,6 +21,7 @@ import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.mapper.ClassAssessmentMapper;
 import senai.com.ava_senai.repository.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +39,7 @@ public class ClassService implements IClassService {
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
     private final SectionClassRepository sectionClassRepository;
+    private final SectionRepository sectionRepository;
 
     @Override
     public ClassResponseDTO createClass(ClassRegisterDTO classRegisterDTO) {
@@ -62,8 +65,17 @@ public class ClassService implements IClassService {
     @Transactional
     public void createSections(Class clazz, ClassRegisterDTO classRegisterDTO) {
 
-        classRegisterDTO.sections().forEach(section -> {
-            sectionClassRepository.save(new SectionClass(section, clazz.getId()));
+        List<SectionClass> newSectionClasses = new ArrayList<>();
+
+        classRegisterDTO.sections().forEach(sectionId -> {
+
+            Section section = sectionRepository.findById(sectionId).orElse(null);
+            SectionClass sectionClass = new SectionClass(section, clazz);
+
+            sectionClassRepository.save(sectionClass);
+
+            newSectionClasses.add(sectionClass);
+
         });
 
     }
