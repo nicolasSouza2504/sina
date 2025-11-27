@@ -11,7 +11,7 @@ import { BookOpen, Play, Trophy, Loader2, GraduationCap, ChevronRight, FileText,
 import { useRouter } from "next/navigation"
 import getUserFromToken from '@/lib/auth/userToken'
 import GetUserByIdService from '@/lib/api/user/getUserById'
-import CourseContentSummaryService from '@/lib/api/course/courseContentSummary'
+import GetUserContentSummaryService from '@/lib/api/user/getUserContentSummary'
 import { toast } from 'sonner'
 import type { UserData } from '@/lib/interfaces/userInterfaces'
 import type { CourseContentSummary } from '@/lib/interfaces/courseContentInterfaces'
@@ -22,6 +22,7 @@ export default function AlunoTrilhasPage() {
 
   // Estados principais
   const [userData, setUserData] = useState<UserData | null>(null)
+  const [userId, setUserId] = useState<number | null>(null)
   const [isLoadingUser, setIsLoadingUser] = useState(true)
   const [selectedCourseId, setSelectedCourseId] = useState<string>(() => {
     // Recupera o curso selecionado do sessionStorage ao montar o componente
@@ -50,6 +51,7 @@ export default function AlunoTrilhasPage() {
 
         const user = await GetUserByIdService(userFromToken.id)
         setUserData(user)
+        setUserId(userFromToken.id)
 
         // Extrai cursos únicos das turmas do aluno
         if (user.classes && user.classes.length > 0) {
@@ -103,17 +105,22 @@ export default function AlunoTrilhasPage() {
   // Carrega conteúdo do curso quando selecionado
   useEffect(() => {
     const loadCourseContent = async () => {
-      if (!selectedCourseId) {
+      if (!selectedCourseId || !userId) {
         setCourseContent(null)
         return
       }
 
       setIsLoadingContent(true)
       try {
-        const content = await CourseContentSummaryService(parseInt(selectedCourseId))
+        console.log('[AlunoTrilhas] Carregando conteúdo personalizado:', { userId, courseId: selectedCourseId })
+        const content = await GetUserContentSummaryService(userId, parseInt(selectedCourseId))
         setCourseContent(content)
+        console.log('[AlunoTrilhas] Conteúdo carregado com sucesso:', {
+          courseName: content.name,
+          sectionsCount: content.sections?.length || 0
+        })
       } catch (error) {
-        console.error('Erro ao carregar conteúdo do curso:', error)
+        console.error('[AlunoTrilhas] Erro ao carregar conteúdo do curso:', error)
         toast.error('Erro ao carregar trilhas do curso')
         setCourseContent(null)
       } finally {
@@ -122,7 +129,7 @@ export default function AlunoTrilhasPage() {
     }
 
     loadCourseContent()
-  }, [selectedCourseId])
+  }, [selectedCourseId, userId])
 
   const handleEnterTask = (taskId: number) => {
     // Redireciona para a tela de material passando o ID da tarefa

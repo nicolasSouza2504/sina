@@ -14,7 +14,6 @@ import getUserFromToken from '@/lib/auth/userToken'
 import GetUserByIdService from '@/lib/api/user/getUserById'
 import CourseContentSummaryService from '@/lib/api/course/courseContentSummary'
 import GetTaskUserByUserAndTaskService from '@/lib/api/task-user/getTaskUserByUserAndTask'
-import CreateTaskUserService from '@/lib/api/task-user/createTaskUser'
 import { toast } from 'sonner'
 import type { TaskSummary, TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces'
 import type { TaskUserResponse } from '@/lib/interfaces/taskUserInterfaces'
@@ -53,84 +52,50 @@ export default function AlunoMaterialPage() {
       setIsLoadingTaskUser(true)
       console.log('[AlunoMaterial] Buscando TaskUser:', { userId, taskId })
       
-      try {
-        // Tenta buscar TaskUser existente
-        const taskUserResponse = await GetTaskUserByUserAndTaskService(userId, taskId)
-        
-        console.log('[AlunoMaterial] TaskUser encontrado:', {
-          taskUserId: taskUserResponse.id,
-          hasUserResponse: !!taskUserResponse.userResponse,
-          userResponseId: taskUserResponse.userResponse?.id
+      const taskUserResponse = await GetTaskUserByUserAndTaskService(userId, taskId)
+      
+      console.log('[AlunoMaterial] TaskUser encontrado:', {
+        taskUserId: taskUserResponse.id,
+        hasUserResponse: !!taskUserResponse.userResponse,
+        userResponseId: taskUserResponse.userResponse?.id
+      })
+      
+      setTaskUserData(taskUserResponse)
+      setTaskUserId(taskUserResponse.id)
+      
+      if (taskUserResponse.userResponse) {
+        console.log('[AlunoMaterial] Aluno já possui resposta enviada:', {
+          responseId: taskUserResponse.userResponse.id,
+          comment: taskUserResponse.userResponse.comment,
+          contentsCount: taskUserResponse.userResponse.contents?.length || 0,
+          contents: taskUserResponse.userResponse.contents
         })
-        
-        setTaskUserData(taskUserResponse)
-        setTaskUserId(taskUserResponse.id)
-        
-        if (taskUserResponse.userResponse) {
-          console.log('[AlunoMaterial] Aluno já possui resposta enviada:', {
-            responseId: taskUserResponse.userResponse.id,
-            comment: taskUserResponse.userResponse.comment,
-            contentsCount: taskUserResponse.userResponse.contents?.length || 0,
-            contents: taskUserResponse.userResponse.contents
-          })
-        } else {
-          console.log('[AlunoMaterial] Aluno ainda não enviou resposta para esta tarefa')
-        }
-        
-        // Verifica feedback (vem no nível raiz do TaskUserResponse)
-        if (taskUserResponse.feedback) {
-          console.log('[AlunoMaterial] Feedback do professor encontrado:', {
-            feedbackId: taskUserResponse.feedback.id,
-            grade: taskUserResponse.feedback.grade,
-            comment: taskUserResponse.feedback.comment,
-            teacher: taskUserResponse.feedback.teacher.nome
-          })
-        } else {
-          console.log('[AlunoMaterial] Atividade ainda não foi avaliada pelo professor')
-        }
-      } catch (err) {
-        // Se TaskUser não existe (404), cria automaticamente
-        const errorMessage = err instanceof Error ? err.message : ''
-        
-        if (errorMessage.includes('não encontrado') || errorMessage.includes('not found')) {
-          console.log('[AlunoMaterial] TaskUser não existe - criando automaticamente...')
-          
-          try {
-            // Cria o TaskUser
-            const newTaskUser = await CreateTaskUserService({
-              userId: userId,
-              taskId: taskId
-            })
-            
-            console.log('[AlunoMaterial] TaskUser criado com sucesso:', {
-              taskUserId: newTaskUser.id,
-              userId: newTaskUser.userId,
-              taskId: newTaskUser.taskId
-            })
-            
-            // Busca novamente para obter a estrutura completa com userResponse
-            const taskUserResponse = await GetTaskUserByUserAndTaskService(userId, taskId)
-            
-            setTaskUserData(taskUserResponse)
-            setTaskUserId(taskUserResponse.id)
-            
-            toast.success('Registro criado com sucesso!', {
-              description: 'Você pode agora enviar sua atividade'
-            })
-          } catch (createErr) {
-            console.error('[AlunoMaterial] Erro ao criar TaskUser:', createErr)
-            const createErrorMessage = createErr instanceof Error ? createErr.message : 'Erro ao criar registro'
-            toast.error('Erro ao criar registro da tarefa', {
-              description: createErrorMessage
-            })
-          }
-        } else {
-          // Outro tipo de erro
-          console.error('[AlunoMaterial] Erro ao buscar TaskUser:', err)
-          toast.error('Erro ao buscar dados da tarefa', {
-            description: errorMessage
-          })
-        }
+      } else {
+        console.log('[AlunoMaterial] Aluno ainda não enviou resposta para esta tarefa')
+      }
+      
+      // Verifica feedback (vem no nível raiz do TaskUserResponse)
+      if (taskUserResponse.feedback) {
+        console.log('[AlunoMaterial] Feedback do professor encontrado:', {
+          feedbackId: taskUserResponse.feedback.id,
+          grade: taskUserResponse.feedback.grade,
+          comment: taskUserResponse.feedback.comment,
+          teacher: taskUserResponse.feedback.teacher.nome
+        })
+      } else {
+        console.log('[AlunoMaterial] Atividade ainda não foi avaliada pelo professor')
+      }
+    } catch (err) {
+      console.error('[AlunoMaterial] Erro ao buscar TaskUser:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar dados da tarefa'
+      
+      // Não mostra toast de erro se TaskUser não existir (primeira vez)
+      if (!errorMessage.includes('não encontrado') && !errorMessage.includes('not found')) {
+        toast.error('Erro ao buscar dados da tarefa', {
+          description: errorMessage
+        })
+      } else {
+        console.log('[AlunoMaterial] TaskUser não existe - aguardando criação pelo backend')
       }
     } finally {
       setIsLoadingTaskUser(false)
