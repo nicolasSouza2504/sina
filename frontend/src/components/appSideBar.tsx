@@ -136,7 +136,7 @@ const studentItems = [
   },
   {
     title: "Ranking",
-    url: "/aluno/ranking",
+    url: "/ranking",
     icon: ChartBarDecreasing,
   },
 ];

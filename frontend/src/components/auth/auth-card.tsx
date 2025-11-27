@@ -1,11 +1,11 @@
 "use client";
 
-import type React from "react";
+import type { ReactNode } from "react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 interface AuthCardProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function AuthCard({ children }: AuthCardProps) {

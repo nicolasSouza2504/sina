@@ -1,4 +1,4 @@
-import type React from "react"
+import type { ReactNode } from "react"
 import { Card } from "@/components/ui/card"
 import { ProgressBadge } from "@/components/KnowledgeTrail/progress_badge"
 import { cn } from "@/lib/utils"
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 interface Activity {
   id: string
   title: string
-  icon: React.ReactNode
+  icon: ReactNode
   completed?: boolean
 }
 
