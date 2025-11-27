@@ -33,6 +33,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
            " JOIN course co ON co.id = s.course_id " +
            " JOIN class cls on cls.course_id = co.id " +
            " WHERE cls.id = :classId " +
-           " AND kt.ranked = true ")
+           " AND kt.ranked = true " +
+           " AND EXISTS (SELECT 1 FROM section_class sc WHERE sc.class_id = cls.id AND sc.section_id = s.id) ")
     List<RankedTask> findRankedTasksByClassId(Long classId);
 }
