@@ -26,10 +26,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { ClassSummary, ClassSummaryUser, TaskUserResponseSummary } from "@/lib/interfaces/classSummaryInterfaces";
+import { ClassAssessment, UserAssessment, TaskUserAssessment } from "@/lib/interfaces/classSummaryInterfaces";
 import { Course } from "@/lib/interfaces/courseInterfaces";
 import CourseList from "@/lib/api/course/courseList";
-import GetClassSummaryService from "@/lib/api/class/getClassSummary";
+import GetClassAssessmentService from "@/lib/api/class/getClassSummary";
 import QuickActions from '@/components/admin/quickActions';
 
 export default function AvaliacaoConteudo() {
@@ -40,7 +40,7 @@ export default function AvaliacaoConteudo() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [selectedClassId, setSelectedClassId] = useState<string>('');
-  const [classSummary, setClassSummary] = useState<ClassSummary | null>(null);
+  const [classSummary, setClassSummary] = useState<ClassAssessment | null>(null);
   
   // Estados de loading e erro
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
@@ -93,8 +93,8 @@ export default function AvaliacaoConteudo() {
 
   // Handler para redirecionar para tela de avaliação
   const handleOpenEvaluation = (
-    task: TaskUserResponseSummary,
-    student: ClassSummaryUser
+    task: TaskUserAssessment,
+    student: UserAssessment
   ) => {
     if (!task.userResponse) return;
     
@@ -103,6 +103,7 @@ export default function AvaliacaoConteudo() {
       userResponse: task.userResponse,
       studentName: student.nome,
       taskId: task.taskId,
+      taskName: task.task.name, // ✅ Nome da tarefa
       feedback: task.feedback // ✅ Inclui feedback se existir
     };
     
@@ -124,7 +125,7 @@ export default function AvaliacaoConteudo() {
     setIsLoadingClassSummary(true);
     setError(null);
     try {
-      const summary = await GetClassSummaryService(parseInt(selectedClassId));
+      const summary = await GetClassAssessmentService(parseInt(selectedClassId));
       setClassSummary(summary);
       toast.success('✅ Dados da turma carregados');
     } catch (error) {
@@ -149,9 +150,9 @@ export default function AvaliacaoConteudo() {
     : availableClasses;
 
   // Renderiza as tarefas do aluno
-  const renderStudentTasks = (student: ClassSummaryUser) => {
+  const renderStudentTasks = (student: UserAssessment) => {
     // Filtra apenas tarefas que têm resposta (userResponse !== null)
-    const tasksWithResponse = student.taskUser.filter(task => task.userResponse !== null);
+    const tasksWithResponse = student.tasksAssessment.filter(task => task.userResponse !== null);
     
     if (tasksWithResponse.length === 0) {
       return (
@@ -175,10 +176,10 @@ export default function AvaliacaoConteudo() {
                 </div>
                 <div className="min-w-0 flex-1 max-w-full">
                   <p className="font-medium text-xs sm:text-sm text-gray-900 break-words leading-tight">
-                    Tarefa #{task.taskId}
+                    {task.task.name}
                   </p>
                   <p className="text-xs text-gray-600 mt-0.5">
-                    Entregue em: {task.userResponse ? task.userResponse.createdAt : "N/A"}
+                    {task.userResponse?.contents?.length || 0} arquivo(s) enviado(s)
                   </p>
                 </div>
               </div>
@@ -391,9 +392,9 @@ export default function AvaliacaoConteudo() {
                         <div className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
                           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs flex-1 sm:flex-none justify-center whitespace-nowrap">
                             {(() => {
-                              const tasksWithResponse = user.taskUser.filter(task => task.userResponse !== null);
-                              const evaluatedTasks = tasksWithResponse.filter(task => task.feedback !== undefined && task.feedback !== null);
-                              const pendingTasks = tasksWithResponse.filter(task => task.feedback === undefined || task.feedback === null);
+                              const tasksWithResponse = user.tasksAssessment.filter((task: TaskUserAssessment) => task.userResponse !== null);
+                              const evaluatedTasks = tasksWithResponse.filter((task: TaskUserAssessment) => task.feedback !== undefined && task.feedback !== null);
+                              const pendingTasks = tasksWithResponse.filter((task: TaskUserAssessment) => task.feedback === undefined || task.feedback === null);
                               return isMobile 
                                 ? `${evaluatedTasks.length} aval. • ${pendingTasks.length} pend.`
                                 : `${evaluatedTasks.length} avaliadas • ${pendingTasks.length} pendentes`;
@@ -405,7 +406,7 @@ export default function AvaliacaoConteudo() {
                     <AccordionContent className="pt-0 pb-3 sm:pb-4">
                       <div className="space-y-2 sm:space-y-3">
                         {(() => {
-                          const tasksWithResponse = user.taskUser.filter(task => task.userResponse !== null);
+                          const tasksWithResponse = user.tasksAssessment.filter((task: TaskUserAssessment) => task.userResponse !== null);
                           if (tasksWithResponse.length === 0) {
                             return (
                               <div className="text-center py-4 sm:py-6 px-2">
@@ -416,7 +417,7 @@ export default function AvaliacaoConteudo() {
                               </div>
                             );
                           }
-                          return tasksWithResponse.map((task) => {
+                          return tasksWithResponse.map((task: TaskUserAssessment) => {
                             const hasFeedback = task.feedback !== undefined && task.feedback !== null;
                             return (
                               <div key={task.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
@@ -426,10 +427,10 @@ export default function AvaliacaoConteudo() {
                                   </div>
                                   <div className="min-w-0 flex-1 max-w-full">
                                     <p className="font-medium text-xs sm:text-sm text-gray-900 break-words leading-tight">
-                                      Tarefa #{task.taskId}
+                                      {task.task.name}
                                     </p>
                                     <p className="text-xs text-gray-600 mt-0.5">
-                                      Entregue em: {task.userResponse ? task.userResponse.createdAt : "N/A"}
+                                      {task.userResponse?.contents?.length || 0} arquivo(s) enviado(s)
                                     </p>
                                   </div>
                                 </div>

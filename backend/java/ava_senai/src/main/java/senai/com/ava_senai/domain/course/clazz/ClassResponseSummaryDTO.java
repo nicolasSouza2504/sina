@@ -1,15 +1,15 @@
 package senai.com.ava_senai.domain.course.clazz;
 
+import senai.com.ava_senai.domain.task.taskuser.TaskUserResponseSummaryDTO;
+import senai.com.ava_senai.domain.task.userresponse.UserResponse;
+import senai.com.ava_senai.domain.user.User;
+import senai.com.ava_senai.domain.user.UserStatus;
+import senai.com.ava_senai.domain.user.role.Role;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import senai.com.ava_senai.domain.user.UserStatus;
-import senai.com.ava_senai.domain.user.role.Role;
-import senai.com.ava_senai.domain.task.taskuser.TaskUserResponseSummaryDTO;
-import senai.com.ava_senai.domain.user.User;
-import senai.com.ava_senai.domain.task.userresponse.UserResponse;
 
 public record ClassResponseSummaryDTO(Long Id, String nome, LocalDate startDate, LocalDate finalDate, String imgClass,
         Integer semester, String code, CourseSimpleResponseDTO course, List<UserTaskResponse> users) {

@@ -3,7 +3,6 @@ package senai.com.ava_senai.domain.task.taskcontent;
 import jakarta.persistence.*;
 import lombok.Data;
 import senai.com.ava_senai.domain.task.Task;
-import senai.com.ava_senai.domain.task.TaskContentUploadStatus;
 
 @Data
 @Entity

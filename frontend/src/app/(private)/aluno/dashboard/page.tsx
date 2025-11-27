@@ -4,8 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { BookOpen, Clock, Trophy, FileText, Calendar, CheckCircle, AlertCircle, TrendingUp, Users, Award, Target, ArrowRight, Star, Zap, Flame, Bookmark, Upload, Play, ChevronRight } from "lucide-react"
-import Link from "next/link"
+import { BookOpen, Clock, Trophy, FileText, Calendar, CheckCircle, AlertCircle, TrendingUp, Award, Target, ArrowRight, Star, Zap, Play, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import QuickActionsAluno from '@/components/admin/quickActionsAluno'
 

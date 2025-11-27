@@ -1,6 +1,6 @@
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import { systemName } from "@/lib/systemName";
-import { systemAbreviation } from "@/lib/systemName";
+import { systemName, systemAbreviation } from "@/lib/systemName";
 
 export const metadata: Metadata = {
     title: `${systemAbreviation} - ${systemName}`,
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="w-full">

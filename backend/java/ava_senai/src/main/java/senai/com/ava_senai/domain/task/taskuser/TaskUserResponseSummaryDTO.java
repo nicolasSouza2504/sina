@@ -1,10 +1,10 @@
 package senai.com.ava_senai.domain.task.taskuser;
 
-import java.util.Optional;
-
 import senai.com.ava_senai.domain.task.feedback.FeedbackResponseDTO;
 import senai.com.ava_senai.domain.task.userresponse.UserResponse;
 import senai.com.ava_senai.domain.task.userresponse.UserResponseSummaryDTO;
+
+import java.util.Optional;
 
 public record TaskUserResponseSummaryDTO(Long idUser, Long taskId, Long id,
         UserResponseSummaryDTO userResponse, FeedbackResponseDTO feedback) {

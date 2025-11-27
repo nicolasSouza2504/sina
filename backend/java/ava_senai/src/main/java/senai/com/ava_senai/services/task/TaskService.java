@@ -6,15 +6,14 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import senai.com.ava_senai.config.RabbitMQConfig;
-import senai.com.ava_senai.consumer.TaskUserConsumer;
 import senai.com.ava_senai.domain.task.*;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
+import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.repository.*;
 import senai.com.ava_senai.services.messaging.RabbitMQSender;
-import senai.com.ava_senai.domain.task.taskuser.TaskUser;
 
 import java.util.List;
 import java.util.logging.Level;

@@ -4,9 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import senai.com.ava_senai.domain.course.Course;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
-import senai.com.ava_senai.domain.course.clazz.Class;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 

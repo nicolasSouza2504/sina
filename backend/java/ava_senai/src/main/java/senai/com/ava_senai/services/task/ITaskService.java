@@ -3,8 +3,8 @@ package senai.com.ava_senai.services.task;
 import jakarta.validation.Valid;
 import senai.com.ava_senai.domain.task.TaskRegisterDTO;
 import senai.com.ava_senai.domain.task.TaskResponseDTO;
-import senai.com.ava_senai.domain.task.TaskUserCourseMessage;
 import senai.com.ava_senai.domain.task.TaskUpdateOrderDTO;
+import senai.com.ava_senai.domain.task.TaskUserCourseMessage;
 
 import java.util.List;
 

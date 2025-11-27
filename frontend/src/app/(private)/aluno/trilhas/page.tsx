@@ -19,7 +19,7 @@ import QuickActionsAluno from '@/components/admin/quickActionsAluno'
 
 export default function AlunoTrilhasPage() {
   const router = useRouter()
-  
+
   // Estados principais
   const [userData, setUserData] = useState<UserData | null>(null)
   const [isLoadingUser, setIsLoadingUser] = useState(true)
@@ -32,9 +32,9 @@ export default function AlunoTrilhasPage() {
   })
   const [courseContent, setCourseContent] = useState<CourseContentSummary | null>(null)
   const [isLoadingContent, setIsLoadingContent] = useState(false)
-  
+
   // Cursos únicos extraídos das turmas do aluno
-  const [availableCourses, setAvailableCourses] = useState<Array<{ id: number; name: string }>>([])  
+  const [availableCourses, setAvailableCourses] = useState<Array<{ id: number; name: string }>>([])
 
   // Carrega dados do usuário ao montar o componente
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function AlunoTrilhasPage() {
       try {
         setIsLoadingUser(true)
         const userFromToken = await getUserFromToken()
-        
+
         if (!userFromToken?.id) {
           toast.error('Erro ao obter dados do usuário')
           return
@@ -50,24 +50,24 @@ export default function AlunoTrilhasPage() {
 
         const user = await GetUserByIdService(userFromToken.id)
         setUserData(user)
-        
+
         // Extrai cursos únicos das turmas do aluno
         if (user.classes && user.classes.length > 0) {
           const coursesMap = new Map<number, string>()
-          
+
           user.classes.forEach(classItem => {
             if (classItem.course && classItem.course.id && classItem.course.name) {
               coursesMap.set(classItem.course.id, classItem.course.name)
             }
           })
-          
+
           const uniqueCourses = Array.from(coursesMap.entries()).map(([id, name]) => ({
             id,
             name
           }))
-          
+
           setAvailableCourses(uniqueCourses)
-          
+
           // Recupera o curso salvo no sessionStorage ou seleciona o primeiro
           const savedCourseId = sessionStorage.getItem('aluno_selected_course_id')
           if (savedCourseId && uniqueCourses.some(c => c.id.toString() === savedCourseId)) {
@@ -264,13 +264,12 @@ export default function AlunoTrilhasPage() {
                                             {task.contents?.length || 0} {task.contents?.length === 1 ? 'material' : 'materiais'}
                                           </Badge>
                                           {task.difficultyLevel && (
-                                            <Badge 
-                                              variant="outline" 
-                                              className={`text-xs ${
-                                                task.difficultyLevel === 'FACIL' ? 'bg-green-50 text-green-700 border-green-200' :
+                                            <Badge
+                                              variant="outline"
+                                              className={`text-xs ${task.difficultyLevel === 'FACIL' ? 'bg-green-50 text-green-700 border-green-200' :
                                                 task.difficultyLevel === 'MEDIO' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                                'bg-red-50 text-red-700 border-red-200'
-                                              }`}
+                                                  'bg-red-50 text-red-700 border-red-200'
+                                                }`}
                                             >
                                               {task.difficultyLevel === 'FACIL' ? 'Fácil' : task.difficultyLevel === 'MEDIO' ? 'Médio' : 'Difícil'}
                                             </Badge>

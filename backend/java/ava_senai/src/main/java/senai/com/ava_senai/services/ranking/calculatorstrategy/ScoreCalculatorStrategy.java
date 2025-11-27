@@ -1,6 +1,5 @@
 package senai.com.ava_senai.services.ranking.calculatorstrategy;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import senai.com.ava_senai.domain.ranking.ScoreCalculatorTypeEnum;
 import senai.com.ava_senai.services.ranking.calculatorstrategy.anottation.ScoreCalculatorType;

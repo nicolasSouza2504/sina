@@ -1,8 +1,8 @@
 package senai.com.ava_senai.services.task;
 
 import org.springframework.web.multipart.MultipartFile;
-import senai.com.ava_senai.domain.task.taskcontent.TaskContentResponseDTO;
 import senai.com.ava_senai.domain.task.taskcontent.TaskContentRegisterDTO;
+import senai.com.ava_senai.domain.task.taskcontent.TaskContentResponseDTO;
 
 import java.io.IOException;
 

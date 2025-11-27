@@ -20,15 +20,15 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import {
-  BookOpen, 
-  Plus, 
+  BookOpen,
+  Plus,
   Search,
-  Eye, 
-  Edit, 
+  Eye,
+  Edit,
   Trash2,
-  FileText, 
-  Video, 
-  Link, 
+  FileText,
+  Video,
+  Link,
   Upload,
   Clock,
   Lock,
@@ -107,7 +107,7 @@ export default function GerenciarConteudo() {
   const [searchTerm, setSearchTerm] = useState('');
   const [openCourseCombobox, setOpenCourseCombobox] = useState(false);
   const [courseSearchTerm, setCourseSearchTerm] = useState('');
-  
+
   // Estados para API real
   const [apiCourses, setApiCourses] = useState<ApiCourse[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
@@ -133,19 +133,19 @@ export default function GerenciarConteudo() {
       setIsLoadingContent(false);
     }
   }, []);
-  
+
   const [isTrailModalOpen, setIsTrailModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isEditTrailModalOpen, setIsEditTrailModalOpen] = useState(false);
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
   const [selectedTaskForSubmissions, setSelectedTaskForSubmissions] = useState<{ id: string; title: string } | null>(null);
-  
+
   // Estados para modal de exclusão de conteúdo
   const [isDeleteContentModalOpen, setIsDeleteContentModalOpen] = useState(false);
   const [contentToDelete, setContentToDelete] = useState<{ id: number; name: string } | null>(null);
   const [isDeletingContent, setIsDeletingContent] = useState(false);
-  
+
   // Estado para edição de tarefa
   const [editTask, setEditTask] = useState<{
     id: number;
@@ -158,15 +158,15 @@ export default function GerenciarConteudo() {
     taskOrder: number;
     isRanked: boolean;
   } | null>(null);
-  
+
   const [editTrail, setEditTrail] = useState<EditKnowledgeTrailFormData | null>(null);
-  
+
   // Estados para contexto do modal de criar trilha
   const [trailModalContext, setTrailModalContext] = useState<{
     courseId?: string;
     sectionId?: string;
   }>({});
-  
+
   // Estados para reordenação de tarefas
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [selectedTrailForReorder, setSelectedTrailForReorder] = useState<{
@@ -174,7 +174,7 @@ export default function GerenciarConteudo() {
     name: string;
     tasks: TaskSummary[];
   } | null>(null);
-  
+
   // Estados para criação de tarefa
   const [selectedKnowledgeTrailForTask, setSelectedKnowledgeTrailForTask] = useState<{
     id: number;
@@ -202,7 +202,7 @@ export default function GerenciarConteudo() {
   // Estados para visualização direta de conteúdo
   const [selectedContentForView, setSelectedContentForView] = useState<TaskContentSummary | null>(null);
   const [isViewContentModalOpen, setIsViewContentModalOpen] = useState(false);
-  
+
   // Estados mock removidos - usando apenas componentes com API real
 
   // Carrega cursos da API real
@@ -221,7 +221,7 @@ export default function GerenciarConteudo() {
         setIsLoadingCourses(false);
       }
     };
-    
+
     loadApiCourses();
   }, []);
 
@@ -253,7 +253,7 @@ export default function GerenciarConteudo() {
 
   const loadContent = () => {
     if (!selectedCourseId) return;
-    
+
     // TODO: Implement API integration to load content
     setContent([]);
   };
@@ -265,10 +265,10 @@ export default function GerenciarConteudo() {
       knowledgeTrails: section.knowledgeTrails
         .map(trail => ({
           ...trail,
-          tasks: searchTerm 
-            ? trail.tasks.filter(task => 
-                task.name.toLowerCase().includes(searchTerm.toLowerCase())
-              )
+          tasks: searchTerm
+            ? trail.tasks.filter(task =>
+              task.name.toLowerCase().includes(searchTerm.toLowerCase())
+            )
             : trail.tasks // Sem filtro, mostra todas as tarefas
         }))
         .filter(trail => searchTerm ? trail.tasks.length > 0 : true) // Remove trilhas vazias apenas se houver filtro
@@ -278,16 +278,16 @@ export default function GerenciarConteudo() {
   const handleCreateTrail = async (data: { name: string; sectionId: number; ranked: boolean }) => {
     try {
       const response = await CreateKnowledgeTrailService(data);
-      
+
       toast.success('✅ Trilha de conhecimento criada com sucesso', {
         description: 'A trilha foi adicionada e está disponível para uso.'
       });
-      
+
       // Recarrega o conteúdo do curso
       if (selectedCourseId) {
         await fetchCourseContent(selectedCourseId);
       }
-      
+
       return response;
     } catch (error) {
       console.error('Erro ao criar trilha:', error);
@@ -301,7 +301,7 @@ export default function GerenciarConteudo() {
   const handleReorderTasks = async (reorderedTasks: { taskId: number; newOrder: number }[]) => {
     try {
       await UpdateTaskOrderService(reorderedTasks);
-      
+
       toast.success('✅ Ordem das tarefas atualizada', {
         description: 'As tarefas foram reordenadas com sucesso.'
       });
@@ -326,16 +326,16 @@ export default function GerenciarConteudo() {
         sectionId: data.sectionId,
         ranked: data.ranked
       });
-      
+
       toast.success('✅ Trilha atualizada com sucesso', {
         description: 'As alterações foram salvas e aplicadas à trilha.'
       });
-      
+
       // Recarrega o conteúdo do curso
       if (selectedCourseId) {
         await fetchCourseContent(selectedCourseId);
       }
-      
+
       setEditTrail(null);
       setIsEditTrailModalOpen(false);
     } catch (error) {
@@ -355,7 +355,7 @@ export default function GerenciarConteudo() {
       const currentTrail = courseContent?.sections
         .flatMap(s => s.knowledgeTrails)
         .find(kt => kt.id === selectedKnowledgeTrailForTask.id);
-      
+
       // Calcula o próximo order (maior order atual + 1)
       const nextOrder = currentTrail && currentTrail.tasks.length > 0
         ? Math.max(...currentTrail.tasks.map(t => t.taskOrder)) + 1
@@ -377,7 +377,7 @@ export default function GerenciarConteudo() {
       }
 
       await CreateTaskService(payload);
-      
+
       toast.success('✅ Tarefa criada com sucesso', {
         description: 'A tarefa foi adicionada à trilha de conhecimento.'
       });
@@ -459,12 +459,12 @@ export default function GerenciarConteudo() {
       toast.success('✅ Conteúdo excluído com sucesso', {
         description: 'O material foi removido da tarefa.'
       });
-      
+
       // Recarrega o conteúdo do curso
       if (selectedCourseId) {
         await fetchCourseContent(selectedCourseId);
       }
-      
+
       // Fecha o modal e limpa o estado
       setIsDeleteContentModalOpen(false);
       setContentToDelete(null);
@@ -505,9 +505,9 @@ export default function GerenciarConteudo() {
       }
 
       await UpdateTaskService(data.id, payload);
-      
+
       toast.success('✅ Tarefa atualizada com sucesso');
-      
+
       // Recarrega o conteúdo do curso
       if (selectedCourseId) {
         const content = await CourseContentSummaryService(parseInt(selectedCourseId));
@@ -525,18 +525,18 @@ export default function GerenciarConteudo() {
   return (
     <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gerenciar Conteúdo</h1>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gerenciar Conteúdo</h1>
           <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Organize trilhas de conhecimento, tarefas e materiais</p>
-          </div>
-        <Button 
+        </div>
+        <Button
           onClick={() => {
             setTrailModalContext({
               courseId: selectedCourseId || undefined,
               sectionId: undefined
             });
             setIsTrailModalOpen(true);
-          }} 
+          }}
           className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -590,9 +590,8 @@ export default function GerenciarConteudo() {
                       }}
                     >
                       <Check
-                        className={`mr-2 h-4 w-4 shrink-0 ${
-                          selectedCourseId === course.id.toString() ? "opacity-100" : "opacity-0"
-                        }`}
+                        className={`mr-2 h-4 w-4 shrink-0 ${selectedCourseId === course.id.toString() ? "opacity-100" : "opacity-0"
+                          }`}
                       />
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-900 leading-tight">
@@ -613,7 +612,7 @@ export default function GerenciarConteudo() {
             </PopoverContent>
           </Popover>
         </div>
-        
+
         {selectedCourseId && (
           <div className="w-full sm:max-w-md">
             <Label className="text-sm font-medium text-gray-700 mb-2 block">Filtrar Tarefas</Label>
@@ -747,7 +746,7 @@ export default function GerenciarConteudo() {
               </Button>
             </div>
           )}
-          
+
           {searchTerm && filteredSections.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
               <Search className="h-16 w-16 mx-auto mb-4 text-gray-300" />
@@ -818,13 +817,13 @@ export default function GerenciarConteudo() {
                                     <span className="sm:inline">Nova</span>
                                   </Button>
                                   <Button
-                                    variant="outline" 
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => {
-                                      const section = courseContent.sections.find(s => 
+                                      const section = courseContent.sections.find(s =>
                                         s.knowledgeTrails.some(kt => kt.id === trail.id)
                                       );
-                                      
+
                                       setEditTrail({
                                         id: trail.id,
                                         name: trail.name,
@@ -839,7 +838,7 @@ export default function GerenciarConteudo() {
                                     <Edit className="h-3 w-3" />
                                   </Button>
                                   <Button
-                                    variant="outline" 
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => {
                                       setSelectedTrailForReorder({
@@ -892,7 +891,7 @@ export default function GerenciarConteudo() {
                                               className="h-9 sm:h-8 px-3 sm:px-2 text-xs w-full sm:w-auto justify-center hover:bg-purple-50 hover:border-purple-300"
                                             >
                                               <Upload className="h-3 w-3 mr-1" />
-                                              <span className="sm:inline">Mat</span>
+                                              <span className="sm:inline">Material</span>
                                             </Button>
                                             {task.contents && task.contents.length > 0 && (
                                               <Button
@@ -919,7 +918,7 @@ export default function GerenciarConteudo() {
                                                 const trailData = courseContent?.sections
                                                   .flatMap(s => s.knowledgeTrails)
                                                   .find(kt => kt.tasks.some(t => t.id === task.id));
-                                                
+
                                                 setEditTask({
                                                   id: task.id,
                                                   name: task.name,
@@ -976,7 +975,7 @@ export default function GerenciarConteudo() {
                                                         <Eye className="h-3 w-3 text-purple-600" />
                                                       </Button>
                                                     )}
-                                                    
+
                                                     {/* Botão de download para tipos não-LINK em mobile */}
                                                     {isMobile && content.contentType !== 'LINK' && (
                                                       <Button
@@ -1006,7 +1005,7 @@ export default function GerenciarConteudo() {
                                                         <Download className="h-3 w-3 text-blue-600" />
                                                       </Button>
                                                     )}
-                                                    
+
                                                     {/* Botão de excluir conteúdo */}
                                                     <Button
                                                       variant="ghost"

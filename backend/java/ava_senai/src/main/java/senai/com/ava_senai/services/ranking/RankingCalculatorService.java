@@ -2,7 +2,10 @@ package senai.com.ava_senai.services.ranking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import senai.com.ava_senai.domain.ranking.*;
+import senai.com.ava_senai.domain.ranking.ScoreCalculatorTypeEnum;
+import senai.com.ava_senai.domain.ranking.StudentRankingDTO;
+import senai.com.ava_senai.domain.ranking.TaskRankingCalculatorDTO;
+import senai.com.ava_senai.domain.ranking.UserRankingCalculatorDTO;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.services.ranking.calculatorstrategy.ScoreCalculatorStrategy;
 
