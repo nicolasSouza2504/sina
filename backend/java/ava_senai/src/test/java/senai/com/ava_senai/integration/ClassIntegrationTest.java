@@ -19,6 +19,7 @@ import senai.com.ava_senai.domain.user.UserLogin;
 import senai.com.ava_senai.response.ApiResponse;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -53,7 +54,7 @@ class ClassIntegrationTest {
         // Perform login and retrieve token
         loginAndRetrieveToken();
 
-        classRegisterDTO = new ClassRegisterDTO("Test Class", 1L,  LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "class_image.jpg", "cide", 1);
+        classRegisterDTO = new ClassRegisterDTO("Test Class", 1L,  LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "class_image.jpg", "cide", 1, List.of());
     }
 
     private void loginAndRetrieveToken() {
@@ -123,7 +124,7 @@ class ClassIntegrationTest {
     @Order(3)
     @DisplayName("Integration test given a ClassRegister when update should return a class response data with right properties")
     void integrationTestGivenClassRegisterWhenUpdateShouldReturnClassResponseData() throws Throwable {
-        classRegisterDTO = new ClassRegisterDTO("Updated Class",1L, LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "updated_image.jpg", "codeup", 2);
+        classRegisterDTO = new ClassRegisterDTO("Updated Class",1L, LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31), "updated_image.jpg", "codeup", 2, List.of());
 
         String response = given()
                 .spec(specification)
