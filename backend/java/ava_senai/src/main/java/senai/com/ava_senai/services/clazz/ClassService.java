@@ -78,6 +78,8 @@ public class ClassService implements IClassService {
 
         });
 
+        clazz.setSectionClasses(newSectionClasses);
+
     }
 
     private Class buildClass(ClassRegisterDTO classRegisterDTO) {

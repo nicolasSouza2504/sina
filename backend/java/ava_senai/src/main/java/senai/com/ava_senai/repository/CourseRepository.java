@@ -34,6 +34,10 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             "LEFT JOIN FETCH s.knowledgeTrails kt " +
             "LEFT JOIN FETCH kt.tasks t " +
             "LEFT JOIN FETCH t.contents tc " +
+            "JOIN User u ON u.id = :userId " +
+            "JOIN u.userClasses uc " +
+            "JOIN Class cl ON cl.id = uc.classId " +
+            "JOIN SectionClass sc ON sc.classId = cl.id AND sc.sectionId = s.id " +
             "WHERE c.id = :courseId" +
             " AND EXISTS ( " +
             "     SELECT 1 FROM TaskUser tu " +
