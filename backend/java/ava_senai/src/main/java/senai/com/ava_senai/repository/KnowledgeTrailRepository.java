@@ -26,7 +26,7 @@ public interface KnowledgeTrailRepository extends JpaRepository<KnowledgeTrail, 
            " WHERE cls.id = :classId " +
            " AND kt.id IN :knowledgeTrailIds " +
            " AND kt.ranked = true " +
-           " AND EXISTS (SELECT SectionClass sc FROM SectionClass sc WHERE sc.classId = cls.id AND sc.sectionId = s.id) ")
+           " AND EXISTS (SELECT 1 FROM SectionClass sc WHERE sc.classId = cls.id AND sc.sectionId = s.id) ")
     Optional<List<KnowledgeTrail>> findRankedKnowledgeTrailsByClassIdAndKnowledgeTrailIds(Long classId, List<Long> knowledgeTrailIds);
 
     @Query(" SELECT kt FROM KnowledgeTrail kt " +
@@ -35,7 +35,7 @@ public interface KnowledgeTrailRepository extends JpaRepository<KnowledgeTrail, 
             " JOIN co.classes cls" +
             " WHERE cls.id = :classId " +
             " AND kt.ranked = true " +
-            " AND EXISTS (SELECT SectionClass sc FROM SectionClass sc WHERE sc.classId = cls.id AND sc.sectionId = s.id) ")
+            " AND EXISTS (SELECT 1 FROM SectionClass sc WHERE sc.classId = cls.id AND sc.sectionId = s.id) ")
     Optional<List<KnowledgeTrail>> findRankedKnowledgeTrailsByClassId(Long classId);
 
 }
