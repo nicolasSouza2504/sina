@@ -22,7 +22,7 @@ public class RankingService implements IRankingService {
     @Override
     public List<RankingResponseDTO> getRankingsClass(Long classId, List<Long> knowledgeTrailIds) {
 
-        List<KnowledgeTrail> knowledgeTrails = knowledgeTrailRepository.findRankedKnowledgeTrailsByClassId(classId, knowledgeTrailIds)
+        List<KnowledgeTrail> knowledgeTrails = knowledgeTrailRepository.findRankedKnowledgeTrailsByClassIdAndKnowledgeTrailIds(classId, knowledgeTrailIds)
                 .orElseThrow(() -> new NotFoundException("Nenhuma trilha de conhecimento ranqueada encontrada para a turma"));
 
         return getRankings(knowledgeTrails, classId);
