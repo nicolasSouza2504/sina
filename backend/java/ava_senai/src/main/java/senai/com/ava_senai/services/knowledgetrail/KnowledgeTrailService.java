@@ -85,9 +85,9 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
     }
 
     @Override
-    public List<KnowledgeTrailResponseDTO> getAllRankedKnowledgeTrailsByCourse(Long courseId) {
+    public List<KnowledgeTrailResponseDTO> getAllRankedKnowledgeTrailsByCourse(Long classId) {
 
-        List<KnowledgeTrail> knowledgeTrailList = knowledgeTrailRepository.findRankedKnowledgeTrailsByCourseId(courseId)
+        List<KnowledgeTrail> knowledgeTrailList = knowledgeTrailRepository.findRankedKnowledgeTrailsByClassId(classId)
                 .orElseThrow(() -> new NotFoundException("Nenhuma trilha de conhecimento ranqueada encontrada para o curso"));
 
         return knowledgeTrailList.stream().map(KnowledgeTrailResponseDTO::new).collect(Collectors.toList());

@@ -83,8 +83,8 @@ public class KnowledgeTrailController {
 
     }
 
-    @GetMapping("ranked/by-course/{courseId}")
-    public ResponseEntity<ApiResponse> listAllRankedByCourse(@PathVariable("courseId") @Valid Long courseId) {
+    @GetMapping("ranked/by-course/{classId}")
+    public ResponseEntity<ApiResponse> listAllRankedByClass(@PathVariable("classId") @Valid Long courseId) {
 
         try {
             return ResponseEntity.ok().body(new ApiResponse("Trilhas de conhecimento", knowledgeTrailService.getAllRankedKnowledgeTrailsByCourse(courseId)));
