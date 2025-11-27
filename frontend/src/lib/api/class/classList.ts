@@ -44,7 +44,13 @@ export default async function ClassList() {
         course: cls.course ? {
             id: cls.course.id,
             name: cls.course.name
-        } : null
+        } : null,
+        sections: cls.sections?.map((section: any) => ({
+            id: section.id,
+            name: section.name,
+            semester: section.semester || null,
+            courseId: section.courseId
+        })) || []
     })) || [];
     
     return mappedClasses;

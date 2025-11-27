@@ -31,7 +31,11 @@ import {useForm} from "react-hook-form";
 import {z} from "zod";
 import EditClassService from "@/lib/api/class/classEdit";
 import CourseListService from "@/lib/api/course/courseList";
-import {Edit, Hash, Image as ImageIcon} from "lucide-react";
+import {Edit, Hash, Image as ImageIcon, ListChecks} from "lucide-react";
+import {SectionSelectorModal} from "@/components/admin/class/SectionSelectorModal";
+import {Section} from "@/lib/interfaces/sectionInterfaces";
+import {Badge} from "@/components/ui/badge";
+import {Course} from "@/lib/interfaces/courseInterfaces";
 
 interface ModalEditClassProps {
     isOpen: boolean;
@@ -78,9 +82,12 @@ export default function ModalEditClass({
                                            imageNames,
                                        }: ModalEditClassProps) {
     const [editionError, setEditionError] = useState<string | null>(null);
-    const [courses, setCourses] = useState<{ id: number, name: string }[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
     const [loadingCourses, setLoadingCourses] = useState(false);
     const [generatingCode, setGeneratingCode] = useState(false);
+    const [selectedSectionIds, setSelectedSectionIds] = useState<number[]>([]);
+    const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
+    const [availableSections, setAvailableSections] = useState<Section[]>([]);
 
     const form = useForm<EditClassSchemaValues>({
         resolver: zodResolver(editClassSchema),
@@ -98,6 +105,14 @@ export default function ModalEditClass({
 
     useEffect(() => {
         if (isOpen && classData) {
+            console.log('[ModalEditClass] ========================================');
+            console.log('[ModalEditClass] Carregando dados da turma:', {
+                id: classData.id,
+                nome: classData.nome,
+                courseId: classData.course?.id || classData.courseId,
+                sections: classData.sections
+            });
+            
             form.reset({
                 code: classData.code || "",
                 name: classData.nome,
@@ -107,8 +122,44 @@ export default function ModalEditClass({
                 courseId: classData.course?.id || classData.courseId || 1,
                 imgClass: classData.imgClass || null,
             });
+            
+            // Carrega sections selecionadas da turma (pode ser vazio)
+            const turmaHasSections = classData.sections && Array.isArray(classData.sections) && classData.sections.length > 0;
+            
+            if (turmaHasSections) {
+                const sectionIds = classData.sections!.map(s => s.id);
+                console.log('[ModalEditClass] ✓ Sections vinculadas à turma:', sectionIds);
+                setSelectedSectionIds(sectionIds);
+            } else {
+                console.log('[ModalEditClass] ⚠ Turma SEM sections vinculadas (será obrigatório selecionar)');
+                setSelectedSectionIds([]);
+            }
+            
+            // Busca sections disponíveis do curso
+            if (classData.course?.id || classData.courseId) {
+                const courseId = classData.course?.id || classData.courseId;
+                console.log('[ModalEditClass] Buscando sections do curso ID:', courseId);
+                console.log('[ModalEditClass] Cursos carregados:', courses.length);
+                
+                const course = courses.find(c => c.id === courseId);
+                if (course) {
+                    console.log('[ModalEditClass] ✓ Curso encontrado:', course.name);
+                    if (course.sections && course.sections.length > 0) {
+                        console.log('[ModalEditClass] ✓ Sections disponíveis do curso:', course.sections);
+                        setAvailableSections(course.sections);
+                    } else {
+                        console.log('[ModalEditClass] ⚠ Curso SEM sections cadastradas');
+                        setAvailableSections([]);
+                        setEditionError('Este curso não possui semestres cadastrados. Não será possível editar a turma.');
+                    }
+                } else {
+                    console.log('[ModalEditClass] ✗ Curso não encontrado na lista');
+                    setAvailableSections([]);
+                }
+            }
+            console.log('[ModalEditClass] ========================================');
         }
-    }, [isOpen, classData, form]);
+    }, [isOpen, classData, form, courses]);
 
     useEffect(() => {
         getCourses();
@@ -145,6 +196,12 @@ export default function ModalEditClass({
         if (!classData) return;
 
 
+        // Validação: sections é obrigatório
+        if (selectedSectionIds.length === 0) {
+            setEditionError("Selecione pelo menos um semestre para a turma");
+            return;
+        }
+
         const formData: ClassFormData = {
             code: data.code || "",
             name: data.name,
@@ -154,6 +211,7 @@ export default function ModalEditClass({
             semester: data.semester || null,
             courseId: data.courseId || null,
             imgClass: data.imgClass === "none" ? null : data.imgClass || null,
+            sections: selectedSectionIds,
         };
 
         try {
@@ -197,6 +255,8 @@ export default function ModalEditClass({
             courseId: 1,
             imgClass: null,
         });
+        setSelectedSectionIds([]);
+        setAvailableSections([]);
     };
 
     const handleCancel = () => {
@@ -221,8 +281,51 @@ export default function ModalEditClass({
         form.setValue("code", randomCode, { shouldValidate: true });
     }
 
+    const handleOpenSectionModal = () => {
+        const courseId = form.getValues("courseId");
+        if (!courseId) {
+            setEditionError("Selecione um curso antes de escolher os semestres");
+            return;
+        }
+
+        const selectedCourse = courses.find(c => c.id === courseId);
+        if (selectedCourse && selectedCourse.sections) {
+            setAvailableSections(selectedCourse.sections);
+            setIsSectionModalOpen(true);
+        } else {
+            setEditionError("Este curso não possui semestres cadastrados");
+        }
+    }
+
+    const handleSectionConfirm = (sectionIds: number[]) => {
+        console.log('[ModalEditClass] Sections selecionadas:', sectionIds);
+        setSelectedSectionIds(sectionIds);
+    }
+
+    const handleRemoveSection = (sectionId: number) => {
+        setSelectedSectionIds(prev => prev.filter(id => id !== sectionId));
+    }
+
+    const getSelectedSectionsDetails = () => {
+        return availableSections.filter(section => selectedSectionIds.includes(section.id));
+    }
 
     const watchedImage = form.watch("imgClass");
+    const watchedCourseId = form.watch("courseId");
+
+    // Atualiza sections disponíveis quando o curso muda
+    useEffect(() => {
+        if (watchedCourseId && isOpen) {
+            const course = courses.find(c => c.id === watchedCourseId);
+            if (course && course.sections) {
+                setAvailableSections(course.sections);
+                // Limpa sections selecionadas se o curso mudou
+                if (classData && watchedCourseId !== (classData.course?.id || classData.courseId)) {
+                    setSelectedSectionIds([]);
+                }
+            }
+        }
+    }, [watchedCourseId, courses, isOpen, classData]);
 
     if (!classData) return null;
 
@@ -424,6 +527,63 @@ export default function ModalEditClass({
                                 )}
                             />
 
+                            {/* Sections Field */}
+                            <div className="space-y-3">
+                                <Label className="text-sm font-semibold text-gray-700">
+                                    Semestres Ativos <span className="text-red-500">*</span>
+                                </Label>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleOpenSectionModal}
+                                    disabled={!watchedCourseId}
+                                    className="w-full h-12 border-2 border-gray-200 hover:border-green-300 hover:bg-green-50 rounded-xl flex items-center justify-center gap-2"
+                                >
+                                    <ListChecks className="h-4 w-4" />
+                                    {selectedSectionIds.length > 0
+                                        ? `${selectedSectionIds.length} semestre(s) selecionado(s)`
+                                        : "Selecionar Semestres"}
+                                </Button>
+
+                                {selectedSectionIds.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+                                        {getSelectedSectionsDetails().map((section) => (
+                                            <Badge
+                                                key={section.id}
+                                                className="bg-green-100 text-green-700 border-green-300 px-3 py-1 flex items-center gap-2"
+                                            >
+                                                {section.name}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveSection(section.id)}
+                                                    className="hover:text-green-900"
+                                                >
+                                                    ×
+                                                </button>
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                ) : watchedCourseId && availableSections.length > 0 && (
+                                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+                                        <p className="text-xs text-yellow-700 font-medium">
+                                            ⚠ Nenhum semestre selecionado. É obrigatório selecionar pelo menos um.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {!watchedCourseId && (
+                                    <p className="text-xs text-gray-500">
+                                        Selecione um curso primeiro para escolher os semestres
+                                    </p>
+                                )}
+                                
+                                {watchedCourseId && availableSections.length === 0 && (
+                                    <p className="text-xs text-red-600">
+                                        ⚠ Este curso não possui semestres cadastrados
+                                    </p>
+                                )}
+                            </div>
+
                             {/* Image Field */}
                             <FormField
                                 control={form.control}
@@ -505,6 +665,15 @@ export default function ModalEditClass({
                     </form>
                 </Form>
             </DialogContent>
+
+            {/* Section Selector Modal */}
+            <SectionSelectorModal
+                isOpen={isSectionModalOpen}
+                onClose={() => setIsSectionModalOpen(false)}
+                availableSections={availableSections}
+                selectedSectionIds={selectedSectionIds}
+                onConfirm={handleSectionConfirm}
+            />
         </Dialog>
     );
 }
