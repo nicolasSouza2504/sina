@@ -20,4 +20,9 @@ public class DashBoardController {
         return ResponseEntity.ok().body(new ApiResponse("Sucesso!", dashBoardService.getDashBoardAdmGeneralInfo()));
     }
 
+    @GetMapping("/user/general")
+    public ResponseEntity<ApiResponse> getUserGeneralDashboard() {
+        return ResponseEntity.ok().body(new ApiResponse("Sucesso!", dashBoardService.getDashBoardUserGeneralInfo()));
+    }
+
 }
