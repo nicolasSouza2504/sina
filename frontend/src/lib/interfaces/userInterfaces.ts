@@ -49,6 +49,12 @@ export interface UserData {
             id: number;
             name: string;
         };
+        sections?: Array<{
+            id: number;
+            name: string;
+            semester: number;
+            courseId: number;
+        }>;
     }>
 }
 
