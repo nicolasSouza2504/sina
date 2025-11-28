@@ -15,5 +15,5 @@ public interface IKnowledgeTrailService {
 
     KnowledgeTrailResponseDTO updateKnowledgeTrail(KnowledgeTrailRegisterDTO knowledgeTrailRegister, Long id);
 
-    List<KnowledgeTrailResponseDTO> getAllRankedKnowledgeTrailsByCourse(Long courseId);
+    List<KnowledgeTrailResponseDTO> getAllRankedKnowledgeTrailsByClassId(Long classId);
 }

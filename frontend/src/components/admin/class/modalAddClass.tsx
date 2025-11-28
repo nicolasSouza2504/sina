@@ -18,7 +18,11 @@ import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 import CourseListService from "@/lib/api/course/courseList";
-import {GraduationCap, Hash, Calendar, Image as ImageIcon} from "lucide-react";
+import {GraduationCap, Hash, Calendar, Image as ImageIcon, ListChecks} from "lucide-react";
+import {SectionSelectorModal} from "@/components/admin/class/SectionSelectorModal";
+import {Section} from "@/lib/interfaces/sectionInterfaces";
+import {Badge} from "@/components/ui/badge";
+import {Course} from "@/lib/interfaces/courseInterfaces";
 
 interface ModalAddClassProps {
     isOpen: boolean;
@@ -78,8 +82,11 @@ export default function ModalAddClass({
                                       }: ModalAddClassProps) {
     const [creationError, setCreationError] = useState<string | null>(null);
     const [loadingCourses, setLoadingCourses] = useState(false);
-    const [courses, setCourses] = useState<{ id: number, name: string }[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
     const [generatingCode, setGeneratingCode] = useState(false);
+    const [selectedSectionIds, setSelectedSectionIds] = useState<number[]>([]);
+    const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
+    const [availableSections, setAvailableSections] = useState<Section[]>([]);
 
 
     useEffect(() => {
@@ -129,6 +136,12 @@ export default function ModalAddClass({
     const onSubmit = async (data: ClassSchemaValues) => {
         setCreationError(null); // Clear previous errors
 
+        // Validação: sections é obrigatório
+        if (selectedSectionIds.length === 0) {
+            setCreationError("Selecione pelo menos um semestre para a turma");
+            return;
+        }
+
         const classData: CreateClass = {
             code: data.code,
             name: data.name,
@@ -138,6 +151,7 @@ export default function ModalAddClass({
             semester: data.semester || null,
             courseId: data.courseId || null,
             imgClass: data.imgClass === "none" ? null : data.imgClass || null,
+            sections: selectedSectionIds,
         };
 
         try {
@@ -174,6 +188,8 @@ export default function ModalAddClass({
             courseId: undefined,
             imgClass: null,
         });
+        setSelectedSectionIds([]);
+        setAvailableSections([]);
         setCreationError(null);
     };
 
@@ -198,7 +214,45 @@ export default function ModalAddClass({
         form.setValue("code", randomCode, { shouldValidate: true });
     }
 
+    const handleOpenSectionModal = () => {
+        const courseId = form.getValues("courseId");
+        if (!courseId) {
+            setCreationError("Selecione um curso antes de escolher os semestres");
+            return;
+        }
+
+        const selectedCourse = courses.find(c => c.id === courseId);
+        if (selectedCourse && selectedCourse.sections) {
+            setAvailableSections(selectedCourse.sections);
+            setIsSectionModalOpen(true);
+        } else {
+            setCreationError("Este curso não possui semestres cadastrados");
+        }
+    }
+
+    const handleSectionConfirm = (sectionIds: number[]) => {
+        console.log('[ModalAddClass] Sections selecionadas:', sectionIds);
+        setSelectedSectionIds(sectionIds);
+    }
+
+    const handleRemoveSection = (sectionId: number) => {
+        setSelectedSectionIds(prev => prev.filter(id => id !== sectionId));
+    }
+
+    const getSelectedSectionsDetails = () => {
+        return availableSections.filter(section => selectedSectionIds.includes(section.id));
+    }
+
     const watchedImage = form.watch("imgClass");
+    const watchedCourseId = form.watch("courseId");
+
+    // Limpa sections quando o curso muda
+    useEffect(() => {
+        if (watchedCourseId) {
+            setSelectedSectionIds([]);
+            setAvailableSections([]);
+        }
+    }, [watchedCourseId]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -350,6 +404,51 @@ export default function ModalAddClass({
                                 )}
                             />
 
+                            {/* Sections Field */}
+                            <div className="space-y-3">
+                                <Label className="text-sm font-semibold text-gray-700">
+                                    Semestres Ativos <span className="text-red-500">*</span>
+                                </Label>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleOpenSectionModal}
+                                    disabled={!watchedCourseId}
+                                    className="w-full h-12 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 rounded-xl flex items-center justify-center gap-2"
+                                >
+                                    <ListChecks className="h-4 w-4" />
+                                    {selectedSectionIds.length > 0
+                                        ? `${selectedSectionIds.length} semestre(s) selecionado(s)`
+                                        : "Selecionar Semestres"}
+                                </Button>
+
+                                {selectedSectionIds.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                                        {getSelectedSectionsDetails().map((section) => (
+                                            <Badge
+                                                key={section.id}
+                                                className="bg-blue-100 text-blue-700 border-blue-300 px-3 py-1 flex items-center gap-2"
+                                            >
+                                                {section.name}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveSection(section.id)}
+                                                    className="hover:text-blue-900"
+                                                >
+                                                    ×
+                                                </button>
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {!watchedCourseId && (
+                                    <p className="text-xs text-gray-500">
+                                        Selecione um curso primeiro para escolher os semestres
+                                    </p>
+                                )}
+                            </div>
+
                             {/* Date Fields */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <FormField
@@ -474,6 +573,15 @@ export default function ModalAddClass({
                     </form>
                 </Form>
             </DialogContent>
+
+            {/* Section Selector Modal */}
+            <SectionSelectorModal
+                isOpen={isSectionModalOpen}
+                onClose={() => setIsSectionModalOpen(false)}
+                availableSections={availableSections}
+                selectedSectionIds={selectedSectionIds}
+                onConfirm={handleSectionConfirm}
+            />
         </Dialog>
     );
 }

@@ -39,17 +39,17 @@ function AlunoEADContent() {
       try {
         setIsLoadingUserData(true)
         setError(null)
-        
+
         // 1. Busca ID do usuário do token
         const userFromToken = await getUserFromToken()
         if (!userFromToken?.id) {
           throw new Error('Usuário não encontrado no token')
         }
-        
+
         // 2. Busca dados completos do usuário via API
         const user = await GetUserByIdService(userFromToken.id)
         setUserData(user)
-        
+
         // 3. Extrai turmas únicas do usuário
         if (user.classes && user.classes.length > 0) {
           const uniqueClasses = user.classes
@@ -60,7 +60,7 @@ function AlunoEADContent() {
               code: classItem.code
             }))
           setAvailableClasses(uniqueClasses)
-          
+
           // Recupera a turma salva no sessionStorage ou seleciona a primeira
           const savedClassId = sessionStorage.getItem('aluno_selected_class_id')
           if (savedClassId && uniqueClasses.some(c => c.id.toString() === savedClassId)) {
@@ -86,10 +86,10 @@ function AlunoEADContent() {
         setIsLoadingUserData(false)
       }
     }
-    
+
     loadUserData()
   }, [])
-  
+
   // useEffect para carregar trilhas rankeadas quando turma for selecionada
   useEffect(() => {
     const loadRankedTrails = async () => {
@@ -97,11 +97,11 @@ function AlunoEADContent() {
         setRankedTrails([])
         return
       }
-      
+
       try {
         setIsLoadingTrails(true)
         setError(null)
-        
+
         const trails = await GetRankedKnowledgeTrailsService(parseInt(selectedClassId))
         setRankedTrails(trails)
       } catch (error) {
@@ -113,27 +113,27 @@ function AlunoEADContent() {
         setIsLoadingTrails(false)
       }
     }
-    
+
     loadRankedTrails()
   }, [selectedClassId])
-  
+
   // Salva a turma selecionada no sessionStorage sempre que mudar
   useEffect(() => {
     if (selectedClassId) {
       sessionStorage.setItem('aluno_selected_class_id', selectedClassId)
     }
   }, [selectedClassId])
-  
+
   // Handler para acessar uma atividade
   const handleEnterActivity = (activityId: number, activityName: string) => {
     router.push(`/aluno/material/${activityId}`)
   }
-  
+
   // Handler para mudança de turma
   const handleClassChange = (classId: string) => {
     setSelectedClassId(classId)
   }
-  
+
   // Se está carregando dados do usuário
   if (isLoadingUserData) {
     return (
@@ -145,7 +145,7 @@ function AlunoEADContent() {
       </div>
     )
   }
-  
+
   // Se usuário não tem turmas vinculadas
   if (!userData || availableClasses.length === 0) {
     return (
@@ -168,12 +168,12 @@ function AlunoEADContent() {
               <p className="text-blue-100">Trilhas rankeadas das suas turmas</p>
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center justify-center py-16">
             <GraduationCap className="h-24 w-24 text-gray-300 mb-4" />
             <h2 className="text-2xl font-semibold text-gray-700 mb-2">Nenhuma turma encontrada</h2>
             <p className="text-gray-500 text-center max-w-md">
-              Você ainda não está vinculado a nenhuma turma. 
+              Você ainda não está vinculado a nenhuma turma.
               Entre em contato com o administrador para ser adicionado a uma turma.
             </p>
           </div>
@@ -232,8 +232,8 @@ function AlunoEADContent() {
                 </SelectTrigger>
                 <SelectContent className="bg-white border-gray-200">
                   {availableClasses.map((classItem) => (
-                    <SelectItem 
-                      key={classItem.id} 
+                    <SelectItem
+                      key={classItem.id}
                       value={classItem.id.toString()}
                       className="text-gray-900 focus:bg-blue-50"
                     >
@@ -303,9 +303,9 @@ function AlunoEADContent() {
           <div className="space-y-4">
             <Accordion type="multiple" className="space-y-4">
               {rankedTrails.map((trail) => (
-                <AccordionItem 
-                  key={trail.id} 
-                  value={`trail-${trail.id}`} 
+                <AccordionItem
+                  key={trail.id}
+                  value={`trail-${trail.id}`}
                   className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-blue-300 transition-all"
                 >
                   <AccordionTrigger className="px-6 py-4 bg-white hover:bg-gray-50 transition-colors hover:no-underline">

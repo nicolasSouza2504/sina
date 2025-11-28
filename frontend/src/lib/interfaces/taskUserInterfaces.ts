@@ -13,11 +13,6 @@ export interface TaskUserResponseDTO {
   taskId: number;
 }
 
-export interface TaskUserRegister {
-  userId: number;
-  taskId: number;
-}
-
 // UserResponseDTO do backend (teacher no feedback)
 export interface FeedbackTeacher {
   id: number;

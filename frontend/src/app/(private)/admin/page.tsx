@@ -28,8 +28,9 @@ import {
     Loader2,
     BookOpen,
     RefreshCcw,
+    Trophy,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import QuickActions from "@/components/admin/quickActions";
 import { Class } from "@/lib/interfaces/classInterfaces";
@@ -43,10 +44,17 @@ import GetRankedKnowledgeTrailsService from "@/lib/api/class/getRankedKnowledgeT
 import { toast } from "sonner";
 import RankedActivitiesModal from "@/components/admin/RankedActivitiesModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MobileScrollButtons } from "@/components/ui/mobile-scroll-buttons";
+import { GetDashboardAdmGeneralInfoService } from "@/lib/api/dashboard";
+import { DashboardAdmGeneralInfo } from "@/lib/interfaces/dashboardInterfaces";
 
 
 
 export default function DashboardAdmin() {
+
+    // Estados para dados do dashboard
+    const [dashboardData, setDashboardData] = useState<DashboardAdmGeneralInfo | null>(null);
+    const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
 
     // Estados para integração com API
     const [classes, setClasses] = useState<Class[]>([]);
@@ -69,11 +77,31 @@ export default function DashboardAdmin() {
     const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
     const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
 
-    // Carrega turmas e professores ao montar o componente
+    // Refs para os containers de scroll
+    const rankedTrailsRef = useRef<HTMLDivElement>(null);
+    const teachersRef = useRef<HTMLDivElement>(null);
+
+    // Carrega turmas, professores e dados do dashboard ao montar o componente
     useEffect(() => {
         loadClasses();
         loadTeachers();
+        loadDashboardData();
     }, []);
+
+    // Função para carregar dados do dashboard
+    const loadDashboardData = async () => {
+        setIsLoadingDashboard(true);
+        try {
+            const data = await GetDashboardAdmGeneralInfoService();
+            setDashboardData(data);
+            console.log('[DashboardAdmin] Dados carregados:', data);
+        } catch (error) {
+            console.error('Erro ao carregar dados do dashboard:', error);
+            toast.error('Erro ao carregar estatísticas gerais');
+        } finally {
+            setIsLoadingDashboard(false);
+        }
+    };
 
     // Atualiza dados da turma e carrega conteúdo do curso
     useEffect(() => {
@@ -201,20 +229,30 @@ export default function DashboardAdmin() {
             {/* Conteúdo Principal */}
             <main className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Cards de Estatísticas */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
                     <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-semibold text-gray-700">
                                 Alunos Ativos
                             </CardTitle>
                             <div className="p-2 bg-blue-50 rounded-lg">
-                                <Users className="h-5 w-5 text-blue-600" />
+                                {isLoadingDashboard ? (
+                                    <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                                ) : (
+                                    <Users className="h-5 w-5 text-blue-600" />
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">2.847</div>
+                            <div className="text-3xl font-bold text-gray-900">
+                                {isLoadingDashboard ? (
+                                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+                                ) : (
+                                    dashboardData?.totalActiveUsers.toLocaleString('pt-BR') || '0'
+                                )}
+                            </div>
                             <p className="text-xs text-gray-600 mt-1">
-                                <span className="text-green-600 font-semibold">+15%</span> a mais que o último semestre
+                                <span className="text-green-600 font-semibold">Ativos</span> na plataforma
                             </p>
                         </CardContent>
                     </Card>
@@ -223,13 +261,23 @@ export default function DashboardAdmin() {
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-semibold text-gray-700">Cursos</CardTitle>
                             <div className="p-2 bg-purple-50 rounded-lg">
-                                <Code className="h-5 w-5 text-purple-600" />
+                                {isLoadingDashboard ? (
+                                    <Loader2 className="h-5 w-5 text-purple-600 animate-spin" />
+                                ) : (
+                                    <Code className="h-5 w-5 text-purple-600" />
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">24</div>
+                            <div className="text-3xl font-bold text-gray-900">
+                                {isLoadingDashboard ? (
+                                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+                                ) : (
+                                    dashboardData?.totalCourses || '0'
+                                )}
+                            </div>
                             <p className="text-xs text-gray-600 mt-1">
-                                <span className="text-blue-600 font-semibold">5</span> ativos este semestre
+                                <span className="text-blue-600 font-semibold">Cursos</span> cadastrados
                             </p>
                         </CardContent>
                     </Card>
@@ -237,31 +285,76 @@ export default function DashboardAdmin() {
                     <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-semibold text-gray-700">
-                                Professores de Tecnologia
+                                Professores
                             </CardTitle>
                             <div className="p-2 bg-green-50 rounded-lg">
-                                <GraduationCap className="h-5 w-5 text-green-600" />
+                                {isLoadingDashboard ? (
+                                    <Loader2 className="h-5 w-5 text-green-600 animate-spin" />
+                                ) : (
+                                    <GraduationCap className="h-5 w-5 text-green-600" />
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">67</div>
+                            <div className="text-3xl font-bold text-gray-900">
+                                {isLoadingDashboard ? (
+                                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+                                ) : (
+                                    dashboardData?.totalTeachers || '0'
+                                )}
+                            </div>
                             <p className="text-xs text-gray-600 mt-1">
-                                <span className="text-green-600 font-semibold">89%</span> taxa de ocupação
+                                <span className="text-green-600 font-semibold">Docentes</span> ativos
                             </p>
                         </CardContent>
                     </Card>
 
                     <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-semibold text-gray-700">EADs Ativos</CardTitle>
+                            <CardTitle className="text-sm font-semibold text-gray-700">Total de Tarefas</CardTitle>
                             <div className="p-2 bg-amber-50 rounded-lg">
-                                <Monitor className="h-5 w-5 text-amber-600" />
+                                {isLoadingDashboard ? (
+                                    <Loader2 className="h-5 w-5 text-amber-600 animate-spin" />
+                                ) : (
+                                    <Monitor className="h-5 w-5 text-amber-600" />
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">156</div>
+                            <div className="text-3xl font-bold text-gray-900">
+                                {isLoadingDashboard ? (
+                                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+                                ) : (
+                                    dashboardData?.totalTasks || '0'
+                                )}
+                            </div>
                             <p className="text-xs text-gray-600 mt-1">
-                                <span className="text-green-600 font-semibold">89%</span> taxa de conclusão
+                                <span className="text-gray-600 font-semibold">Todas</span> as tarefas
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-semibold text-gray-700">Tarefas Ranqueadas</CardTitle>
+                            <div className="p-2 bg-orange-50 rounded-lg">
+                                {isLoadingDashboard ? (
+                                    <Loader2 className="h-5 w-5 text-orange-600 animate-spin" />
+                                ) : (
+                                    <Trophy className="h-5 w-5 text-orange-600" />
+                                )}
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold text-gray-900">
+                                {isLoadingDashboard ? (
+                                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+                                ) : (
+                                    dashboardData?.totalRankedTasks || '0'
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1">
+                                <span className="text-orange-600 font-semibold">Com pontuação</span> ativa
                             </p>
                         </CardContent>
                     </Card>
@@ -363,8 +456,12 @@ export default function DashboardAdmin() {
                                     </p>
                                 </div>
                             ) : (
-                                <div className={`${rankedTrails.length > 5 ? 'max-h-[400px] overflow-y-auto' : ''} space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400`}>
-                                    {rankedTrails.map((trail) => (
+                                <>
+                                    <div 
+                                        ref={rankedTrailsRef}
+                                        className={`${rankedTrails.length > 5 ? 'max-h-[400px] overflow-y-auto' : ''} space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400`}
+                                    >
+                                        {rankedTrails.map((trail) => (
                                         <div
                                             key={trail.id}
                                             onClick={() => handleOpenRankedModal(trail)}
@@ -384,8 +481,14 @@ export default function DashboardAdmin() {
                                                 </Badge>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
+                                    <MobileScrollButtons 
+                                        containerRef={rankedTrailsRef}
+                                        itemCount={rankedTrails.length}
+                                        threshold={5}
+                                    />
+                                </>
                             )}
                         </CardContent>
                     </Card>
@@ -424,8 +527,12 @@ export default function DashboardAdmin() {
                                     <p className="text-sm text-gray-600">Nenhum professor encontrado</p>
                                 </div>
                             ) : (
-                                <div className="max-h-100 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
-                                    {teachers.map((professor) => (
+                                <>
+                                    <div 
+                                        ref={teachersRef}
+                                        className={`${teachers.length > 5 ? 'max-h-[400px] overflow-y-auto' : ''} space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400`}
+                                    >
+                                        {teachers.map((professor) => (
                                         <div
                                             key={professor.id}
                                             className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 hover:bg-green-50 border border-gray-200 hover:border-green-300 rounded-lg transition-all group"
@@ -459,8 +566,14 @@ export default function DashboardAdmin() {
                                                 </div>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
+                                    <MobileScrollButtons 
+                                        containerRef={teachersRef}
+                                        itemCount={teachers.length}
+                                        threshold={5}
+                                    />
+                                </>
                             )}
                         </CardContent>
                     </Card>

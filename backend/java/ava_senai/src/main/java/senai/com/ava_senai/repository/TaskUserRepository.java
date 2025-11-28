@@ -14,12 +14,14 @@ public interface TaskUserRepository extends JpaRepository<TaskUser, Long> {
     @Query(
         " SELECT DISTINCT tks FROM TaskUser tks " +
         " JOIN FETCH tks.user u " +
+        " JOIN FETCH u.role r " +
         " JOIN u.userClasses uc " +
         " JOIN FETCH tks.task t " +
         " JOIN FETCH t.knowledgeTrail kt " +
         " LEFT JOIN FETCH tks.userResponse urs " +
         " LEFT JOIN FETCH urs.feedback fb " +
         " WHERE uc.classId = :classId " +
-        " AND kt.id = :knowledgeTrailId ")
+        " AND kt.id = :knowledgeTrailId " +
+        " AND r.name = 'STUDENT' ")
     List<TaskUser> findTaskUsersForRanking(Long classId, Long knowledgeTrailId);
 }

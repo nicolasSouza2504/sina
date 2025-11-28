@@ -1,10 +1,13 @@
 package senai.com.ava_senai.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import senai.com.ava_senai.domain.task.taskuser.TaskUserRegister;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.task.ITaskUserService;
 
@@ -20,12 +23,5 @@ public class UserTaskController {
             @PathVariable @Valid Long taskId) throws Exception {
         return ResponseEntity.ok()
                 .body(new ApiResponse("Sucesso!", taskUserService.getUserTaskByUserAndTaskId(userId, taskId)));
-    }
-
-    @PostMapping("")
-    public ResponseEntity<ApiResponse> createUserTask(@RequestBody @Valid TaskUserRegister userTaskRequest)
-            throws Exception {
-        return ResponseEntity.ok()
-                .body(new ApiResponse("Sucesso!", taskUserService.saveTaskUser(userTaskRequest)));
     }
 }
