@@ -17,7 +17,7 @@ import { UserData } from '@/lib/interfaces/userInterfaces';
 import GetUserByIdService from '@/lib/api/user/getUserById';
 import ClassList from '@/lib/api/class/classList';
 import CourseListService from '@/lib/api/course/courseList';
-import GetRankedKnowledgeTrailsByCourseService, { KnowledgeTrailResponse } from '@/lib/api/knowledgetrail/getRankedKnowledgeTrailsByCourse';
+import GetRankedKnowledgeTrailsByClassService, { KnowledgeTrailResponse } from '@/lib/api/knowledgetrail/getRankedKnowledgeTrailsByClass';
 import GetRankingByClassService from '@/lib/api/ranking/getRankingByClass';
 import { RankingResponseDTO, StudentRankingDTO } from '@/lib/interfaces/rankingInterfaces';
 import { toast } from 'sonner';
@@ -96,10 +96,11 @@ export default function RankingPage() {
     }
   };
 
-  const loadKnowledgeTrails = async (courseId: number) => {
+  const loadKnowledgeTrails = async (classId: number) => {
     try {
       setIsLoadingTrails(true);
-      const trailsData = await GetRankedKnowledgeTrailsByCourseService(courseId);
+      console.log('[Ranking] Buscando trilhas ranqueadas para turma:', classId);
+      const trailsData = await GetRankedKnowledgeTrailsByClassService(classId);
       setKnowledgeTrails(trailsData);
       console.log('[Ranking] Trilhas carregadas:', trailsData);
     } catch (err) {
@@ -212,11 +213,9 @@ export default function RankingPage() {
     setIsTrailDisabled(false);
     setKnowledgeTrails([]);
 
-    // Carrega trilhas do curso selecionado
-    if (selectedCourseId) {
-      console.log('[Ranking] Carregando trilhas do curso:', selectedCourseId);
-      loadKnowledgeTrails(parseInt(selectedCourseId));
-    }
+    // Carrega trilhas ranqueadas da turma selecionada
+    console.log('[Ranking] Carregando trilhas ranqueadas da turma:', classId);
+    loadKnowledgeTrails(parseInt(classId));
 
     console.log('[Ranking] Estados após seleção de turma:', {
       selectedCourseId,
