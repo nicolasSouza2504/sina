@@ -210,18 +210,18 @@ export default function DashboardAdmin() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
             {/* Cabeçalho */}
             <header className="border-b bg-white">
-                <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 gap-3">
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">
                             Universidade Tecnológica - Admin
                         </h1>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 truncate">
                             Gestão de Tecnologia e Ciência da Computação
                         </p>
                     </div>
-                    <Avatar>
+                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
                         <AvatarImage src="/admin-avatar.png" />
-                        <AvatarFallback>AD</AvatarFallback>
+                        <AvatarFallback className="text-sm sm:text-base">AD</AvatarFallback>
                     </Avatar>
                 </div>
             </header>

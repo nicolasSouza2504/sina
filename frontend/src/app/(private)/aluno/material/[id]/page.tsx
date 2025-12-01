@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +24,7 @@ export default function AlunoMaterialPage() {
   const params = useParams()
   const router = useRouter()
   const taskId = (params?.id as string) || ''
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   // Estados
   const [task, setTask] = useState<TaskSummary | null>(null)
@@ -368,14 +370,50 @@ export default function AlunoMaterialPage() {
                             </Badge>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewContent(content)}
-                          className="flex-shrink-0 hover:bg-purple-100"
-                        >
-                          <Eye className="h-4 w-4 text-purple-600" />
-                        </Button>
+                        
+                        {/* Em mobile, apenas LINK mostra botão visualizar */}
+                        {/* Em desktop, todos os tipos mostram visualizar */}
+                        {(!isMobile || content.contentType === 'LINK') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewContent(content)}
+                            className="flex-shrink-0 hover:bg-purple-100"
+                            title="Visualizar conteúdo"
+                          >
+                            <Eye className="h-4 w-4 text-purple-600" />
+                          </Button>
+                        )}
+
+                        {/* Botão de download para tipos não-LINK em mobile */}
+                        {isMobile && content.contentType !== 'LINK' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(`/api/task-content/download?url=${encodeURIComponent(content.contentUrl)}`);
+                                if (!response.ok) throw new Error('Erro ao baixar');
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = content.name || 'download';
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                              } catch (error) {
+                                console.error('Erro ao baixar:', error);
+                                window.open(content.contentUrl, '_blank');
+                              }
+                            }}
+                            className="flex-shrink-0 hover:bg-blue-100"
+                            title="Baixar conteúdo"
+                          >
+                            <Download className="h-4 w-4 text-blue-600" />
+                          </Button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -580,15 +618,51 @@ export default function AlunoMaterialPage() {
                             </div>
                           </div>
                           
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleViewSubmittedContent(content)}
-                            className="flex-shrink-0 h-8 px-3 hover:bg-blue-100 group-hover:bg-blue-100"
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            Ver
-                          </Button>
+                          {/* Em mobile, apenas LINK mostra botão visualizar */}
+                          {/* Em desktop, todos os tipos mostram visualizar */}
+                          {(!isMobile || content.taskContentType === 'LINK') && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleViewSubmittedContent(content)}
+                              className="flex-shrink-0 h-8 px-3 hover:bg-blue-100 group-hover:bg-blue-100"
+                              title="Visualizar arquivo"
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              Ver
+                            </Button>
+                          )}
+
+                          {/* Botão de download para tipos não-LINK em mobile */}
+                          {isMobile && content.taskContentType !== 'LINK' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch(`/api/user-response-content/download?url=${encodeURIComponent(content.url)}`);
+                                  if (!response.ok) throw new Error('Erro ao baixar');
+                                  const blob = await response.blob();
+                                  const url = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = content.name || 'download';
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  window.URL.revokeObjectURL(url);
+                                  document.body.removeChild(a);
+                                } catch (error) {
+                                  console.error('Erro ao baixar:', error);
+                                  window.open(content.url, '_blank');
+                                }
+                              }}
+                              className="flex-shrink-0 h-8 px-3 hover:bg-blue-100 group-hover:bg-blue-100"
+                              title="Baixar arquivo"
+                            >
+                              <Download className="w-4 h-4 mr-1" />
+                              Baixar
+                            </Button>
+                          )}
                         </div>
                       ))}
                     </div>

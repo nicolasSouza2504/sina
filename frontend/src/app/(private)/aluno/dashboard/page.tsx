@@ -104,19 +104,19 @@ export default function AlunoDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Cabeçalho */}
       <header className="border-b bg-white">
-        <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+        <div className="p-4 sm:px-6 space-y-3 sm:space-y-0 sm:h-16 sm:flex sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
               Dashboard do Aluno
             </h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
               Acompanhe suas atividades e progresso
             </p>
           </div>
           <Button
             onClick={refreshAllData}
             variant="outline"
-            className="h-10 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
+            className="w-full sm:w-auto h-10 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl flex-shrink-0"
             disabled={isLoading || isLoadingUser}
           >
             <RefreshCcw className={`h-4 w-4 mr-2 ${(isLoading || isLoadingUser) ? 'animate-spin' : ''}`} />

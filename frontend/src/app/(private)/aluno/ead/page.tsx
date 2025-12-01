@@ -308,51 +308,66 @@ function AlunoEADContent() {
                   value={`trail-${trail.id}`}
                   className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-blue-300 transition-all"
                 >
-                  <AccordionTrigger className="px-6 py-4 bg-white hover:bg-gray-50 transition-colors hover:no-underline">
-                    <div className="flex items-center justify-between w-full mr-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-yellow-50 rounded-lg border border-yellow-200">
-                          <Trophy className="h-5 w-5 text-yellow-600" />
-                        </div>
-                        <div className="text-left">
-                          <h3 className="text-xl font-bold text-gray-900 hover:no-underline">{trail.name}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge className="bg-yellow-500 text-white">
-                              <Trophy className="h-3 w-3 mr-1" />
-                              Rankeada
-                            </Badge>
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                              {trail.tasks.length} {trail.tasks.length === 1 ? 'atividade' : 'atividades'}
-                            </Badge>
-                          </div>
+                  <AccordionTrigger className="px-3 sm:px-6 py-3 sm:py-4 bg-white hover:bg-gray-50 transition-colors hover:no-underline">
+                    <div className="flex items-start sm:items-center gap-3 w-full pr-2">
+                      <div className="p-1.5 sm:p-2 bg-yellow-50 rounded-lg border border-yellow-200 flex-shrink-0">
+                        <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <h3 className="text-base sm:text-xl font-bold text-gray-900 hover:no-underline truncate">{trail.name}</h3>
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-1">
+                          <Badge className="bg-yellow-500 text-white text-xs">
+                            <Trophy className="h-3 w-3 mr-1" />
+                            Rankeada
+                          </Badge>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                            {trail.tasks.length} {trail.tasks.length === 1 ? 'atividade' : 'atividades'}
+                          </Badge>
                         </div>
                       </div>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-6 pb-4 bg-white">
+                  <AccordionContent className="px-3 sm:px-6 pb-3 sm:pb-4 bg-white">
                     {/* Lista de atividades da trilha */}
                     {trail.tasks && trail.tasks.length > 0 ? (
-                      <div className="space-y-2 pt-2">
+                      <div className="space-y-2 sm:space-y-2 pt-2">
                         {trail.tasks.map((task) => (
                           <button
                             key={task.id}
                             onClick={() => handleEnterActivity(task.id, task.name)}
-                            className="w-full flex items-center justify-between p-3 sm:p-4 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group"
+                            className="w-full flex items-start sm:items-center justify-between p-2.5 sm:p-4 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group"
                           >
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <div className="p-2 bg-white rounded-lg border border-gray-200 group-hover:border-blue-300 transition-colors flex-shrink-0">
-                                <BookOpen className="h-4 w-4 text-blue-600" />
+                            <div className="flex items-start sm:items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                              <div className="p-1.5 sm:p-2 bg-white rounded-lg border border-gray-200 group-hover:border-blue-300 transition-colors flex-shrink-0">
+                                <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
                               </div>
                               <div className="flex-1 min-w-0 text-left">
-                                <p className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors truncate">
+                                <p className="font-medium text-sm sm:text-base text-gray-900 group-hover:text-blue-700 transition-colors truncate">
                                   {task.name}
                                 </p>
                                 {task.description && (
-                                  <p className="text-sm text-gray-600 truncate">
+                                  <p className="text-xs sm:text-sm text-gray-600 truncate mt-0.5">
                                     {task.description}
                                   </p>
                                 )}
-                                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                {/* Mobile: Informações empilhadas */}
+                                <div className="flex flex-col sm:hidden gap-1 mt-1.5">
+                                  <span className="flex items-center gap-1 text-xs text-gray-500">
+                                    <BookOpen className="w-3 h-3 flex-shrink-0" />
+                                    <span className="truncate">Início: {new Date(task.startDate).toLocaleDateString('pt-BR')}</span>
+                                  </span>
+                                  <span className="flex items-center gap-1 text-xs text-gray-500">
+                                    <Users className="w-3 h-3 flex-shrink-0" />
+                                    <span>{task.quantitySubmissions} envios</span>
+                                  </span>
+                                  {task.lastSubmission && (
+                                    <span className="flex items-center gap-1 text-xs text-gray-500">
+                                      <span className="truncate">Último: {new Date(task.lastSubmission).toLocaleDateString('pt-BR')}</span>
+                                    </span>
+                                  )}
+                                </div>
+                                {/* Desktop: Informações em linha */}
+                                <div className="hidden sm:flex items-center gap-3 mt-1 text-xs text-gray-500">
                                   <span className="flex items-center gap-1">
                                     <BookOpen className="w-3 h-3" />
                                     Início: {new Date(task.startDate).toLocaleDateString('pt-BR')}
@@ -369,7 +384,7 @@ function AlunoEADContent() {
                                 </div>
                               </div>
                             </div>
-                            <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0" />
+                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0 mt-1 sm:mt-0" />
                           </button>
                         ))}
                       </div>
