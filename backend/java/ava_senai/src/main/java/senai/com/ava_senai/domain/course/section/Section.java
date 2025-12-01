@@ -8,7 +8,6 @@ import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.course.Course;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 
-import java.util.List;
 import java.util.Set;
 
 @Data

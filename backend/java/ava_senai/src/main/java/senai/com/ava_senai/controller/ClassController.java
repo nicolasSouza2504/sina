@@ -96,11 +96,11 @@ public class ClassController {
 
     }
 
-    @GetMapping("/{classId}/class-summary")
+    @GetMapping("/{classId}/class-assessment")
     public ResponseEntity<ApiResponse> getTurmaSummaryById(@PathVariable Long classId) {
 
         try {
-            return ResponseEntity.ok().body(new ApiResponse("Sucesso", classService.getTurmaSummaryById(classId)));
+            return ResponseEntity.ok().body(new ApiResponse("Sucesso", classService.getClassAssessment(classId)));
         } catch (NotFoundException e) {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }
@@ -116,6 +116,11 @@ public class ClassController {
             return ResponseEntity.status(404).body(new ApiResponse(e.getMessage(), null));
         }
 
+    }
+
+    @GetMapping("/{classId}/ranked-knowledge-trails")
+    public ResponseEntity<ApiResponse> getRankedKnowledgeTrails(@PathVariable Long classId) {
+        return ResponseEntity.ok().body(new ApiResponse("Sucesso", classService.getRankedKnowledgeTrails(classId)));
     }
 
 }

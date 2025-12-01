@@ -15,7 +15,6 @@ import senai.com.ava_senai.repository.FeedbackRepository;
 import senai.com.ava_senai.repository.KnowledgeTrailRepository;
 import senai.com.ava_senai.repository.UserRepository;
 import senai.com.ava_senai.repository.UserResponseRepository;
-import senai.com.ava_senai.services.task.UserResponseService;
 
 import java.util.Optional;
 

@@ -14,8 +14,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.handler.requesthandler.security.user.AuthyUserDetailsService;
+import senai.com.ava_senai.response.ApiResponse;
 
 import java.io.IOException;
 

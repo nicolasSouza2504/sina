@@ -6,13 +6,17 @@ import { GeistMono } from "geist/font/mono";
 import "@/app/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
+import { systemName, systemAbreviation } from "@/lib/systemName";
 
 export const metadata: Metadata = {
-  title: "Ava UniSenai",
-  description: "Ava UniSenai",
-  generator: "Ava UniSenai",
+    title: `${systemAbreviation} - ${systemName}`,
+    description: systemName,
+    generator: systemAbreviation,
+    icons: {
+    icon: "/favicon.ico",
+    shortcut: "/img/logo-senai.png",
+  },
 };
-
 export default function RootLayout({
   children,
 }: {

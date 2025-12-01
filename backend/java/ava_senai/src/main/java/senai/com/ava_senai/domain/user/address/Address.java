@@ -1,6 +1,7 @@
 package senai.com.ava_senai.domain.user.address;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import senai.com.ava_senai.domain.DefaultEntity;
 

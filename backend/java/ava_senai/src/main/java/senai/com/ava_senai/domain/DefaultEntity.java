@@ -1,7 +1,6 @@
 package senai.com.ava_senai.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.security.core.Authentication;

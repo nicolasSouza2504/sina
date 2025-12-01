@@ -241,7 +241,7 @@ export default function StudentsManagement() {
     }
 
   return (
-        <div className="min-h-screen bg-background w-full">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 w-full">
             {error && (
                 <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 md:w-1/2 lg:w-1/3">
                     <Alert

@@ -1,10 +1,12 @@
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
+import { systemName, systemAbreviation } from "@/lib/systemName";
 
 export const metadata: Metadata = {
-  title: "Ava UniSenai - Admin",
-  description: "Ava UniSenai Admin",
-  generator: "Ava UniSenai",
-  icons: {
+    title: `${systemAbreviation} - ${systemName}`,
+    description: systemName,
+    generator: systemAbreviation,
+    icons: {
     icon: "/favicon.ico",
     shortcut: "/img/logo-senai.png",
   },
@@ -12,7 +14,7 @@ export const metadata: Metadata = {
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="w-full">

@@ -9,7 +9,6 @@ import senai.com.ava_senai.domain.course.section.SectionRegisterDTO;
 import senai.com.ava_senai.domain.course.section.SectionResponseDTO;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
-import senai.com.ava_senai.exception.UserNotFoundException;
 import senai.com.ava_senai.exception.Validation;
 import senai.com.ava_senai.response.ApiResponse;
 import senai.com.ava_senai.services.section.ISectionService;

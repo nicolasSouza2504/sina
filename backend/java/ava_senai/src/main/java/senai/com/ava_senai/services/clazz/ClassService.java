@@ -1,7 +1,6 @@
 package senai.com.ava_senai.services.clazz;
 
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -9,19 +8,22 @@ import org.springframework.util.StringUtils;
 import senai.com.ava_senai.domain.course.clazz.Class;
 import senai.com.ava_senai.domain.course.clazz.ClassRegisterDTO;
 import senai.com.ava_senai.domain.course.clazz.ClassResponseDTO;
+import senai.com.ava_senai.domain.course.clazz.classassessment.ClassAssessmentResponseDTO;
+import senai.com.ava_senai.domain.course.clazz.sectionclass.SectionClass;
+import senai.com.ava_senai.domain.course.section.Section;
+import senai.com.ava_senai.domain.task.rankedtask.RankedKnowledgeTrail;
+import senai.com.ava_senai.domain.task.rankedtask.RankedTask;
+import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.exception.AlreadyExistsException;
 import senai.com.ava_senai.exception.NotFoundException;
 import senai.com.ava_senai.exception.NullListException;
 import senai.com.ava_senai.exception.Validation;
-import senai.com.ava_senai.repository.ClassRepository;
-import senai.com.ava_senai.repository.CourseRepository;
-import senai.com.ava_senai.repository.UserClassRepository;
-import senai.com.ava_senai.repository.UserResponseRepository;
-import senai.com.ava_senai.domain.course.clazz.ClassResponseSummaryDTO;
-import senai.com.ava_senai.domain.task.userresponse.UserResponse;
+import senai.com.ava_senai.mapper.ClassAssessmentMapper;
+import senai.com.ava_senai.repository.*;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -33,7 +35,11 @@ public class ClassService implements IClassService {
 
     private final UserClassRepository userClassRepository;
     private final CourseRepository courseRepository;
-    private final UserResponseRepository userResponseRepository;
+    private final ClassAssessmentMapper classAssessmentMapper;
+    private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
+    private final SectionClassRepository sectionClassRepository;
+    private final SectionRepository sectionRepository;
 
     @Override
     public ClassResponseDTO createClass(ClassRegisterDTO classRegisterDTO) {
@@ -48,9 +54,31 @@ public class ClassService implements IClassService {
 
                     clazz = classRepository.save(clazz);
 
+                    createSections(clazz, classRegisterDTO);
+
                     return new ClassResponseDTO(clazz);
 
                 }).orElseThrow(() -> new AlreadyExistsException("Turma ja Existente"));
+
+    }
+
+    @Transactional
+    public void createSections(Class clazz, ClassRegisterDTO classRegisterDTO) {
+
+        List<SectionClass> newSectionClasses = new ArrayList<>();
+
+        classRegisterDTO.sections().forEach(sectionId -> {
+
+            Section section = sectionRepository.findById(sectionId).orElse(null);
+            SectionClass sectionClass = new SectionClass(section, clazz);
+
+            sectionClassRepository.save(sectionClass);
+
+            newSectionClasses.add(sectionClass);
+
+        });
+
+        clazz.setSectionClasses(newSectionClasses);
 
     }
 
@@ -92,30 +120,59 @@ public class ClassService implements IClassService {
     }
 
     @Override
-    public ClassResponseSummaryDTO getTurmaSummaryById(Long turmaId) {
+    public ClassAssessmentResponseDTO getClassAssessment(Long turmaId) {
 
         return Optional.of(turmaId)
                 .filter(turma -> classRepository.existsById(turmaId))
                 .map(turma -> {
-                    Class clazz = classRepository.getReferenceById(turmaId);
-                    
-                    // Busca todos os TaskUser IDs dos alunos da turma
-                    List<Long> taskUserIds = clazz.getUserClasses().stream()
-                            .filter(userClass -> userClass.getUser() != null && userClass.getUser().getTaskUsers() != null)
-                            .flatMap(userClass -> userClass.getUser().getTaskUsers().stream())
-                            .map(taskUser -> taskUser.getId())
-                            .collect(Collectors.toList());
-                    
-                    // Busca todos os UserResponse correspondentes
-                    List<UserResponse> userResponses = taskUserIds.stream()
-                            .map(taskUserId -> userResponseRepository.findUserResponseByTaskUserId(taskUserId))
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .collect(Collectors.toList());
-                    
-                    return new ClassResponseSummaryDTO(clazz, userResponses);
+
+                    Class clazz = classRepository.findClassAssessment(turmaId);
+                    List<User> users = userRepository.findUsersClassAssessment(turmaId);
+
+                    return classAssessmentMapper.mapClassAssessment(clazz, users);
+
                 })
                 .orElseThrow(() -> new NotFoundException("Turma não econtrada pelo id:" + turmaId + "!"));
+
+    }
+
+    @Override
+    public List<RankedKnowledgeTrail> getRankedKnowledgeTrails(Long classId) {
+
+        List<RankedTask> rankedTasks = taskRepository.findRankedTasksByClassId(classId);
+
+        if (rankedTasks.isEmpty()) {
+            throw new NotFoundException("Não encontradas tarefas rankeadas para a turma ");
+        }
+
+        Map<Long, List<RankedTask>> rankedKnowledgeTrails = rankedTasks.stream()
+                .collect(Collectors.groupingBy(RankedTask::getKnowledgeTrailId));
+
+        return rankedKnowledgeTrails
+                .entrySet()
+                .stream()
+                .filter(entry -> !entry.getValue().isEmpty())
+                .map((entry) -> {
+
+                    List<RankedTask> tasks = entry.getValue();
+
+                    if (!tasks.isEmpty()) {
+
+                        RankedKnowledgeTrail rankedKnowledgeTrail = new RankedKnowledgeTrail();
+
+                        rankedKnowledgeTrail.setId(tasks.get(0).getKnowledgeTrailId());
+                        rankedKnowledgeTrail.setName(tasks.get(0).getKnowledgeTrailName());
+                        rankedKnowledgeTrail.setTasks(tasks);
+
+                        return rankedKnowledgeTrail;
+
+                    } else {
+                        return null;
+                    }
+
+                })
+                .collect(Collectors.toList());
+
 
     }
 
@@ -137,6 +194,8 @@ public class ClassService implements IClassService {
         clazz = updateData(clazz, clazzEdit);
 
         classRepository.save(clazz);
+
+        updateSections(clazz, clazzEdit);
 
         return new ClassResponseDTO(clazz);
 
@@ -204,7 +263,29 @@ public class ClassService implements IClassService {
             validation.add("code", "Código é obrigatório");
         }
 
+        if (CollectionUtils.isEmpty(classRegisterDTO.sections())) {
+            validation.add("sections", "Ao menos uma seção deve ser associada à turma");
+        }
+
         validation.throwIfHasErrors();
+
+    }
+
+    public void updateSections(Class clazz, ClassRegisterDTO clazzEdit) {
+
+        removeOldSectionClassData(clazz);
+
+        createSections(clazz, clazzEdit);
+
+    }
+
+    public void removeOldSectionClassData(Class clazz) {
+
+        List<SectionClass> sectionClasses = sectionClassRepository.findByClassId(clazz.getId());
+
+        sectionClasses.forEach(sectionClass -> {
+            sectionClassRepository.delete(sectionClass);
+        });
 
     }
 

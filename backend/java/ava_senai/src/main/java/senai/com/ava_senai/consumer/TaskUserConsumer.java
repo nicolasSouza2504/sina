@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import senai.com.ava_senai.config.RabbitMQConfig;
 import senai.com.ava_senai.domain.task.TaskUserCourseMessage;
 import senai.com.ava_senai.services.task.ITaskService;
-import senai.com.ava_senai.services.task.TaskService;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

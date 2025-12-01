@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import senai.com.ava_senai.domain.user.User;
 import senai.com.ava_senai.repository.UserRepository;
+
 import java.util.Optional;
 
 

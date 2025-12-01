@@ -1,400 +1,480 @@
-'use client'
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { BookOpen, Clock, Trophy, FileText, Calendar, CheckCircle, AlertCircle, TrendingUp, Users, Award, Target, ArrowRight, Star, Zap, Flame, Bookmark, Upload, Play, ChevronRight } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import QuickActionsAluno from '@/components/admin/quickActionsAluno'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  RefreshCcw,
+  ChevronRight,
+  FileCheck,
+  ClipboardList,
+  Award,
+} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import GetUserGeneralDashboardService from "@/lib/api/dashboard/getUserGeneralDashboard";
+import type { DashBoardUserGeneralInfo, TaskResponseDTO } from "@/lib/interfaces/dashboardInterfaces";
+import { MobileScrollButtons } from "@/components/ui/mobile-scroll-buttons";
+import getUserFromToken from "@/lib/auth/userToken";
+import GetUserByIdService from "@/lib/api/user/getUserById";
+import type { UserData, UserFromToken } from "@/lib/interfaces/userInterfaces";
+import { Users, BookOpen } from "lucide-react";
 
 export default function AlunoDashboard() {
   const router = useRouter();
-  
-  const handleActivityClick = (atividade: any) => {
-    router.push(`/aluno/ead?activity=${atividade.id}`);
+
+  // Estados
+  const [dashboardData, setDashboardData] = useState<DashBoardUserGeneralInfo | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Refs para os containers de scroll
+  const waitingFeedbackRef = useRef<HTMLDivElement>(null);
+  const pendingTasksRef = useRef<HTMLDivElement>(null);
+  const evaluatedTasksRef = useRef<HTMLDivElement>(null);
+
+  // Carrega dados do dashboard e do usuário ao montar o componente
+  useEffect(() => {
+    loadDashboardData();
+    loadUserData();
+  }, []);
+
+  // Função para recarregar todos os dados
+  const refreshAllData = async () => {
+    await Promise.all([
+      loadDashboardData(),
+      loadUserData()
+    ]);
   };
 
-  const handleTrailClick = (trilha: any) => {
-    router.push('/aluno/trilhas');
+  const loadDashboardData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await GetUserGeneralDashboardService();
+      setDashboardData(data);
+      console.log('[AlunoDashboard] Dados carregados:', data);
+    } catch (err) {
+      console.error('[AlunoDashboard] Erro ao carregar dashboard:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar dados';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const mockData = {
-    progress: {
-      trilhasCompletas: 3,
-      atividadesTotal: 45,
-      atividadesCompletas: 28,
-      porcentagem: 62
-    },
-    entregas: {
-      pendentes: 5,
-      avaliadas: 12,
-      atrasadas: 2
-    },
-    proximasAtividades: [
-      {
-        id: 1,
-        titulo: "Projeto React - Componentes",
-        disciplina: "Desenvolvimento Web",
-        prazo: "2024-01-15",
-        status: "pendente"
-      },
-      {
-        id: 2,
-        titulo: "API REST - Implementação",
-        disciplina: "Arquitetura de Software",
-        prazo: "2024-01-22",
-        status: "pendente"
+  const loadUserData = async () => {
+    setIsLoadingUser(true);
+    try {
+      const tokenUser: UserFromToken | undefined = await getUserFromToken();
+      console.log('[AlunoDashboard] Usuário do token:', tokenUser);
+      
+      if (tokenUser?.id) {
+        const user = await GetUserByIdService(tokenUser.id);
+        setUserData(user);
+        console.log('[AlunoDashboard] Dados do usuário carregados:', user);
       }
-    ],
-    ultimasNotas: [
-      {
-        atividade: "Trabalho de Banco de Dados",
-        nota: 9.5,
-        feedback: "Excelente trabalho! Muito bem estruturado.",
-        professor: "Prof. Silva",
-        data: "2024-01-10"
-      },
-      {
-        atividade: "Prova de Algoritmos",
-        nota: 8.0,
-        feedback: "Bom desenvolvimento, mas pode melhorar na documentação.",
-        professor: "Prof. Costa",
-        data: "2024-01-05"
-      }
-    ],
-    conquistas: [
-      { titulo: "Primeira Trilha", descricao: "Completou sua primeira trilha de aprendizado", icone: "🎯" },
-      { titulo: "Consistência", descricao: "5 entregas em sequência no prazo", icone: "🔥" },
-      { titulo: "Excelência", descricao: "Nota 9+ em 3 atividades", icone: "⭐" }
-    ],
-    trilhasEmAndamento: [
-      {
-        id: 1,
-        titulo: "Desenvolvimento Web Frontend",
-        descricao: "Aprenda React, TypeScript e Next.js",
-        progresso: 65,
-        proximaAtividade: "Criar componente de formulário",
-        status: "em-andamento",
-        duracao: "8 semanas",
-        nivel: "Intermediário",
-        atividadesCompletas: 13,
-        totalAtividades: 20
-      },
-      {
-        id: 2,
-        titulo: "Fundamentos de Programação",
-        descricao: "Lógica de programação e algoritmos",
-        progresso: 30,
-        proximaAtividade: "Estruturas de repetição",
-        status: "em-andamento",
-        duracao: "6 semanas",
-        nivel: "Iniciante",
-        atividadesCompletas: 6,
-        totalAtividades: 20
-      }
-    ]
-  }
+    } catch (err) {
+      console.error('[AlunoDashboard] Erro ao carregar dados do usuário:', err);
+      // Não mostra toast de erro aqui para não poluir a tela
+    } finally {
+      setIsLoadingUser(false);
+    }
+  };
+
+  const handleTaskClick = (taskId: number) => {
+    router.push(`/aluno/material/${taskId}`);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-6 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">Dashboard do Aluno</h1>
-                <p className="text-blue-100">Acompanhe seu progresso e atividades</p>
-              </div>
-              <div className="hidden md:flex items-center gap-4">
-                <div className="text-right">
-                  <p className="text-sm text-blue-200">Nível</p>
-                  <p className="text-2xl font-bold">15</p>
-                </div>
-                <div className="h-12 w-12 bg-blue-500 rounded-full flex items-center justify-center text-xl font-bold">
-                  <Trophy className="h-6 w-6" />
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 flex items-center gap-4">
-              <div className="flex-1">
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">XP Total</span>
-                  <span className="text-sm font-medium">2.450 XP</span>
-                </div>
-                <Progress value={65} className="h-2 bg-blue-400" />
-              </div>
-              <div className="px-4 py-2 bg-blue-500 rounded-lg">
-                <span className="text-sm font-medium">Próximo: 3.000 XP</span>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Cabeçalho */}
+      <header className="border-b bg-white">
+        <div className="p-4 sm:px-6 space-y-3 sm:space-y-0 sm:h-16 sm:flex sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
+              Dashboard do Aluno
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
+              Acompanhe suas atividades e progresso
+            </p>
           </div>
+          <Button
+            onClick={refreshAllData}
+            variant="outline"
+            className="w-full sm:w-auto h-10 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl flex-shrink-0"
+            disabled={isLoading || isLoadingUser}
+          >
+            <RefreshCcw className={`h-4 w-4 mr-2 ${(isLoading || isLoadingUser) ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
         </div>
+      </header>
 
+      {/* Conteúdo Principal */}
+      <main className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Cards de Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Progresso Geral</p>
-                  <p className="text-3xl font-bold text-blue-600 mt-2">{mockData.progress.porcentagem}%</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    de {mockData.progress.atividadesTotal} atividades
-                  </p>
-                </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-gray-700">
+                Aguardando Avaliação
+              </CardTitle>
+              <div className="p-2 bg-yellow-50 rounded-lg">
+                <Clock className="h-5 w-5 text-yellow-600" />
               </div>
-              <div className="mt-4 flex items-center text-green-600">
-                <TrendingUp className="h-4 w-4 mr-1" />
-                <span className="text-sm font-medium">+12% este mês</span>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">
+                {dashboardData?.waitingFeedbackTasks.length || 0}
               </div>
+              <p className="text-xs text-gray-600 mt-1">
+                Tarefas enviadas aguardando feedback
+              </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Entregas Pendentes</p>
-                  <p className="text-3xl font-bold text-orange-600 mt-2">{mockData.entregas.pendentes}</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {mockData.entregas.avaliadas} já avaliadas
-                  </p>
-                </div>
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <Clock className="h-6 w-6 text-orange-600" />
-                </div>
+          <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-gray-700">
+                Tarefas Pendentes
+              </CardTitle>
+              <div className="p-2 bg-orange-50 rounded-lg">
+                <ClipboardList className="h-5 w-5 text-orange-600" />
               </div>
-              <div className="mt-4 flex items-center text-orange-600">
-                <Zap className="h-4 w-4 mr-1" />
-                <span className="text-sm font-medium">Ação necessária</span>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">
+                {dashboardData?.pendingTasks.length || 0}
               </div>
+              <p className="text-xs text-gray-600 mt-1">
+                Tarefas que precisam ser entregues
+              </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Entregas Atrasadas</p>
-                  <p className="text-3xl font-bold text-red-600 mt-2">{mockData.entregas.atrasadas}</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Atenção necessária
-                  </p>
-                </div>
-                <div className="p-3 bg-red-100 rounded-lg">
-                  <AlertCircle className="h-6 w-6 text-red-600" />
-                </div>
+          <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-semibold text-gray-700">
+                Tarefas Avaliadas
+              </CardTitle>
+              <div className="p-2 bg-green-50 rounded-lg">
+                <Award className="h-5 w-5 text-green-600" />
               </div>
-              <div className="mt-4 flex items-center text-red-600">
-                <Target className="h-4 w-4 mr-1" />
-                <span className="text-sm font-medium">Prioridade alta</span>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">
+                {dashboardData?.evaluatedTasks.length || 0}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Trilhas Concluídas</p>
-                  <p className="text-3xl font-bold text-purple-600 mt-2">{mockData.progress.trilhasCompletas}</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {mockData.progress.atividadesCompletas} atividades concluídas
-                  </p>
-                </div>
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <BookOpen className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-purple-600">
-                <Star className="h-4 w-4 mr-1" />
-                <span className="text-sm font-medium">Continue assim!</span>
-              </div>
+              <p className="text-xs text-gray-600 mt-1">
+                Tarefas já avaliadas pelo professor
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Grid Principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Próximas Atividades EAD */}
-          <Card className="bg-white border border-gray-200 lg:col-span-2">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl font-semibold text-gray-900">Próximas Atividades EAD</CardTitle>
-                  <CardDescription className="text-gray-600">Atividades de ensino a distância com prazo próximo</CardDescription>
-                </div>
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {mockData.proximasAtividades.map((atividade) => (
-                <div
-                  key={atividade.id} 
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer hover:border-blue-300"
-                  onClick={() => handleActivityClick(atividade)}
-                >
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">
-                        {atividade.titulo}
-                      </h3>
-                    </div>
-                    <p className="text-sm text-gray-600">{atividade.disciplina}</p>
-                  </div>
-                  <div className="text-right flex items-center gap-3">
-                    <Badge variant={atividade.status === 'pendente' ? 'destructive' : 'default'} className="px-3 py-1">
-                      {atividade.status === 'pendente' ? 'Pendente' : 'Em Andamento'}
-                    </Badge>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500 flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {new Date(atividade.prazo).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleActivityClick(atividade);
-                      }}
-                      className="ml-2"
-                    >
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !isLoading && (
+          <Card className="border-2 border-red-200 rounded-xl shadow-sm">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Erro ao carregar dados
+              </h3>
+              <p className="text-gray-600 text-center mb-4">{error}</p>
+              <Button
+                onClick={loadDashboardData}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <RefreshCcw className="h-4 w-4 mr-2" />
+                Tentar Novamente
+              </Button>
             </CardContent>
           </Card>
+        )}
 
-          {/* Trilhas em Andamento */}
-          <Card className="bg-white border border-gray-200">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl font-semibold text-gray-900">Trilhas em Andamento</CardTitle>
-                  <CardDescription className="text-gray-600">Continue sua jornada de aprendizado</CardDescription>
+        {/* Cards de Listagens */}
+        {!isLoading && !error && dashboardData && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Aguardando Avaliação */}
+            <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
+                      Aguardando Avaliação
+                    </CardTitle>
+                    <CardDescription className="text-xs sm:text-sm text-gray-600">
+                      Tarefas enviadas aguardando feedback do professor
+                    </CardDescription>
+                  </div>
                 </div>
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <BookOpen className="h-5 w-5 text-green-600" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {mockData.trilhasEmAndamento.map((trilha) => (
-                <div 
-                  key={trilha.id} 
-                  className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer hover:border-green-300"
-                  onClick={() => handleTrailClick(trilha)}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 hover:text-green-600 transition-colors">
-                          {trilha.titulo}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">{trilha.descricao}</p>
-                      </div>
-                      <Badge className="bg-green-100 text-green-800 border-green-200">
-                        {trilha.nivel}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Progresso</span>
-                        <span className="text-sm font-bold text-gray-800">{trilha.progresso}%</span>
-                      </div>
-                      <Progress value={trilha.progresso} className="h-2" />
-                      <div className="flex items-center justify-between text-xs text-gray-600">
-                        <span>{trilha.atividadesCompletas} de {trilha.totalAtividades} atividades</span>
-                        <span>{trilha.duracao}</span>
-                      </div>
-                    </div>
-
-                    {trilha.proximaAtividade && (
-                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center gap-2 mb-1">
-                          <ArrowRight className="w-4 h-4 text-green-600" />
-                          <span className="text-sm font-medium text-gray-800">Próxima Atividade:</span>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {dashboardData.waitingFeedbackTasks.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                    <FileCheck className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p className="text-sm text-gray-600">Nenhuma tarefa aguardando avaliação</p>
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      ref={waitingFeedbackRef}
+                      className={`${dashboardData.waitingFeedbackTasks.length > 5 ? 'max-h-[400px] overflow-y-auto' : ''} space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400`}
+                    >
+                      {dashboardData.waitingFeedbackTasks.map((task) => (
+                        <div
+                          key={task.taskId}
+                          onClick={() => handleTaskClick(task.taskId)}
+                          className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-yellow-50 to-amber-50 hover:from-yellow-100 hover:to-amber-100 border-2 border-yellow-200 hover:border-yellow-400 rounded-lg transition-all group cursor-pointer"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 group-hover:text-yellow-700 transition-colors truncate">
+                              {task.taskName}
+                            </p>
+                            {task.taskDescription && (
+                              <p className="text-xs text-gray-600 mt-1 truncate">
+                                {task.taskDescription}
+                              </p>
+                            )}
+                          </div>
+                          <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-yellow-600 transition-colors flex-shrink-0 ml-2" />
                         </div>
-                        <p className="text-sm text-gray-600">{trilha.proximaAtividade}</p>
-                      </div>
-                    )}
-
-                    <div className="pt-2">
-                      <Button 
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleTrailClick(trilha);
-                        }}
-                      >
-                        <Play className="w-4 h-4 mr-2" />
-                        Continuar Trilha
-                        <ChevronRight className="w-4 h-4 ml-2" />
-                      </Button>
+                      ))}
                     </div>
+                    <MobileScrollButtons
+                      containerRef={waitingFeedbackRef}
+                      itemCount={dashboardData.waitingFeedbackTasks.length}
+                      threshold={5}
+                    />
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Tarefas Pendentes */}
+            <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <ClipboardList className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+                      Tarefas Pendentes
+                    </CardTitle>
+                    <CardDescription className="text-xs sm:text-sm text-gray-600">
+                      Tarefas que precisam ser entregues
+                    </CardDescription>
                   </div>
                 </div>
-              ))}
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {dashboardData.pendingTasks.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                    <CheckCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p className="text-sm text-gray-600">Nenhuma tarefa pendente</p>
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      ref={pendingTasksRef}
+                      className={`${dashboardData.pendingTasks.length > 5 ? 'max-h-[400px] overflow-y-auto' : ''} space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400`}
+                    >
+                      {dashboardData.pendingTasks.map((task) => (
+                        <div
+                          key={task.taskId}
+                          onClick={() => handleTaskClick(task.taskId)}
+                          className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 border-2 border-orange-200 hover:border-orange-400 rounded-lg transition-all group cursor-pointer"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 group-hover:text-orange-700 transition-colors truncate">
+                              {task.taskName}
+                            </p>
+                            {task.taskDescription && (
+                              <p className="text-xs text-gray-600 mt-1 truncate">
+                                {task.taskDescription}
+                              </p>
+                            )}
+                          </div>
+                          <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-orange-600 transition-colors flex-shrink-0 ml-2" />
+                        </div>
+                      ))}
+                    </div>
+                    <MobileScrollButtons
+                      containerRef={pendingTasksRef}
+                      itemCount={dashboardData.pendingTasks.length}
+                      threshold={5}
+                    />
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Tarefas Avaliadas */}
+            <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <Award className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                      Tarefas Avaliadas
+                    </CardTitle>
+                    <CardDescription className="text-xs sm:text-sm text-gray-600">
+                      Tarefas já avaliadas pelo professor
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {dashboardData.evaluatedTasks.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                    <Award className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p className="text-sm text-gray-600">Nenhuma tarefa avaliada ainda</p>
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      ref={evaluatedTasksRef}
+                      className={`${dashboardData.evaluatedTasks.length > 5 ? 'max-h-[400px] overflow-y-auto' : ''} space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400`}
+                    >
+                      {dashboardData.evaluatedTasks.map((task) => (
+                        <div
+                          key={task.taskId}
+                          onClick={() => handleTaskClick(task.taskId)}
+                          className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-2 border-green-200 hover:border-green-400 rounded-lg transition-all group cursor-pointer"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 group-hover:text-green-700 transition-colors truncate">
+                              {task.taskName}
+                            </p>
+                            {task.taskDescription && (
+                              <p className="text-xs text-gray-600 mt-1 truncate">
+                                {task.taskDescription}
+                              </p>
+                            )}
+                          </div>
+                          <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-green-600 transition-colors flex-shrink-0 ml-2" />
+                        </div>
+                      ))}
+                    </div>
+                    <MobileScrollButtons
+                      containerRef={evaluatedTasksRef}
+                      itemCount={dashboardData.evaluatedTasks.length}
+                      threshold={5}
+                    />
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Card de Turmas e Cursos */}
+        {!isLoadingUser && userData && userData.classes && userData.classes.length > 0 && (
+          <Card className="border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                    Minhas Turmas e Cursos
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-gray-600">
+                    Turmas em que você está matriculado
+                  </CardDescription>
+                </div>
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  {userData.classes.length} {userData.classes.length === 1 ? 'turma' : 'turmas'}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {userData.classes.map((classItem) => {
+                  const classId = classItem.Id || classItem.id;
+                  return (
+                    <div
+                      key={classId}
+                      className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg hover:border-blue-400 transition-all"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                          <BookOpen className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 truncate">
+                            {classItem.nome}
+                          </h4>
+                          <div className="mt-2 space-y-1">
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium text-gray-700">Curso:</span> {classItem.course.name}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium text-gray-700">Código da turma:</span> {classItem.code}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium text-gray-700">Período:</span> {classItem.semester}º Semestre
+                            </p>
+                          </div>
+                          <div className="mt-3 text-xs text-gray-500 space-y-1">
+                            <p>
+                              <span className="font-medium">Início:</span> {new Date(classItem.startDate).toLocaleDateString('pt-BR')}
+                            </p>
+                            <p>
+                              <span className="font-medium">Término:</span> {new Date(classItem.finalDate || classItem.endDate || '').toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                          
+                          {/* Semestres Ativos (Sections) */}
+                          {classItem.sections && classItem.sections.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-blue-200">
+                              <p className="text-xs font-semibold text-gray-700 mb-2">
+                                Semestres Ativos:
+                              </p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {classItem.sections.map((section) => (
+                                  <Badge 
+                                    key={section.id}
+                                    variant="outline" 
+                                    className="text-xs bg-blue-100 text-blue-700 border-blue-300"
+                                  >
+                                    {section.name}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Últimas Notas */}
-        <Card className="bg-white border border-gray-200 mt-8">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl font-semibold text-gray-900">Últimas Notas</CardTitle>
-                <CardDescription className="text-gray-600">Avaliações e feedbacks recentes</CardDescription>
-              </div>
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Award className="h-5 w-5 text-yellow-600" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {mockData.ultimasNotas.map((nota, index) => (
-                <div key={index} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <h4 className="font-semibold text-gray-900">
-                      {nota.atividade}
-                    </h4>
-                    <Badge 
-                      variant={nota.nota >= 8 ? 'default' : nota.nota >= 6 ? 'secondary' : 'destructive'}
-                      className="text-sm font-bold"
-                    >
-                      {nota.nota.toFixed(1)}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{nota.feedback}</p>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{nota.professor}</span>
-                    <span>{new Date(nota.data).toLocaleDateString('pt-BR')}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Ações Rápidas */}
-        <QuickActionsAluno />
-      </div>
+        )}
+      </main>
     </div>
-  )
+  );
 }
-

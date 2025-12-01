@@ -2,8 +2,6 @@ package senai.com.ava_senai.services.knowledgetrail;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import senai.com.ava_senai.domain.course.section.Section;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrail;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrailRegisterDTO;
 import senai.com.ava_senai.domain.task.knowledgetrail.KnowledgeTrailResponseDTO;
@@ -15,6 +13,7 @@ import senai.com.ava_senai.repository.SectionRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,6 +81,16 @@ public class KnowledgeTrailService implements IKnowledgeTrailService {
 
                 })
                 .orElseThrow(() -> new NotFoundException("Sessão não existe!"));
+
+    }
+
+    @Override
+    public List<KnowledgeTrailResponseDTO> getAllRankedKnowledgeTrailsByClassId(Long classId) {
+
+        List<KnowledgeTrail> knowledgeTrailList = knowledgeTrailRepository.findRankedKnowledgeTrailsByClassId(classId)
+                .orElseThrow(() -> new NotFoundException("Nenhuma trilha de conhecimento ranqueada encontrada para o curso"));
+
+        return knowledgeTrailList.stream().map(KnowledgeTrailResponseDTO::new).collect(Collectors.toList());
 
     }
 

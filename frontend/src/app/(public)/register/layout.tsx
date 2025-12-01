@@ -1,7 +1,5 @@
-import type React from "react"
+import type { ReactNode } from "react"
 import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "next-themes"
 
@@ -11,7 +9,7 @@ export const metadata: Metadata = {
     generator: "Ava UniSenai",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
     return (
         <div>
             <ThemeProvider

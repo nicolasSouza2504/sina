@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -14,7 +15,6 @@ import getUserFromToken from '@/lib/auth/userToken'
 import GetUserByIdService from '@/lib/api/user/getUserById'
 import CourseContentSummaryService from '@/lib/api/course/courseContentSummary'
 import GetTaskUserByUserAndTaskService from '@/lib/api/task-user/getTaskUserByUserAndTask'
-import CreateTaskUserService from '@/lib/api/task-user/createTaskUser'
 import { toast } from 'sonner'
 import type { TaskSummary, TaskContentSummary } from '@/lib/interfaces/courseContentInterfaces'
 import type { TaskUserResponse } from '@/lib/interfaces/taskUserInterfaces'
@@ -24,6 +24,7 @@ export default function AlunoMaterialPage() {
   const params = useParams()
   const router = useRouter()
   const taskId = (params?.id as string) || ''
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   // Estados
   const [task, setTask] = useState<TaskSummary | null>(null)
@@ -53,84 +54,50 @@ export default function AlunoMaterialPage() {
       setIsLoadingTaskUser(true)
       console.log('[AlunoMaterial] Buscando TaskUser:', { userId, taskId })
       
-      try {
-        // Tenta buscar TaskUser existente
-        const taskUserResponse = await GetTaskUserByUserAndTaskService(userId, taskId)
-        
-        console.log('[AlunoMaterial] TaskUser encontrado:', {
-          taskUserId: taskUserResponse.id,
-          hasUserResponse: !!taskUserResponse.userResponse,
-          userResponseId: taskUserResponse.userResponse?.id
+      const taskUserResponse = await GetTaskUserByUserAndTaskService(userId, taskId)
+      
+      console.log('[AlunoMaterial] TaskUser encontrado:', {
+        taskUserId: taskUserResponse.id,
+        hasUserResponse: !!taskUserResponse.userResponse,
+        userResponseId: taskUserResponse.userResponse?.id
+      })
+      
+      setTaskUserData(taskUserResponse)
+      setTaskUserId(taskUserResponse.id)
+      
+      if (taskUserResponse.userResponse) {
+        console.log('[AlunoMaterial] Aluno já possui resposta enviada:', {
+          responseId: taskUserResponse.userResponse.id,
+          comment: taskUserResponse.userResponse.comment,
+          contentsCount: taskUserResponse.userResponse.contents?.length || 0,
+          contents: taskUserResponse.userResponse.contents
         })
-        
-        setTaskUserData(taskUserResponse)
-        setTaskUserId(taskUserResponse.id)
-        
-        if (taskUserResponse.userResponse) {
-          console.log('[AlunoMaterial] Aluno já possui resposta enviada:', {
-            responseId: taskUserResponse.userResponse.id,
-            comment: taskUserResponse.userResponse.comment,
-            contentsCount: taskUserResponse.userResponse.contents?.length || 0,
-            contents: taskUserResponse.userResponse.contents
-          })
-        } else {
-          console.log('[AlunoMaterial] Aluno ainda não enviou resposta para esta tarefa')
-        }
-        
-        // Verifica feedback (vem no nível raiz do TaskUserResponse)
-        if (taskUserResponse.feedback) {
-          console.log('[AlunoMaterial] Feedback do professor encontrado:', {
-            feedbackId: taskUserResponse.feedback.id,
-            grade: taskUserResponse.feedback.grade,
-            comment: taskUserResponse.feedback.comment,
-            teacher: taskUserResponse.feedback.teacher.nome
-          })
-        } else {
-          console.log('[AlunoMaterial] Atividade ainda não foi avaliada pelo professor')
-        }
-      } catch (err) {
-        // Se TaskUser não existe (404), cria automaticamente
-        const errorMessage = err instanceof Error ? err.message : ''
-        
-        if (errorMessage.includes('não encontrado') || errorMessage.includes('not found')) {
-          console.log('[AlunoMaterial] TaskUser não existe - criando automaticamente...')
-          
-          try {
-            // Cria o TaskUser
-            const newTaskUser = await CreateTaskUserService({
-              userId: userId,
-              taskId: taskId
-            })
-            
-            console.log('[AlunoMaterial] TaskUser criado com sucesso:', {
-              taskUserId: newTaskUser.id,
-              userId: newTaskUser.userId,
-              taskId: newTaskUser.taskId
-            })
-            
-            // Busca novamente para obter a estrutura completa com userResponse
-            const taskUserResponse = await GetTaskUserByUserAndTaskService(userId, taskId)
-            
-            setTaskUserData(taskUserResponse)
-            setTaskUserId(taskUserResponse.id)
-            
-            toast.success('Registro criado com sucesso!', {
-              description: 'Você pode agora enviar sua atividade'
-            })
-          } catch (createErr) {
-            console.error('[AlunoMaterial] Erro ao criar TaskUser:', createErr)
-            const createErrorMessage = createErr instanceof Error ? createErr.message : 'Erro ao criar registro'
-            toast.error('Erro ao criar registro da tarefa', {
-              description: createErrorMessage
-            })
-          }
-        } else {
-          // Outro tipo de erro
-          console.error('[AlunoMaterial] Erro ao buscar TaskUser:', err)
-          toast.error('Erro ao buscar dados da tarefa', {
-            description: errorMessage
-          })
-        }
+      } else {
+        console.log('[AlunoMaterial] Aluno ainda não enviou resposta para esta tarefa')
+      }
+      
+      // Verifica feedback (vem no nível raiz do TaskUserResponse)
+      if (taskUserResponse.feedback) {
+        console.log('[AlunoMaterial] Feedback do professor encontrado:', {
+          feedbackId: taskUserResponse.feedback.id,
+          grade: taskUserResponse.feedback.grade,
+          comment: taskUserResponse.feedback.comment,
+          teacher: taskUserResponse.feedback.teacher.nome
+        })
+      } else {
+        console.log('[AlunoMaterial] Atividade ainda não foi avaliada pelo professor')
+      }
+    } catch (err) {
+      console.error('[AlunoMaterial] Erro ao buscar TaskUser:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar dados da tarefa'
+      
+      // Não mostra toast de erro se TaskUser não existir (primeira vez)
+      if (!errorMessage.includes('não encontrado') && !errorMessage.includes('not found')) {
+        toast.error('Erro ao buscar dados da tarefa', {
+          description: errorMessage
+        })
+      } else {
+        console.log('[AlunoMaterial] TaskUser não existe - aguardando criação pelo backend')
       }
     } finally {
       setIsLoadingTaskUser(false)
@@ -279,7 +246,7 @@ export default function AlunoMaterialPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
           <p className="text-gray-600">Carregando tarefa...</p>
@@ -291,7 +258,7 @@ export default function AlunoMaterialPage() {
   // Error state
   if (error || !task) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Button
             variant="ghost"
@@ -312,7 +279,7 @@ export default function AlunoMaterialPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <Button
@@ -403,14 +370,50 @@ export default function AlunoMaterialPage() {
                             </Badge>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewContent(content)}
-                          className="flex-shrink-0 hover:bg-purple-100"
-                        >
-                          <Eye className="h-4 w-4 text-purple-600" />
-                        </Button>
+                        
+                        {/* Em mobile, apenas LINK mostra botão visualizar */}
+                        {/* Em desktop, todos os tipos mostram visualizar */}
+                        {(!isMobile || content.contentType === 'LINK') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewContent(content)}
+                            className="flex-shrink-0 hover:bg-purple-100"
+                            title="Visualizar conteúdo"
+                          >
+                            <Eye className="h-4 w-4 text-purple-600" />
+                          </Button>
+                        )}
+
+                        {/* Botão de download para tipos não-LINK em mobile */}
+                        {isMobile && content.contentType !== 'LINK' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(`/api/task-content/download?url=${encodeURIComponent(content.contentUrl)}`);
+                                if (!response.ok) throw new Error('Erro ao baixar');
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = content.name || 'download';
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                              } catch (error) {
+                                console.error('Erro ao baixar:', error);
+                                window.open(content.contentUrl, '_blank');
+                              }
+                            }}
+                            className="flex-shrink-0 hover:bg-blue-100"
+                            title="Baixar conteúdo"
+                          >
+                            <Download className="h-4 w-4 text-blue-600" />
+                          </Button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -615,15 +618,51 @@ export default function AlunoMaterialPage() {
                             </div>
                           </div>
                           
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleViewSubmittedContent(content)}
-                            className="flex-shrink-0 h-8 px-3 hover:bg-blue-100 group-hover:bg-blue-100"
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            Ver
-                          </Button>
+                          {/* Em mobile, apenas LINK mostra botão visualizar */}
+                          {/* Em desktop, todos os tipos mostram visualizar */}
+                          {(!isMobile || content.taskContentType === 'LINK') && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleViewSubmittedContent(content)}
+                              className="flex-shrink-0 h-8 px-3 hover:bg-blue-100 group-hover:bg-blue-100"
+                              title="Visualizar arquivo"
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              Ver
+                            </Button>
+                          )}
+
+                          {/* Botão de download para tipos não-LINK em mobile */}
+                          {isMobile && content.taskContentType !== 'LINK' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch(`/api/user-response-content/download?url=${encodeURIComponent(content.url)}`);
+                                  if (!response.ok) throw new Error('Erro ao baixar');
+                                  const blob = await response.blob();
+                                  const url = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = content.name || 'download';
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  window.URL.revokeObjectURL(url);
+                                  document.body.removeChild(a);
+                                } catch (error) {
+                                  console.error('Erro ao baixar:', error);
+                                  window.open(content.url, '_blank');
+                                }
+                              }}
+                              className="flex-shrink-0 h-8 px-3 hover:bg-blue-100 group-hover:bg-blue-100"
+                              title="Baixar arquivo"
+                            >
+                              <Download className="w-4 h-4 mr-1" />
+                              Baixar
+                            </Button>
+                          )}
                         </div>
                       ))}
                     </div>

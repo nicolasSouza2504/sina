@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Save, X } from 'lucide-react';
+import { Loader2, Save, X, Edit, AlertCircle } from 'lucide-react';
 import { Course } from '@/lib/interfaces/courseInterfaces';
 
 interface EditCourseModalProps {
@@ -65,12 +65,21 @@ export default function EditCourseModal({ open, onOpenChange, course, onSave }: 
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-[500px] sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl">Editar Curso</DialogTitle>
-          <DialogDescription className="text-sm sm:text-base">
-            Atualize o nome do curso
-          </DialogDescription>
+      <DialogContent className="w-[95vw] max-w-[500px] sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="pb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-3 bg-blue-600 rounded-xl">
+              <Edit className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <DialogTitle className="text-2xl font-bold text-gray-900">
+                Editar Curso
+              </DialogTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                Atualize o nome do curso
+              </p>
+            </div>
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
@@ -86,45 +95,48 @@ export default function EditCourseModal({ open, onOpenChange, course, onSave }: 
                 setError('');
               }}
               placeholder="Digite o nome do curso"
-              className="h-11 sm:h-12 text-sm sm:text-base"
+              className="h-12 text-sm sm:text-base border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl"
               disabled={isSubmitting}
               autoFocus
             />
             {error && (
-              <p className="text-xs sm:text-sm text-red-600 mt-1">{error}</p>
+              <div className="flex items-center gap-1 text-red-500 text-xs mt-1">
+                <AlertCircle className="h-3 w-3" />
+                <span>{error}</span>
+              </div>
             )}
           </div>
 
           {/* Informações do Curso (Read-only) */}
           {course && (
-            <div className="p-4 bg-gray-50 rounded-lg space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">ID do Curso:</span>
-                <span className="font-semibold">{course.id}</span>
+            <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200 space-y-3 text-sm">
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600 font-medium">ID do Curso:</span>
+                <span className="font-semibold text-gray-900">{course.id}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Semestres:</span>
-                <span className="font-semibold">{course.quantitySemester}</span>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600 font-medium">Semestres:</span>
+                <span className="font-semibold text-gray-900">{course.quantitySemester}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Turmas:</span>
-                <span className="font-semibold">{course.classes?.length || 0}</span>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600 font-medium">Turmas:</span>
+                <span className="font-semibold text-gray-900">{course.classes?.length || 0}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Seções:</span>
-                <span className="font-semibold">{course.sections?.length || 0}</span>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600 font-medium">Seções:</span>
+                <span className="font-semibold text-gray-900">{course.sections?.length || 0}</span>
               </div>
             </div>
           )}
 
           {/* Footer */}
-          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-8 border-t border-gray-100">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={isSubmitting}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
             >
               <X className="h-4 w-4 mr-2" />
               Cancelar
@@ -132,7 +144,7 @@ export default function EditCourseModal({ open, onOpenChange, course, onSave }: 
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:w-auto sm:ml-auto"
+              className="w-full sm:w-auto sm:ml-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
             >
               {isSubmitting ? (
                 <>

@@ -4,9 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import senai.com.ava_senai.domain.course.Course;
 import senai.com.ava_senai.domain.course.CourseResponseDTO;
-import senai.com.ava_senai.domain.course.clazz.Class;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +34,10 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             "LEFT JOIN FETCH s.knowledgeTrails kt " +
             "LEFT JOIN FETCH kt.tasks t " +
             "LEFT JOIN FETCH t.contents tc " +
+            "JOIN User u ON u.id = :userId " +
+            "JOIN u.userClasses uc " +
+            "JOIN Class cl ON cl.id = uc.classId " +
+            "JOIN SectionClass sc ON sc.classId = cl.id AND sc.sectionId = s.id " +
             "WHERE c.id = :courseId" +
             " AND EXISTS ( " +
             "     SELECT 1 FROM TaskUser tu " +

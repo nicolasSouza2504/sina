@@ -1,9 +1,11 @@
 package senai.com.ava_senai.domain.course.clazz;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.course.Course;
+import senai.com.ava_senai.domain.course.clazz.sectionclass.SectionClass;
 import senai.com.ava_senai.domain.user.userclass.UserClass;
 
 import java.time.LocalDate;
@@ -41,6 +43,9 @@ public class Class extends DefaultEntity {
 
     @OneToMany(mappedBy = "classEntity")
     private List<UserClass> userClasses;
+
+    @OneToMany(mappedBy = "classEntity")
+    private List<SectionClass> sectionClasses;
 
     @PrePersist
     @PreUpdate

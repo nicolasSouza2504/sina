@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import {
     Card,
     CardContent,
@@ -10,10 +10,10 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Badge} from "@/components/ui/badge";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -53,9 +53,10 @@ import {
 import ModalAddClass from "@/components/admin/class/modalAddClass";
 import ModalEditClass from "@/components/admin/class/modalEditClass";
 import ModalViewCourse from "@/components/admin/class/modalViewCourse";
-import {Class, ClassCourse} from "@/lib/interfaces/classInterfaces";
+import ModalViewSections from "@/components/admin/class/modalViewSections";
+import { Class } from "@/lib/interfaces/classInterfaces";
 import ClassList from "@/lib/api/class/classList";
-import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ClassRemoveService from "@/lib/api/class/classRemove";
 import QuickActions from "@/components/admin/quickActions";
 
@@ -70,7 +71,9 @@ export default function ClassesManagement() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedClass, setSelectedClass] = useState<Class | null>(null);
     const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
-    const [selectedCourse, setSelectedCourse] = useState<ClassCourse | null>(null);
+    const [selectedClassForView, setSelectedClassForView] = useState<Class | null>(null);
+    const [isSectionsModalOpen, setIsSectionsModalOpen] = useState(false);
+    const [selectedClassForSections, setSelectedClassForSections] = useState<Class | null>(null);
 
     useEffect(() => {
         getClasses();
@@ -81,6 +84,7 @@ export default function ClassesManagement() {
             setLoading(true);
             setError(null);
             const classData = await ClassList();
+            console.log(classData)
 
             const mappedClasses = classData?.map((cls: any) => ({
                 id: cls.Id || cls.id,
@@ -94,7 +98,13 @@ export default function ClassesManagement() {
                 course: cls.course ? {
                     id: cls.course.id,
                     name: cls.course.name
-                } : null
+                } : null,
+                sections: cls.sections?.map((section: any) => ({
+                    id: section.id,
+                    name: section.name,
+                    semester: section.semester || null,
+                    courseId: section.courseId
+                })) || []
             })) || [];
 
 
@@ -113,62 +123,62 @@ export default function ClassesManagement() {
         }
     };
 
-const getClassStatusMeta = (status: string) => {
-    switch (status) {
-        case "Em Andamento":
-            return {
-                icon: CheckCircle2,
-                bgClass: "bg-green-50",
-                textClass: "text-green-700",
-                borderClass: "border-green-200",
-            };
-        case "Não Iniciada":
-            return {
-                icon: Clock3,
-                bgClass: "bg-yellow-50",
-                textClass: "text-yellow-700",
-                borderClass: "border-yellow-200",
-            };
-        case "Finalizada":
-            return {
-                icon: Flag,
-                bgClass: "bg-blue-50",
-                textClass: "text-blue-700",
-                borderClass: "border-blue-200",
-            };
-        case "Sem Data":
-            return {
-                icon: CalendarX,
-                bgClass: "bg-gray-50",
-                textClass: "text-gray-600",
-                borderClass: "border-gray-300",
-            };
-        case "Data inválida":
-            return {
-                icon: AlertTriangle,
-                bgClass: "bg-red-50",
-                textClass: "text-red-600",
-                borderClass: "border-red-200",
-            };
-        default:
-            return {
-                icon: Calendar,
-                bgClass: "bg-gray-50",
-                textClass: "text-gray-600",
-                borderClass: "border-gray-300",
-            };
-    }
-};
+    const getClassStatusMeta = (status: string) => {
+        switch (status) {
+            case "Em Andamento":
+                return {
+                    icon: CheckCircle2,
+                    bgClass: "bg-green-50",
+                    textClass: "text-green-700",
+                    borderClass: "border-green-200",
+                };
+            case "Não Iniciada":
+                return {
+                    icon: Clock3,
+                    bgClass: "bg-yellow-50",
+                    textClass: "text-yellow-700",
+                    borderClass: "border-yellow-200",
+                };
+            case "Finalizada":
+                return {
+                    icon: Flag,
+                    bgClass: "bg-blue-50",
+                    textClass: "text-blue-700",
+                    borderClass: "border-blue-200",
+                };
+            case "Sem Data":
+                return {
+                    icon: CalendarX,
+                    bgClass: "bg-gray-50",
+                    textClass: "text-gray-600",
+                    borderClass: "border-gray-300",
+                };
+            case "Data inválida":
+                return {
+                    icon: AlertTriangle,
+                    bgClass: "bg-red-50",
+                    textClass: "text-red-600",
+                    borderClass: "border-red-200",
+                };
+            default:
+                return {
+                    icon: Calendar,
+                    bgClass: "bg-gray-50",
+                    textClass: "text-gray-600",
+                    borderClass: "border-gray-300",
+                };
+        }
+    };
 
-const renderClassStatusChip = (status: string) => {
-    const { icon: StatusIcon, bgClass, textClass, borderClass } = getClassStatusMeta(status);
-    return (
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold ${bgClass} ${borderClass} ${textClass}`}>
-            <StatusIcon className="h-3.5 w-3.5" />
-            <span>{status}</span>
-        </div>
-    );
-};
+    const renderClassStatusChip = (status: string) => {
+        const { icon: StatusIcon, bgClass, textClass, borderClass } = getClassStatusMeta(status);
+        return (
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold ${bgClass} ${borderClass} ${textClass}`}>
+                <StatusIcon className="h-3.5 w-3.5" />
+                <span>{status}</span>
+            </div>
+        );
+    };
 
     const filteredClasses =
         classes?.filter((cls) =>
@@ -177,10 +187,10 @@ const renderClassStatusChip = (status: string) => {
         ) || [];
 
     const handleDeleteClass = async (id: number) => {
-        try{
+        try {
             await ClassRemoveService(id);
             setClasses((prev) => prev?.filter((cls) => cls.id !== id) || []);
-        }catch(error){
+        } catch (error) {
             console.error("Error fetching classes:", error);
             const message =
                 error instanceof Error
@@ -195,10 +205,17 @@ const renderClassStatusChip = (status: string) => {
         setIsEditModalOpen(true);
     };
 
-    const openCourseModal = (course: ClassCourse | null) => {
-        if (course) {
-            setSelectedCourse(course);
+    const openCourseModal = (classData: Class | null) => {
+        if (classData) {
+            setSelectedClassForView(classData);
             setIsCourseModalOpen(true);
+        }
+    };
+
+    const openSectionsModal = (classData: Class | null) => {
+        if (classData) {
+            setSelectedClassForSections(classData);
+            setIsSectionsModalOpen(true);
         }
     };
 
@@ -220,7 +237,7 @@ const renderClassStatusChip = (status: string) => {
         endDate: string | null
     ) => {
         if (!startDate || !endDate) {
-            return {status: "Sem Data", variant: "outline" as const};
+            return { status: "Sem Data", variant: "outline" as const };
         }
 
         try {
@@ -229,12 +246,12 @@ const renderClassStatusChip = (status: string) => {
             const end = new Date(endDate);
 
             if (now < start)
-                return {status: "Não Iniciada", variant: "secondary" as const};
+                return { status: "Não Iniciada", variant: "secondary" as const };
             if (now > end)
-                return {status: "Finalizada", variant: "destructive" as const};
-            return {status: "Em Andamento", variant: "default" as const};
+                return { status: "Finalizada", variant: "destructive" as const };
+            return { status: "Em Andamento", variant: "default" as const };
         } catch {
-            return {status: "Data inválida", variant: "outline" as const};
+            return { status: "Data inválida", variant: "outline" as const };
         }
     };
 
@@ -293,7 +310,7 @@ const renderClassStatusChip = (status: string) => {
 
 
     return (
-        <div className="min-h-screen bg-background w-full">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 w-full">
             {error && (
                 <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 md:w-1/2 lg:w-1/3">
                     <Alert
@@ -308,7 +325,7 @@ const renderClassStatusChip = (status: string) => {
                             onClick={closeError}
                             className="absolute  top-2 right-2 h-6 w-6 p-0 hover:bg-destructive-foreground/10 hover:cursor-pointer"
                         >
-                            <X className="size-5 hover:cursor-pointer"/>
+                            <X className="size-5 hover:cursor-pointer" />
                         </Button>
                     </Alert>
                 </div>
@@ -403,11 +420,11 @@ const renderClassStatusChip = (status: string) => {
                     <CardHeader className="pb-3">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Buscar Turmas</CardTitle>
-                            <Button 
+                            <Button
                                 onClick={() => setIsCreateModalOpen(true)}
-                                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl h-10 px-4"
+                                className="w-full sm:w-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                             >
-                                <Plus className="h-4 w-4 mr-2"/>
+                                <Plus className="h-4 w-4 mr-2" />
                                 Nova Turma
                             </Button>
                         </div>
@@ -416,7 +433,7 @@ const renderClassStatusChip = (status: string) => {
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                             <div className="relative flex-1">
                                 <Search
-                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"/>
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                                 <Input
                                     placeholder="Buscar por nome ou código..."
                                     value={searchTerm}
@@ -448,10 +465,10 @@ const renderClassStatusChip = (status: string) => {
                                     {filteredClasses.length} turma(s) encontrada(s)
                                 </CardDescription>
                             </div>
-                            <Button 
-                                onClick={reloadClassList} 
+                            <Button
+                                onClick={reloadClassList}
                                 variant="outline"
-                                className="flex items-center gap-2 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 rounded-xl h-10 w-full sm:w-auto"
+                                className="flex items-center gap-2 h-12 px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl w-full sm:w-auto transition-colors"
                                 size="sm"
                             >
                                 <RefreshCcw className="h-4 w-4" />
@@ -474,7 +491,7 @@ const renderClassStatusChip = (status: string) => {
                             <>
                                 {filteredClasses.length === 0 ? (
                                     <div className="text-center py-8">
-                                        <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground"/>
+                                        <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" />
                                         <h3 className="mt-2 text-sm font-semibold text-gray-900">
                                             Nenhuma turma encontrada
                                         </h3>
@@ -485,11 +502,11 @@ const renderClassStatusChip = (status: string) => {
                                         </p>
                                         {!searchTerm && (
                                             <div className="mt-6">
-                                                <Button 
+                                                <Button
                                                     onClick={() => setIsCreateModalOpen(true)}
-                                                    className="w-full sm:w-auto"
+                                                    className="w-full sm:w-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                                                 >
-                                                    <Plus className="h-4 w-4 mr-2"/>
+                                                    <Plus className="h-4 w-4 mr-2" />
                                                     Nova Turma
                                                 </Button>
                                             </div>
@@ -500,7 +517,7 @@ const renderClassStatusChip = (status: string) => {
                                         {/* Mobile Cards View */}
                                         <div className="block lg:hidden space-y-3">
                                             {filteredClasses.map((cls) => {
-                                                const {status} = getClassStatus(
+                                                const { status } = getClassStatus(
                                                     cls.startDate,
                                                     cls.endDate
                                                 );
@@ -544,7 +561,7 @@ const renderClassStatusChip = (status: string) => {
                                                                             <Button
                                                                                 variant="ghost"
                                                                                 size="sm"
-                                                                                onClick={() => openCourseModal(cls.course)}
+                                                                                onClick={() => openCourseModal(cls)}
                                                                                 className="h-6 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                                                             >
                                                                                 <GraduationCap className="h-3 w-3 mr-1" />
@@ -569,21 +586,41 @@ const renderClassStatusChip = (status: string) => {
                                                                 </div>
                                                             </div>
 
+                                                            {/* Semestres Ativos */}
+                                                            <div className="space-y-1">
+                                                                <div className="text-muted-foreground">Semestres</div>
+                                                                <div className="font-medium">
+                                                                    {cls.sections && cls.sections.length > 0 ? (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => openSectionsModal(cls)}
+                                                                            className="h-6 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                                        >
+                                                                            <Calendar className="h-3 w-3 mr-1" />
+                                                                            {cls.sections.length} vinculado{cls.sections.length > 1 ? 's' : ''}
+                                                                        </Button>
+                                                                    ) : (
+                                                                        <span className="text-gray-400">Nenhum</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
                                                             {/* Botões de Ação */}
                                                             <div className="flex gap-2">
                                                                 <Button
                                                                     variant="outline"
                                                                     size="sm"
                                                                     onClick={() => openEditModal(cls)}
-                                                                    className="flex-1 h-8"
+                                                                    className="flex-1 h-9 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors"
                                                                 >
-                                                                    <Edit className="h-3 w-3 mr-1"/>
+                                                                    <Edit className="h-3 w-3 mr-1" />
                                                                     <span className="text-xs">Editar</span>
                                                                 </Button>
                                                                 <AlertDialog>
                                                                     <AlertDialogTrigger asChild>
-                                                                        <Button variant="outline" size="sm" className="flex-1 h-8">
-                                                                            <Trash2 className="h-3 w-3 mr-1"/>
+                                                                        <Button variant="outline" size="sm" className="flex-1 h-9 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg transition-colors">
+                                                                            <Trash2 className="h-3 w-3 mr-1" />
                                                                             <span className="text-xs">Excluir</span>
                                                                         </Button>
                                                                     </AlertDialogTrigger>
@@ -594,7 +631,7 @@ const renderClassStatusChip = (status: string) => {
                                                                             </AlertDialogTitle>
                                                                             <AlertDialogDescription className="text-sm">
                                                                                 Tem certeza que deseja excluir a turma "
-                                                                                <span className="font-medium">{cls.nome || cls.code || "esta turma"}</span>"? 
+                                                                                <span className="font-medium">{cls.nome || cls.code || "esta turma"}</span>"?
                                                                                 Esta ação não pode ser desfeita.
                                                                             </AlertDialogDescription>
                                                                         </AlertDialogHeader>
@@ -627,7 +664,7 @@ const renderClassStatusChip = (status: string) => {
                                                         <TableHead>Código</TableHead>
                                                         <TableHead>Nome da Turma</TableHead>
                                                         <TableHead className="text-center">Curso</TableHead>
-                                                        <TableHead>QTD Semestres</TableHead>
+                                                        <TableHead>Semestres Ativos</TableHead>
                                                         <TableHead>Data de Início</TableHead>
                                                         <TableHead>Data de Término</TableHead>
                                                         <TableHead>Status</TableHead>
@@ -636,7 +673,7 @@ const renderClassStatusChip = (status: string) => {
                                                 </TableHeader>
                                                 <TableBody>
                                                     {filteredClasses.map((cls) => {
-                                                        const {status} = getClassStatus(
+                                                        const { status } = getClassStatus(
                                                             cls.startDate,
                                                             cls.endDate
                                                         );
@@ -664,7 +701,7 @@ const renderClassStatusChip = (status: string) => {
                                                                         <Button
                                                                             variant="ghost"
                                                                             size="sm"
-                                                                            onClick={() => openCourseModal(cls.course)}
+                                                                            onClick={() => openCourseModal(cls)}
                                                                             className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                                                         >
                                                                             <GraduationCap className="h-4 w-4 mr-1" />
@@ -674,8 +711,20 @@ const renderClassStatusChip = (status: string) => {
                                                                         <span className="text-gray-400 text-sm">Sem curso</span>
                                                                     )}
                                                                 </TableCell>
-                                                                <TableCell>
-                                                                    {formatSemester(cls.semester)}
+                                                                <TableCell className="text-center">
+                                                                    {cls.sections && cls.sections.length > 0 ? (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => openSectionsModal(cls)}
+                                                                            className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                                        >
+                                                                            <Calendar className="h-4 w-4 mr-1" />
+                                                                            {cls.sections.length}
+                                                                        </Button>
+                                                                    ) : (
+                                                                        <span className="text-gray-400 text-sm">0</span>
+                                                                    )}
                                                                 </TableCell>
                                                                 <TableCell>{formatDate(cls.startDate)}</TableCell>
                                                                 <TableCell>{formatDate(cls.endDate)}</TableCell>
@@ -686,13 +735,14 @@ const renderClassStatusChip = (status: string) => {
                                                                             variant="outline"
                                                                             size="sm"
                                                                             onClick={() => openEditModal(cls)}
+                                                                            className="h-9 w-9 p-0 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors"
                                                                         >
-                                                                            <Edit className="h-4 w-4"/>
+                                                                            <Edit className="h-4 w-4" />
                                                                         </Button>
                                                                         <AlertDialog>
                                                                             <AlertDialogTrigger asChild>
-                                                                                <Button variant="outline" size="sm">
-                                                                                    <Trash2 className="h-4 w-4"/>
+                                                                                <Button variant="outline" size="sm" className="h-9 w-9 p-0 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg transition-colors">
+                                                                                    <Trash2 className="h-4 w-4" />
                                                                                 </Button>
                                                                             </AlertDialogTrigger>
                                                                             <AlertDialogContent>
@@ -768,9 +818,20 @@ const renderClassStatusChip = (status: string) => {
                 isOpen={isCourseModalOpen}
                 onClose={() => {
                     setIsCourseModalOpen(false);
-                    setSelectedCourse(null);
+                    setSelectedClassForView(null);
                 }}
-                course={selectedCourse}
+                classData={selectedClassForView}
+            />
+
+            {/* View Sections Modal */}
+            <ModalViewSections
+                isOpen={isSectionsModalOpen}
+                onClose={() => {
+                    setIsSectionsModalOpen(false);
+                    setSelectedClassForSections(null);
+                }}
+                sections={selectedClassForSections?.sections || []}
+                className={selectedClassForSections?.nome}
             />
         </div>
     );

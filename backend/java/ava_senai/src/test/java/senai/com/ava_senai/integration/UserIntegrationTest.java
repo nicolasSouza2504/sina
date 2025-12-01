@@ -11,10 +11,10 @@ import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import senai.com.ava_senai.config.TestConfig;
-import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.domain.user.UserLogin;
 import senai.com.ava_senai.domain.user.UserRegisterDTO;
 import senai.com.ava_senai.domain.user.UserResponseDTO;
+import senai.com.ava_senai.domain.user.role.Role;
 import senai.com.ava_senai.response.ApiResponse;
 
 import java.io.File;

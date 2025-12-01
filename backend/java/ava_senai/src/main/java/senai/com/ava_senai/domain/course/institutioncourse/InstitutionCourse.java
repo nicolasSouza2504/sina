@@ -1,6 +1,9 @@
 package senai.com.ava_senai.domain.course.institutioncourse;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Data;
 import senai.com.ava_senai.domain.DefaultEntity;
 import senai.com.ava_senai.domain.course.Course;
