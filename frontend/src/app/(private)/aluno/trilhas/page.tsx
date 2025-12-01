@@ -220,20 +220,20 @@ export default function AlunoTrilhasPage() {
                     <Accordion type="multiple" className="space-y-4">
                       {section.knowledgeTrails.map((trail) => (
                         <AccordionItem key={trail.id} value={`trail-${trail.id}`} className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-blue-300 transition-all">
-                          <AccordionTrigger className="px-6 py-4 bg-white hover:bg-gray-50 transition-colors hover:no-underline">
-                            <div className="flex items-center justify-between w-full mr-4">
-                              <div className="flex items-center gap-3">
-                                <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
-                                  <BookOpen className="h-5 w-5 text-blue-600" />
+                          <AccordionTrigger className="px-3 sm:px-6 py-3 sm:py-4 bg-white hover:bg-gray-50 transition-colors hover:no-underline">
+                            <div className="flex items-start sm:items-center w-full pr-2">
+                              <div className="flex items-start sm:items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                                <div className="p-1.5 sm:p-2 bg-blue-50 rounded-lg border border-blue-200 flex-shrink-0">
+                                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                                 </div>
-                                <div className="text-left">
-                                  <h3 className="text-xl font-bold text-gray-900 hover:no-underline">{trail.name}</h3>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                <div className="text-left flex-1 min-w-0">
+                                  <h3 className="text-base sm:text-xl font-bold text-gray-900 hover:no-underline break-words pr-1">{trail.name}</h3>
+                                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-1">
+                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs whitespace-nowrap">
                                       {trail.tasks?.length || 0} {trail.tasks?.length === 1 ? 'tarefa' : 'tarefas'}
                                     </Badge>
                                     {trail.ranked && (
-                                      <Badge className="bg-yellow-500 text-white">
+                                      <Badge className="bg-yellow-500 text-white text-xs whitespace-nowrap">
                                         <Trophy className="h-3 w-3 mr-1" />
                                         Ranqueada
                                       </Badge>
@@ -243,7 +243,7 @@ export default function AlunoTrilhasPage() {
                               </div>
                             </div>
                           </AccordionTrigger>
-                          <AccordionContent className="px-6 pb-4 bg-white">
+                          <AccordionContent className="px-3 sm:px-6 pb-3 sm:pb-4 bg-white">
                             {/* Lista de Tarefas */}
                             {trail.tasks && trail.tasks.length > 0 ? (
                               <div className="space-y-2 pt-2">
@@ -251,50 +251,49 @@ export default function AlunoTrilhasPage() {
                                   <button
                                     key={task.id}
                                     onClick={() => handleEnterTask(task.id)}
-                                    className="w-full flex items-center justify-between p-3 sm:p-4 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group"
+                                    className="w-full flex items-start sm:items-center gap-2 sm:gap-3 p-2.5 sm:p-4 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all group"
                                   >
-                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                      <div className="p-2 bg-white rounded-lg border border-gray-200 group-hover:border-blue-300 transition-colors flex-shrink-0">
-                                        <FileText className="h-4 w-4 text-blue-600" />
-                                      </div>
-                                      <div className="flex-1 min-w-0 text-left">
-                                        <p className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors truncate">
-                                          {task.name}
+                                    <div className="p-1.5 sm:p-2 bg-white rounded-lg border border-gray-200 group-hover:border-blue-300 transition-colors flex-shrink-0">
+                                      <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0 text-left">
+                                      <p className="text-sm sm:text-base font-medium text-gray-900 group-hover:text-blue-700 transition-colors break-words pr-1">
+                                        {task.name}
+                                      </p>
+                                      {task.description && (
+                                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mt-0.5">
+                                          {task.description}
                                         </p>
-                                        {task.description && (
-                                          <p className="text-sm text-gray-600 truncate">
-                                            {task.description}
-                                          </p>
-                                        )}
-                                        <div className="flex items-center gap-2 mt-1">
-                                          <Badge variant="outline" className="text-xs bg-white">
-                                            {task.contents?.length || 0} {task.contents?.length === 1 ? 'material' : 'materiais'}
+                                      )}
+                                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5 sm:mt-1">
+                                        <Badge variant="outline" className="text-[10px] sm:text-xs bg-white whitespace-nowrap">
+                                          {task.contents?.length || 0} {task.contents?.length === 1 ? 'material' : 'materiais'}
+                                        </Badge>
+                                        {task.difficultyLevel && (
+                                          <Badge
+                                            variant="outline"
+                                            className={`text-[10px] sm:text-xs whitespace-nowrap ${task.difficultyLevel === 'FACIL' ? 'bg-green-50 text-green-700 border-green-200' :
+                                              task.difficultyLevel === 'MEDIO' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                                'bg-red-50 text-red-700 border-red-200'
+                                              }`}
+                                          >
+                                            {task.difficultyLevel === 'FACIL' ? 'Fácil' : task.difficultyLevel === 'MEDIO' ? 'Médio' : 'Difícil'}
                                           </Badge>
-                                          {task.difficultyLevel && (
-                                            <Badge
-                                              variant="outline"
-                                              className={`text-xs ${task.difficultyLevel === 'FACIL' ? 'bg-green-50 text-green-700 border-green-200' :
-                                                task.difficultyLevel === 'MEDIO' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                                  'bg-red-50 text-red-700 border-red-200'
-                                                }`}
-                                            >
-                                              {task.difficultyLevel === 'FACIL' ? 'Fácil' : task.difficultyLevel === 'MEDIO' ? 'Médio' : 'Difícil'}
-                                            </Badge>
-                                          )}
-                                        </div>
+                                        )}
                                       </div>
                                     </div>
-                                    <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0" />
+                                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0 mt-0.5 sm:mt-0" />
                                   </button>
                                 ))}
                               </div>
                             ) : (
-                              <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
-                                <p className="text-sm text-gray-600">Nenhuma tarefa disponível nesta trilha</p>
+                              <div className="text-center py-4 sm:py-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <p className="text-xs sm:text-sm text-gray-600">Nenhuma tarefa disponível nesta trilha</p>
                               </div>
                             )}
                           </AccordionContent>
                         </AccordionItem>
+
                       ))}
                     </Accordion>
                   ) : (
@@ -314,8 +313,8 @@ export default function AlunoTrilhasPage() {
           </div>
         )}
 
-        <QuickActionsAluno />
       </div>
+
     </div>
   )
 }

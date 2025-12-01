@@ -6,7 +6,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { ClassSection } from "@/lib/interfaces/classInterfaces";
-import { Calendar, ListChecks, Hash } from "lucide-react";
+import { Calendar, ListChecks, Hash, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface ModalViewSectionsProps {
@@ -24,27 +24,29 @@ export default function ModalViewSections({
 }: ModalViewSectionsProps) {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="w-[95vw] max-w-[400px] sm:max-w-[500px] p-4 sm:p-6">
-                <DialogHeader className="pb-6">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-3 bg-blue-600 rounded-xl">
-                            <Calendar className="h-6 w-6 text-white" />
+            <DialogContent className="w-[95vw] max-w-[400px] sm:max-w-[500px] p-0 flex flex-col max-h-[90vh]">
+                {/* Header Fixo */}
+                <DialogHeader className="p-4 sm:p-6 pb-4 border-b border-gray-200 flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-blue-600 rounded-xl flex-shrink-0">
+                            <Eye className="h-6 w-6 text-white" />
                         </div>
-                        <div>
-                            <DialogTitle className="text-2xl font-bold text-gray-900">
-                                Semestres Ativos
+                        <div className="flex-1 min-w-0">
+                            <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">
+                                Semestres Vinculados
                             </DialogTitle>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-xs sm:text-sm text-gray-500 mt-1 truncate">
                                 {className ? `Turma: ${className}` : 'Semestres vinculados à turma'}
                             </p>
                         </div>
                     </div>
                 </DialogHeader>
 
-                <div className="space-y-4 mt-6">
+                {/* Conteúdo com Scroll */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
                     {/* Contador de Semestres */}
                     <div className="flex items-start gap-3 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
-                        <div className="p-2 bg-blue-100 rounded-lg">
+                        <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
                             <ListChecks className="h-5 w-5 text-blue-600" />
                         </div>
                         <div className="flex-1">
@@ -61,7 +63,7 @@ export default function ModalViewSections({
                     {sections.length > 0 ? (
                         <div className="space-y-3">
                             <p className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                                Semestres Vinculados
+                                Lista de Semestres
                             </p>
                             <div className="space-y-2">
                                 {sections.map((section) => (
@@ -69,11 +71,11 @@ export default function ModalViewSections({
                                         key={section.id}
                                         className="flex items-center gap-3 p-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-colors"
                                     >
-                                        <div className="p-2 bg-gray-100 rounded-lg">
+                                        <div className="p-2 bg-gray-100 rounded-lg flex-shrink-0">
                                             <Hash className="h-4 w-4 text-gray-600" />
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-gray-900">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-gray-900 truncate">
                                                 {section.name}
                                             </p>
                                             {section.semester && (
@@ -82,7 +84,7 @@ export default function ModalViewSections({
                                                 </p>
                                             )}
                                         </div>
-                                        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+                                        <Badge className="bg-blue-100 text-blue-700 border-blue-300 flex-shrink-0">
                                             ID: {section.id}
                                         </Badge>
                                     </div>
@@ -91,7 +93,7 @@ export default function ModalViewSections({
                         </div>
                     ) : (
                         <div className="flex items-start gap-3 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
-                            <div className="p-2 bg-yellow-100 rounded-lg">
+                            <div className="p-2 bg-yellow-100 rounded-lg flex-shrink-0">
                                 <Calendar className="h-5 w-5 text-yellow-600" />
                             </div>
                             <div className="flex-1">
