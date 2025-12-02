@@ -203,6 +203,11 @@ export default function GerenciarConteudo() {
   const [selectedContentForView, setSelectedContentForView] = useState<TaskContentSummary | null>(null);
   const [isViewContentModalOpen, setIsViewContentModalOpen] = useState(false);
 
+  // Estados para controlar accordions abertos
+  const [openSections, setOpenSections] = useState<string[]>([]);
+  const [openTrails, setOpenTrails] = useState<string[]>([]);
+  const [openTasks, setOpenTasks] = useState<string[]>([]);
+
   // Estados mock removidos - usando apenas componentes com API real
 
   // Carrega cursos da API real
@@ -283,10 +288,20 @@ export default function GerenciarConteudo() {
         description: 'A trilha foi adicionada e está disponível para uso.'
       });
 
-      // Recarrega o conteúdo do curso
+      // Atualização sutil: mantém accordions abertos
       if (selectedCourseId) {
-        await fetchCourseContent(selectedCourseId);
+        const updatedContent = await CourseContentSummaryService(parseInt(selectedCourseId));
+        
+        // Garante que a section onde a trilha foi criada permaneça aberta
+        const sectionKey = `section-${data.sectionId}`;
+        setOpenSections(prev => [...new Set([...prev, sectionKey])]);
+        
+        setCourseContent(updatedContent);
       }
+
+      // Fecha o modal após sucesso
+      setIsTrailModalOpen(false);
+      setTrailModalContext({});
 
       return response;
     } catch (error) {
@@ -306,10 +321,31 @@ export default function GerenciarConteudo() {
         description: 'As tarefas foram reordenadas com sucesso.'
       });
 
-      // Recarrega o conteúdo do curso
-      if (selectedCourseId) {
-        await fetchCourseContent(selectedCourseId);
+      // Atualização sutil: mantém accordions abertos
+      if (selectedCourseId && selectedTrailForReorder) {
+        const updatedContent = await CourseContentSummaryService(parseInt(selectedCourseId));
+        
+        // Garante que a trilha reordenada permaneça aberta
+        const trailKey = `trail-${selectedTrailForReorder.id}`;
+        
+        // Encontra a section da trilha
+        const sectionOfTrail = courseContent?.sections.find(s => 
+          s.knowledgeTrails.some(kt => kt.id === selectedTrailForReorder.id)
+        );
+        
+        if (sectionOfTrail) {
+          const sectionKey = `section-${sectionOfTrail.id}`;
+          setOpenSections(prev => [...new Set([...prev, sectionKey])]);
+        }
+        
+        setOpenTrails(prev => [...new Set([...prev, trailKey])]);
+        
+        setCourseContent(updatedContent);
       }
+      
+      // Fecha o modal após sucesso
+      setIsReorderModalOpen(false);
+      setSelectedTrailForReorder(null);
     } catch (error) {
       console.error('Erro ao reordenar tarefas:', error);
       toast.error('❌ Erro ao reordenar tarefas', {
@@ -331,11 +367,21 @@ export default function GerenciarConteudo() {
         description: 'As alterações foram salvas e aplicadas à trilha.'
       });
 
-      // Recarrega o conteúdo do curso
+      // Atualização sutil: mantém accordions abertos
       if (selectedCourseId) {
-        await fetchCourseContent(selectedCourseId);
+        const updatedContent = await CourseContentSummaryService(parseInt(selectedCourseId));
+        
+        // Garante que a trilha editada e sua section permaneçam abertas
+        const trailKey = `trail-${data.id}`;
+        const sectionKey = `section-${data.sectionId}`;
+        
+        setOpenSections(prev => [...new Set([...prev, sectionKey])]);
+        setOpenTrails(prev => [...new Set([...prev, trailKey])]);
+        
+        setCourseContent(updatedContent);
       }
 
+      // Fecha o modal após sucesso
       setEditTrail(null);
       setIsEditTrailModalOpen(false);
     } catch (error) {
@@ -382,10 +428,38 @@ export default function GerenciarConteudo() {
         description: 'A tarefa foi adicionada à trilha de conhecimento.'
       });
 
-      // Recarrega o conteúdo do curso mantendo o curso selecionado
-      if (selectedCourseId) {
-        await fetchCourseContent(selectedCourseId);
+      // Atualização sutil: busca apenas a trilha afetada
+      if (selectedCourseId && courseContent) {
+        const updatedContent = await CourseContentSummaryService(parseInt(selectedCourseId));
+        
+        // Mantém os accordions abertos
+        const updatedTrail = updatedContent.sections
+          .flatMap(s => s.knowledgeTrails)
+          .find(kt => kt.id === selectedKnowledgeTrailForTask.id);
+        
+        if (updatedTrail) {
+          // Garante que a trilha onde a tarefa foi adicionada permaneça aberta
+          const trailKey = `trail-${selectedKnowledgeTrailForTask.id}`;
+          
+          // Garante que a section da trilha permaneça aberta
+          const sectionOfTrail = updatedContent.sections.find(s => 
+            s.knowledgeTrails.some(kt => kt.id === selectedKnowledgeTrailForTask.id)
+          );
+          
+          if (sectionOfTrail) {
+            const sectionKey = `section-${sectionOfTrail.id}`;
+            setOpenSections(prev => [...new Set([...prev, sectionKey])]);
+          }
+          
+          setOpenTrails(prev => [...new Set([...prev, trailKey])]);
+        }
+        
+        setCourseContent(updatedContent);
       }
+      
+      // Fecha o modal após sucesso
+      setIsTaskModalOpen(false);
+      setSelectedKnowledgeTrailForTask(null);
     } catch (error) {
       console.error('Erro ao criar tarefa:', error);
       toast.error('❌ Erro ao criar tarefa', {
@@ -434,12 +508,38 @@ export default function GerenciarConteudo() {
         description: 'O material foi vinculado à tarefa e está disponível.'
       });
 
-      // Recarrega o conteúdo do curso mantendo o curso selecionado
+      // Atualização sutil: busca apenas o conteúdo atualizado
       if (selectedCourseId) {
-        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
-        setCourseContent(content);
+        const updatedContent = await CourseContentSummaryService(parseInt(selectedCourseId));
+        
+        // Mantém os accordions abertos - garante que a tarefa onde o conteúdo foi adicionado permaneça aberta
+        const taskKey = `task-${selectedTaskForContent.id}`;
+        
+        // Encontra a trilha e seção da tarefa
+        const taskTrail = courseContent?.sections
+          .flatMap(s => s.knowledgeTrails)
+          .find(kt => kt.tasks.some(t => t.id === selectedTaskForContent.id));
+        
+        if (taskTrail) {
+          const trailKey = `trail-${taskTrail.id}`;
+          const sectionOfTrail = courseContent?.sections.find(s => 
+            s.knowledgeTrails.some(kt => kt.id === taskTrail.id)
+          );
+          
+          if (sectionOfTrail) {
+            const sectionKey = `section-${sectionOfTrail.id}`;
+            setOpenSections(prev => [...new Set([...prev, sectionKey])]);
+          }
+          
+          setOpenTrails(prev => [...new Set([...prev, trailKey])]);
+        }
+        
+        setOpenTasks(prev => [...new Set([...prev, taskKey])]);
+        setCourseContent(updatedContent);
       }
 
+      // Fecha o modal após sucesso
+      setIsTaskContentModalOpen(false);
       setSelectedTaskForContent(null);
     } catch (error) {
       console.error('Erro ao criar conteúdo:', error);
@@ -460,9 +560,10 @@ export default function GerenciarConteudo() {
         description: 'O material foi removido da tarefa.'
       });
 
-      // Recarrega o conteúdo do curso
+      // Atualização sutil: mantém accordions abertos
       if (selectedCourseId) {
-        await fetchCourseContent(selectedCourseId);
+        const updatedContent = await CourseContentSummaryService(parseInt(selectedCourseId));
+        setCourseContent(updatedContent);
       }
 
       // Fecha o modal e limpa o estado
@@ -508,11 +609,33 @@ export default function GerenciarConteudo() {
 
       toast.success('✅ Tarefa atualizada com sucesso');
 
-      // Recarrega o conteúdo do curso
+      // Atualização sutil: mantém accordions abertos
       if (selectedCourseId) {
-        const content = await CourseContentSummaryService(parseInt(selectedCourseId));
-        setCourseContent(content);
+        const updatedContent = await CourseContentSummaryService(parseInt(selectedCourseId));
+        
+        // Garante que a trilha e tarefa editadas permaneçam abertas
+        const trailKey = `trail-${data.knowledgeTrailId}`;
+        const taskKey = `task-${data.id}`;
+        
+        // Encontra a section da trilha
+        const sectionOfTrail = courseContent?.sections.find(s => 
+          s.knowledgeTrails.some(kt => kt.id === data.knowledgeTrailId)
+        );
+        
+        if (sectionOfTrail) {
+          const sectionKey = `section-${sectionOfTrail.id}`;
+          setOpenSections(prev => [...new Set([...prev, sectionKey])]);
+        }
+        
+        setOpenTrails(prev => [...new Set([...prev, trailKey])]);
+        setOpenTasks(prev => [...new Set([...prev, taskKey])]);
+        
+        setCourseContent(updatedContent);
       }
+      
+      // Fecha o modal após sucesso
+      setIsEditTaskModalOpen(false);
+      setEditTask(null);
     } catch (error) {
       console.error('Erro ao atualizar tarefa:', error);
       toast.error('❌ Erro ao atualizar tarefa', {
@@ -763,7 +886,12 @@ export default function GerenciarConteudo() {
               </Button>
             </div>
           ) : filteredSections.length > 0 ? (
-            <Accordion type="multiple" className="space-y-3">
+            <Accordion 
+              type="multiple" 
+              className="space-y-3"
+              value={openSections}
+              onValueChange={setOpenSections}
+            >
               {filteredSections.map((section) => (
                 <AccordionItem key={section.id} value={`section-${section.id}`} className="border rounded-lg bg-white">
                   <AccordionTrigger className="px-4 py-3 hover:no-underline">
@@ -777,7 +905,10 @@ export default function GerenciarConteudo() {
                   </AccordionTrigger>
                   <AccordionContent className="px-4 pb-4">
                     {section.knowledgeTrails && section.knowledgeTrails.length > 0 ? (
-                      <Accordion type="multiple" className="space-y-2">
+                      <Accordion type="multiple" className="space-y-2"
+                        value={openTrails}
+                        onValueChange={setOpenTrails}
+                      >
                         {section.knowledgeTrails.map(trail => (
                           <AccordionItem key={trail.id} value={`trail-${trail.id}`} className="border-l-4 border-l-blue-500 rounded-lg bg-blue-50/30">
                             <div className="px-3 py-2">
@@ -859,7 +990,10 @@ export default function GerenciarConteudo() {
                             </div>
                             <AccordionContent className="px-3 pb-3">
                               {trail.tasks && trail.tasks.length > 0 ? (
-                                <Accordion type="multiple" className="space-y-2">
+                                <Accordion type="multiple" className="space-y-2"
+                                  value={openTasks}
+                                  onValueChange={setOpenTasks}
+                                >
                                   {[...trail.tasks].sort((a, b) => a.taskOrder - b.taskOrder).map(task => (
                                     <AccordionItem key={task.id} value={`task-${task.id}`} className="border rounded-lg bg-white">
                                       <div className="px-3 py-2">
