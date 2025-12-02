@@ -34,6 +34,7 @@ import { useCallback, useEffect, useState } from "react";
 import { UserFromToken } from "@/lib/interfaces/userInterfaces";
 import { NotificationsBell } from '@/components/ui/notifications-bell';
 import { useSidebar } from "@/components/ui/sidebar";
+import signOutClient from "@/lib/utils/signOutClient";
 // Telas exclusivas do ADMIN (gerenciamento + professor)
 const adminItems = [
   {
@@ -173,15 +174,6 @@ export function AppSidebar() {
     }
   }, [isMobile, setOpenMobile]);
 
-  const handleSignout = useCallback(async () => {
-    closeSidebarOnNavigate();
-    const result = await signOut();
-    if (result) {
-      router.push("/login");
-    } else {
-      console.error("Failed to sign out");
-    }
-  }, [closeSidebarOnNavigate, router]);
 
   const handleProfileClick = useCallback(() => {
     closeSidebarOnNavigate();
@@ -249,6 +241,16 @@ export function AppSidebar() {
 
     return false;
   };
+
+  const handleSignout = useCallback(async () => {
+    const result = await signOut();
+    signOutClient();
+    if (result) {
+      router.push("/login");
+    } else {
+      console.error("Failed to sign out");
+    }
+  }, [router]);
 
   return (
     <Sidebar>
