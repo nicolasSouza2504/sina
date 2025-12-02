@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { SuccessToast } from '@/components/ui/success-message';
 import QuickActions from '@/components/admin/quickActions';
 import EditCourseModal from '@/components/professor/EditCourseModal';
+import CreateCourseModal from '@/components/professor/CreateCourseModal';
 import { 
   ArrowLeft, 
   BookOpen,
@@ -33,6 +34,7 @@ export default function GerenciarCursos() {
   const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [courseToEdit, setCourseToEdit] = useState<Course | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     loadCourses();
@@ -104,7 +106,7 @@ export default function GerenciarCursos() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gerenciar Cursos</h1>
             <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Gerencie cursos, semestres e controle de acesso</p>
           </div>
-          <Button onClick={() => router.push('/professor/curso/novo')} className="w-full sm:w-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200">
+          <Button onClick={() => setIsCreateModalOpen(true)} className="w-full sm:w-auto h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200">
             <Plus className="h-4 w-4 mr-2" />
             Novo Curso
           </Button>
@@ -312,6 +314,13 @@ export default function GerenciarCursos() {
           )}
         </div>
       </div>
+
+      {/* Create Course Modal */}
+      <CreateCourseModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCourseCreated={loadCourses}
+      />
 
       {/* Edit Course Modal */}
       <EditCourseModal

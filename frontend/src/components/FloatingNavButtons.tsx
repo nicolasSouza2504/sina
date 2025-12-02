@@ -24,6 +24,7 @@ import { useCallback, useEffect, useState } from "react";
 import { UserFromToken } from "@/lib/interfaces/userInterfaces";
 import getUserFromToken from "@/lib/auth/userToken";
 import signOut from "@/lib/api/auth/signout";
+import signOutClient from "@/lib/utils/signOutClient";
 
 // Telas exclusivas do ADMIN (gerenciamento + professor)
 const adminItems = [
@@ -158,6 +159,7 @@ export function FloatingNavButtons() {
 
   const handleSignout = useCallback(async () => {
     const result = await signOut();
+    signOutClient();
     if (result) {
       router.push("/login");
     } else {
