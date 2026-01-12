@@ -64,3 +64,63 @@ O sistema busca:
 
 Agradecimento à instituição UniSenai Joinville, aos docentes do curso de ADS, ao orientador e aos colegas envolvidos na elicitação de requisitos e validação do sistema.
 
+## Guia de Execução (Run Guide)
+
+### Pré-requisitos
+- Docker e Docker Compose (opcional, para execução via containers)
+- Node.js 18+ e npm (para frontend local)
+
+---
+
+### Backend (Java - Spring Boot)
+
+#### Executando Localmente
+1. Instale o Java 17+ e o Maven 3.9+.
+2. Acesse a pasta do backend Java:
+   ```bash
+   cd backend/java/ava_senai
+   ```
+3. Compile e execute o projeto:
+   ```bash
+   mvn clean package -DskipTests=true
+   java -jar target/*.jar
+   ```
+   O backend estará disponível em `http://localhost:8080`.
+
+#### Executando com Docker
+1. Construa e suba o container:
+   ```bash
+   cd backend/java/ava_senai
+   docker build -t ava-senai-backend-java .
+   docker run -p 8080:8080 ava-senai-backend-java
+   ```
+
+---
+
+### Frontend (Next.js)
+
+#### Executando Localmente
+1. Instale as dependências:
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
+   O frontend estará disponível em `http://localhost:3000`.
+
+#### Executando com Docker
+1. Construa e suba o container:
+   ```bash
+   cd frontend
+   docker build -t ava-senai-frontend .
+   docker run -p 3000:3000 ava-senai-frontend
+   ```
+
+---
+
+### Observações
+- Certifique-se de que o backend esteja rodando antes de acessar o frontend.
+- Ajuste variáveis de ambiente conforme necessário para integração entre frontend e backend.
